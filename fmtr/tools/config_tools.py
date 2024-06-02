@@ -1,6 +1,6 @@
 """
 
-
+Config tools for downstream projects
 
 """
 from dataclasses import dataclass, fields, Field as DataclassField
@@ -11,7 +11,7 @@ from typing import List, Type
 class ConfigClass:
     """
 
-
+    Base class for all config classes.
 
     """
 

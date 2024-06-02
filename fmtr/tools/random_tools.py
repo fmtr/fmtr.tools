@@ -1,3 +1,8 @@
+"""
+
+Additional random choice and number functions, mostly useful for data augmentation.
+
+"""
 import contextlib
 import multiprocessing
 import random
@@ -10,6 +15,11 @@ import math
 
 @contextlib.contextmanager
 def temporary_seed(seed=0):
+    """
+
+    Temporarily set random seed and revert
+
+    """
     import random
     state = random.getstate()
     random.seed(seed)
@@ -20,25 +30,50 @@ def temporary_seed(seed=0):
 
 
 def choices_w(*data, k=1):
+    """
+
+    Allow choices and weights to be set in a more intuitive manner.
+
+    """
     population, weights = list(zip(*data))
     return choices(population, weights, k=k)
 
 
 def choice_w(*data):
+    """
+
+    Singleton version of choices_w.
+
+    """
     return choices_w(*data, k=1)[0]
 
 
 @lru_cache
 def set_seed_mp_pid():
+    """
+
+    Set the random seed to be the process ID, to ensure subprocesses don't create identical randoms
+
+    """
     if multiprocessing.parent_process():
         seed(getpid())
 
 
-def prob(p=0.5):
+def prob(p=0.5) -> bool:
+    """
+
+    Return `True` with probability `p` and `False` otherwise.
+
+    """
     return random.random() <= float(p)
 
 
-def rand_log10(lower, upper):
+def rand_log10(lower, upper) -> float|int:
+    """
+
+    Generate a random number within a specified range on a logarithmic scale
+
+    """
     if lower == upper:
         return lower
 
