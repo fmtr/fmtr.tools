@@ -17,7 +17,7 @@ packages = [name] + [f'{name}.{nsp}' for nsp in packages]
 setup(
     name=name,
     version=__version__,
-    url='https://github.com/fmtr/fmtr.tools',
+    url=f'https://github.com/{name_ns}/{name}',
     license='Copyright © 2024 Frontmatter. All rights reserved.',
     author='Frontmatter',
     author_email='innovative.fowler@mask.pro.fmtr.dev',
