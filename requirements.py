@@ -8,6 +8,7 @@ INSTALL=[]
 DEPENDENCIES = {
     'test': ['pytest-cov'],
     'yaml': ['pyyaml'],
+    'logging': ['loguru'],
 }
 
 
