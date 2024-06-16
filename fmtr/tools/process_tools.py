@@ -70,7 +70,7 @@ class ContextProcess:
     def __exit__(self, exc_type, exc_val, exc_tb):
         """
 
-        Stop processes when exiting a context manager exits.
+        Stop processes when the context manager exits.
 
         """
         if self.process:
