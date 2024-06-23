@@ -9,6 +9,7 @@ DEPENDENCIES = {
     'test': ['pytest-cov'],
     'yaml': ['pyyaml'],
     'logging': ['loguru'],
+    'parallel': ['dask[bag]', 'distributed', 'bokeh'],
 }
 
 
