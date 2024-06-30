@@ -3,7 +3,12 @@ from dataclasses import fields as get_fields_tuple
 from fmtr.tools.tools import EMPTY
 
 
-def get_fields(cls, **filters):
+def get_fields(cls, **filters) -> dict:
+    """
+
+    Get a dictionary of fields from a dataclass.
+
+    """
     fields = {}
     for field in get_fields_tuple(cls):
         if all([getattr(field, key) is value for key, value in filters.items()]):
@@ -12,13 +17,23 @@ def get_fields(cls, **filters):
     return fields
 
 
-def get_metadata(cls, **filters):
+def get_metadata(cls, **filters) -> dict:
+    """
+
+    Get a dictionary of fields metadata from a dataclass.
+
+    """
     fields = get_fields(cls, **filters)
     metadata = {name: field.metadata for name, field in fields.items()}
     return metadata
 
 
 def get_enabled_fields(cls, name, enabled=True, default=EMPTY, **filters):
+    """
+
+    Get a dictionary of fields metadata from a dataclass filtered by enabled fields.
+
+    """
     metadata = get_metadata(cls, **filters)
 
     names = []
