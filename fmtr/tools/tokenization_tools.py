@@ -24,7 +24,7 @@ except ImportError as exception:  # pragma: no cover
 class TokenConfig(ConfigClass):
     """
 
-
+    Default config for special characters etc.
 
     """
     PAD = '<pad>'
@@ -47,6 +47,7 @@ class TokenConfig(ConfigClass):
 def fix_length(tokenizer: Tokenizer, length: int):
     """
 
+    Fix tokenizer length if input is too long
 
     """
     if length > TokenConfig.VARIABLE_LENGTH:
@@ -60,7 +61,7 @@ def fix_length(tokenizer: Tokenizer, length: int):
 def get_template(cls=True, sep=True, pair=False):
     """
 
-
+    Create a tokenizers template
 
     """
 
@@ -87,7 +88,7 @@ def get_template(cls=True, sep=True, pair=False):
 def add_template(tokenizer: Tokenizer, cls, sep):
     """
 
-
+    Add a tokenizers template
 
     """
     tokenizer.post_processor = TemplateProcessing(
@@ -124,6 +125,7 @@ def train_bpe_tokenizer(data, vocab_size: int = TokenConfig.VOCAB_SIZE, min_freq
                         show_progress: bool = True, cls: bool = True, sep: bool = True) -> Tokenizer:
     """
 
+    Train byte-pair encoder from given parameters
 
     """
     model = BPE(unk_token=TokenConfig.UNK)
