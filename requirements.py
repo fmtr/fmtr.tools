@@ -10,6 +10,7 @@ DEPENDENCIES = {
     'yaml': ['pyyaml'],
     'logging': ['loguru'],
     'parallel': ['dask[bag]', 'distributed', 'bokeh'],
+    'tokenization': ['tokenizers'],
 }
 
 
