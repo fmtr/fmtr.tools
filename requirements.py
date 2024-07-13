@@ -11,6 +11,9 @@ DEPENDENCIES = {
     'logging': ['loguru'],
     'parallel': ['dask[bag]', 'distributed', 'bokeh'],
     'tokenization': ['tokenizers'],
+    'augmentation': ['faker', 'sre_yield'],
+    'profiling': ['contexttimer'],
+    'docker.api': ['docker'],
 }
 
 
