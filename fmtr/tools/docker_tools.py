@@ -9,7 +9,12 @@ except ImportError as exception:  # pragma: no cover
 
 
 @contextlib.contextmanager
-def Container(image='', ports=None, name=None, **kwargs):
+def Container(image, ports=None, name=None, **kwargs):
+    """
+
+    Run a Docker container in a context manager
+
+    """
     client = docker.from_env()
 
     try:
@@ -29,6 +34,3 @@ def Container(image='', ports=None, name=None, **kwargs):
         container.remove()
 
 
-if __name__ == '__main__':
-    with Container('yeasy/simple-web:latest', ports=[80], name='ws') as container:
-        container.logs()
