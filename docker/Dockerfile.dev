@@ -1,0 +1,6 @@
+FROM fmtr/python
+
+WORKDIR /fmtr/tools
+COPY --from=tools ../requirements.py .
+RUN python requirements.py > requirements.txt
+RUN pip install -r requirements.txt --no-cache-dir
