@@ -3,7 +3,7 @@ import subprocess
 from inspect import stack
 from pathlib import Path
 from tempfile import gettempdir
-from typing import Union, Any
+from typing import Union, Any, Self
 
 from fmtr.tools.config import ToolsConfig
 from fmtr.tools.platform_tools import is_wsl
@@ -66,7 +66,7 @@ class Path(type(Path())):
         return path_wsl
 
     @classmethod
-    def package(cls) -> 'Path':
+    def package(cls) -> Self:
         """
 
         Get path to originating module (e.g. directory containing .py file).
@@ -77,7 +77,7 @@ class Path(type(Path())):
         return path
 
     @classmethod
-    def module(cls) -> 'Path':
+    def module(cls) -> Self:
         """
 
         Get path to originating module (i.e. .py file).
@@ -88,7 +88,7 @@ class Path(type(Path())):
         return path
 
     @classmethod
-    def temp(cls) -> 'Path':
+    def temp(cls) -> Self:
         """
 
         Get path to temporary directory.
