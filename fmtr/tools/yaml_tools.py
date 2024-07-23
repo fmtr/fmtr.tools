@@ -1,12 +1,6 @@
 from typing import Any
-
-try:
-    from yaml import load, dump
-    from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError as exception:  # pragma: no cover
-    from fmtr.tools.tools import raise_missing_extra
-
-    raise_missing_extra('yaml', exception)
+from yaml import CLoader as Loader, CDumper as Dumper
+from yaml import load, dump
 
 
 def to_yaml(obj: Any) -> str:

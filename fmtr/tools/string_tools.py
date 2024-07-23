@@ -32,3 +32,13 @@ def is_format_string(string: str) -> bool:
         return False
     else:
         return True
+
+
+def get_var_name(string: str) -> str:
+    """
+
+    Get the name of a variable from a (resolved) f-string `{a=}`
+
+    """
+    name, value = string.split('=', maxsplit=1)
+    return name

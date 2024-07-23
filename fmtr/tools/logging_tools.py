@@ -1,16 +1,11 @@
 import sys
 
-try:
-    from loguru import logger as logger_loguru
-except ImportError as exception:  # pragma: no cover
-    from fmtr.tools.tools import raise_missing_extra
-
-    raise_missing_extra('logging', exception)
+from loguru import logger as logger_loguru
 
 from fmtr.tools.config import ToolsConfig
 from fmtr.tools.config_tools import ConfigClass
-from fmtr.tools.path_tools import Path
 from fmtr.tools.environment_tools import get_env
+from fmtr.tools.path_tools import Path
 
 
 class LoggingConfig(ConfigClass):

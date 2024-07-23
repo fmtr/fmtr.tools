@@ -102,8 +102,8 @@ class Path(type(Path())):
         Write the specified object to the path as a JSON string
 
         """
-        from fmtr.tools import json_tools
-        json_str = json_tools.to_json(obj)
+        from fmtr.tools import json
+        json_str = json.to_json(obj)
         return self.write_text(json_str, encoding=ToolsConfig.ENCODING)
 
     def read_json(self) -> Any:
@@ -112,9 +112,9 @@ class Path(type(Path())):
         Read JSON from the file and return as a Python object
 
         """
-        from fmtr.tools import json_tools
+        from fmtr.tools import json
         json_str = self.read_text(encoding=ToolsConfig.ENCODING)
-        obj = json_tools.from_json(json_str)
+        obj = json.from_json(json_str)
         return obj
 
     def write_yaml(self, obj) -> int:
@@ -123,8 +123,8 @@ class Path(type(Path())):
         Write the specified object to the path as a JSON string
 
         """
-        from fmtr.tools import yaml_tools
-        yaml_str = yaml_tools.to_yaml(obj)
+        from fmtr.tools import yaml
+        yaml_str = yaml.to_yaml(obj)
         return self.write_text(yaml_str, encoding=ToolsConfig.ENCODING)
 
     def read_yaml(self) -> Any:
@@ -133,9 +133,9 @@ class Path(type(Path())):
         Read YAML from the file and return as a Python object
 
         """
-        from fmtr.tools import yaml_tools
+        from fmtr.tools import yaml
         yaml_str = self.read_text(encoding=ToolsConfig.ENCODING)
-        obj = yaml_tools.from_yaml(yaml_str)
+        obj = yaml.from_yaml(yaml_str)
         return obj
 
     def mkdirf(self):

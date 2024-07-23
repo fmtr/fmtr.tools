@@ -1,20 +1,15 @@
-from contextlib import nullcontext as NullContext
 from multiprocessing import cpu_count
+
+import dask
+import dask.bag as db
+from contextlib import nullcontext as NullContext
+from dask.diagnostics import ProgressBar
 from typing import List, Callable, Any, Union
 
 from fmtr.tools.config_tools import ConfigClass
 from fmtr.tools.iterator_tools import dict_records_to_lists
 from fmtr.tools.logging_tools import logger
 from fmtr.tools.path_tools import Path
-
-try:
-    import dask
-    import dask.bag as db
-    from dask.diagnostics import ProgressBar
-except ImportError as exception:  # pragma: no cover
-    from fmtr.tools.tools import raise_missing_extra
-
-    raise_missing_extra('parallel', exception)
 
 
 class ParallelConfig(ConfigClass):

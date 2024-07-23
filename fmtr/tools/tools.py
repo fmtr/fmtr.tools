@@ -10,15 +10,12 @@ class MissingExtraError(ImportError):
 
     """
 
+    MASK = 'The current module is missing dependencies. To install them, run: `pip install {library}[{extra}] --upgrade`'
 
-def raise_missing_extra(extra, exception, library=ToolsConfig.LIBRARY_NAME):
-    """
+    def __init__(self, extra):
+        self.message = self.MASK.format(library=ToolsConfig.LIBRARY_NAME, extra=extra)
 
-    Raise if required dependencies are missing.
-
-    """
-    msg = f'The current module is missing dependencies. To install them, run: pip install {library}[{extra}] --upgrade'
-    raise MissingExtraError(msg) from exception
+        super().__init__(self.message)
 
 
 def identity(x: Any) -> Any:

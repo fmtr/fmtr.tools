@@ -1,24 +1,15 @@
+from tokenizers import Tokenizer
+from tokenizers import normalizers
+from tokenizers import pre_tokenizers
+from tokenizers.models import BPE
+from tokenizers.models import WordLevel
+from tokenizers.processors import TemplateProcessing
+from tokenizers.trainers import BpeTrainer
+from tokenizers.trainers import WordLevelTrainer
 from typing import List
 
 from fmtr.tools.config_tools import ConfigClass
 from fmtr.tools.path_tools import Path
-
-try:
-    from tokenizers import Tokenizer
-    from tokenizers.models import WordLevel
-    from tokenizers import normalizers
-    from tokenizers.processors import TemplateProcessing
-    from tokenizers.trainers import WordLevelTrainer
-    from tokenizers import Tokenizer
-    from tokenizers.models import BPE
-    from tokenizers.trainers import BpeTrainer
-
-    from tokenizers import pre_tokenizers
-    from tokenizers import Regex
-except ImportError as exception:  # pragma: no cover
-    from fmtr.tools.tools import raise_missing_extra
-
-    raise_missing_extra('tokenization', exception)
 
 
 class TokenConfig(ConfigClass):
