@@ -21,7 +21,9 @@ At the same time, I find that traditional tools collections inevitably become bl
 
 The base library can be installed like this:
 
-`pip install fmtr.tools`
+```bash
+pip install fmtr.tools
+```
 
 ## Usage
 
@@ -29,7 +31,7 @@ Some simple import and usage examples
 
 ### Read an integer from an environment variable and write it to a (human-readable) JSON file:
 
-```
+```python
 from fmtr import tools
 from fmtr.tools import Path
 
@@ -42,9 +44,11 @@ Path('data.json').write_json(data)
 
 Install the extra:
 
-`pip install fmtr.tools[parallel] --upgrade`
-
+```bash
+pip install fmtr.tools[parallel] --upgrade
 ```
+
+```python
 from fmtr.tools import parallel
 
 def expensive_computation(n):
@@ -62,7 +66,9 @@ if __name__ == '__main__':
 
 Most tools require no additional dependencies, but for any that do, you can add them like this:
 
-`pip install fmtr.tools[<extra>] --upgrade`
+```bash
+pip install fmtr.tools[<extra>] --upgrade
+```
 
 If you try to use a module without the required extras, you'll get a message telling you which one is needed:
 
