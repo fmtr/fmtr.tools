@@ -29,7 +29,7 @@ jobs:
 
       - name: Install Tools
         run: |
-          pip install twine tappack
+          pip install twine
 
       - name: Increment Version
         env:
