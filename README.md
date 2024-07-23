@@ -29,7 +29,7 @@ pip install fmtr.tools
 
 Some simple import and usage examples
 
-### Read an integer from an environment variable and write it to a (human-readable) JSON file:
+### Read an integer from an environment variable and write it to a (human-readable) JSON file
 
 ```python
 from fmtr import tools
