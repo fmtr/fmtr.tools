@@ -14,10 +14,8 @@ At the same time, I find that traditional tools collections inevitably become bl
 
 ## Key Features
 
-- **Wide-Ranging Utilities
-  **: The collection includes tools for configuration, data types, environment management, functions, hashing, importing, iterating, JSON handling, path manipulation, platform-specific operations, randomness, and string operations.
-- **Lean Dependencies
-  **: Dependencies are managed via extras, allowing you to install only what you need. Missing dependencies are handled in a clear way, telling you what's missing and how to install it.
+- Wide-Ranging Utilities: The collection includes tools for configuration, data types, environment management, functions, hashing, importing, iterating, JSON handling, path manipulation, platform-specific operations, randomness, and string operations.
+- Lean Dependencies: Dependencies are managed via extras, allowing you to install only what you need. Missing dependencies are handled in a clear way, telling you what's missing and how to install it.
 
 ## Installing
 
