@@ -78,7 +78,7 @@ MissingExtraError: The current module is missing dependencies. To install them, 
 
 ## Modules
 
-The including modules, please any extra requirements, are as follows:
+The included modules, plus any extra requirements, are as follows:
 
 - `tools.config`: Base config class with overridable field processors.
     - Extras: None
