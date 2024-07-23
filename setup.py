@@ -1,5 +1,4 @@
 from pathlib import Path
-
 from setuptools import find_namespace_packages, setup, find_packages
 
 import requirements
@@ -21,7 +20,9 @@ setup(
     license='Copyright © 2024 Frontmatter. All rights reserved.',
     author='Frontmatter',
     author_email='innovative.fowler@mask.pro.fmtr.dev',
-    description='Frontmatter tools for AI projects',
+    description='Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML',
+    long_description=(path_base / 'README.md').read_text(),
+    long_description_content_type='text/markdown',
     packages=find_namespace_packages(),
     package_dir={'': '.'},
     package_data={
