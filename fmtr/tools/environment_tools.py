@@ -21,7 +21,7 @@ class MissingEnvironmentVariable(KeyError):
     """
 
 
-def get_env_dict() -> Dict[str, str]:
+def get_dict() -> Dict[str, str]:
     """
 
     Return environment variables as a standard dictionary.
@@ -31,7 +31,7 @@ def get_env_dict() -> Dict[str, str]:
     return environment_dict
 
 
-def get_env(name: str, default: Any = EMPTY, converter: Callable = identity, convert_empty: bool = False) -> Any:
+def get(name: str, default: Any = EMPTY, converter: Callable = identity, convert_empty: bool = False) -> Any:
     """
 
     Return the specified environment variable, handling default substitution and simple type conversion.
@@ -49,7 +49,7 @@ def get_env(name: str, default: Any = EMPTY, converter: Callable = identity, con
     return value
 
 
-def get_env_getter(converter: Callable) -> Callable:
+def get_getter(converter: Callable) -> Callable:
     """
 
     Return an environment getter for the specified type.
@@ -62,15 +62,15 @@ def get_env_getter(converter: Callable) -> Callable:
         Environment getter that converts to the specified type
 
         """
-        value = get_env(name, default=default, converter=converter)
+        value = get(name, default=default, converter=converter)
         return value
 
     return func
 
 
-get_env_int = get_env_getter(lambda n: int(float(n)))
-get_env_float = get_env_getter(float)
-get_env_bool = get_env_getter(to_bool)
-get_env_date = get_env_getter(date.fromisoformat)
-get_env_datetime = get_env_getter(datetime.fromisoformat)
-get_env_path = get_env_getter(Path)
+get_int = get_getter(lambda n: int(float(n)))
+get_float = get_getter(float)
+get_bool = get_getter(to_bool)
+get_date = get_getter(date.fromisoformat)
+get_datetime = get_getter(datetime.fromisoformat)
+get_path = get_getter(Path)

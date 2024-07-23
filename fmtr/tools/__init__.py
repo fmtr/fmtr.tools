@@ -39,9 +39,8 @@ except ImportError as exception:
 
 try:
     from fmtr.tools import parallel_tools as parallel
-    from fmtr.tools.parallel_tools import apply_parallel
 except ImportError as exception:
-    parallel = apply_parallel = MissingExtraMockModule('parallel', exception)
+    parallel = MissingExtraMockModule('parallel', exception)
 
 try:
     from fmtr.tools import profiling_tools as profiling
@@ -84,7 +83,6 @@ __all__ = [
     'docker',
     'Container',
     'parallel',
-    'apply_parallel',
     'profiling',
     'Timer',
     'tokenization',

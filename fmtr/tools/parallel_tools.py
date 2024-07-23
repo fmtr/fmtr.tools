@@ -41,10 +41,10 @@ def get_nullary_wrapper(func: Callable):
     return wrap_nullary
 
 
-def apply_parallel(func: Callable, data: Union[List[Any], int], *args, num_workers: int = cpu_count(),
-                   scheduler: str = ParallelConfig.PROCESSES,
-                   parallelize: bool = True, show_progress: bool = False, return_future: bool = False, **kwargs) -> \
-List[Any]:
+def apply(func: Callable, data: Union[List[Any], int], *args, num_workers: int = cpu_count(),
+          scheduler: str = ParallelConfig.PROCESSES,
+          parallelize: bool = True, show_progress: bool = False, return_future: bool = False, **kwargs) -> \
+        List[Any]:
     """
 
     Helper function for a one-off, intensive parallel computation task.

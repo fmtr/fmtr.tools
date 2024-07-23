@@ -4,7 +4,7 @@ from loguru import logger as logger_loguru
 
 from fmtr.tools.config import ToolsConfig
 from fmtr.tools.config_tools import ConfigClass
-from fmtr.tools.environment_tools import get_env
+from fmtr.tools.environment_tools import get
 from fmtr.tools.path_tools import Path
 
 
@@ -17,7 +17,7 @@ class LoggingConfig(ConfigClass):
     FUNCTION = '{function}(…)'
     MESSAGE = '{message}'
     DEFAULT_LEVEL_KEY = 'FMTR_LOG_LEVEL'
-    DEFAULT_LEVEL = get_env(DEFAULT_LEVEL_KEY, 'INFO')
+    DEFAULT_LEVEL = get(DEFAULT_LEVEL_KEY, 'INFO')
 
     FILENAME = f'log-{ToolsConfig.DATETIME_NOW_STR}.log'
 
