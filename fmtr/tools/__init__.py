@@ -10,12 +10,10 @@ import fmtr.tools.iterator_tools as iterator
 import fmtr.tools.json_tools as json
 import fmtr.tools.path_tools as path
 import fmtr.tools.platform_tools as platform
-import fmtr.tools.process_tools as process
 import fmtr.tools.random_tools as random
 import fmtr.tools.string_tools as string
 from fmtr.tools.import_tools import MissingExtraMockModule
 from fmtr.tools.path_tools import Path
-from fmtr.tools.process_tools import ContextProcess
 
 try:
     from fmtr.tools import augmentation_tools as augmentation
@@ -52,6 +50,12 @@ except ImportError as exception:
     profiling = Timer = MissingExtraMockModule('profiling', exception)
 
 try:
+    import fmtr.tools.process_tools as process
+    from fmtr.tools.process_tools import ContextProcess
+except ImportError as exception:
+    process = ContextProcess = MissingExtraMockModule('process', exception)
+
+try:
     from fmtr.tools import tokenization_tools as tokenization
 except ImportError as exception:
     tokenization = MissingExtraMockModule('tokenization', exception)
@@ -84,5 +88,4 @@ __all__ = [
     'profiling',
     'Timer',
     'tokenization',
-
 ]

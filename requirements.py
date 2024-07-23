@@ -1,7 +1,6 @@
 from itertools import chain
-from typing import List, Dict
 
-from setuptools import find_namespace_packages, setup
+from typing import List, Dict
 
 INSTALL=[]
 
@@ -12,6 +11,7 @@ DEPENDENCIES = {
     'parallel': ['dask[bag]', 'distributed', 'bokeh'],
     'tokenization': ['tokenizers'],
     'augmentation': ['faker', 'sre_yield'],
+    'process': ['logging'],
     'profiling': ['contexttimer'],
     'docker.api': ['docker'],
 }
