@@ -122,6 +122,8 @@ The included modules, plus any extra requirements, are as follows:
     - Extras: `profiling`
 - `tools.tokenization`: Provides utilities for creating and configuring tokenizers using the Tokenizers library. Iincludes functions for training both word-level and byte-pair encoding (BPE) tokenizers, applying special formatting and templates, and managing tokenizer configurations such as padding, truncation, and special tokens.
     - Extras: `tokenization`
+- `tools.unicode`: Simple unicode decoding (via `Unidecode`).
+  - Extras: `unicode`
 
 ## Contribution
 

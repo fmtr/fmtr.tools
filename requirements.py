@@ -14,6 +14,7 @@ DEPENDENCIES = {
     'process': ['logging'],
     'profiling': ['contexttimer'],
     'docker.api': ['docker'],
+    'unicode': ['Unidecode'],
 }
 
 

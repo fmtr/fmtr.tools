@@ -59,6 +59,11 @@ try:
 except ImportError as exception:
     tokenization = MissingExtraMockModule('tokenization', exception)
 
+try:
+    from fmtr.tools import unicode_tools as unicode
+except ImportError as exception:
+    unicode = MissingExtraMockModule('unicode', exception)
+
 __all__ = [
     'config',
     'dataclass',
@@ -86,4 +91,5 @@ __all__ = [
     'profiling',
     'Timer',
     'tokenization',
+    'unicode'
 ]
