@@ -155,11 +155,14 @@ class Path(type(Path())):
         """
         import os
         from fmtr.tools.tools import ToolsConfig
+        from fmtr.tools import datatype
         frame_called = stack()[1]
         path = cls(frame_called.filename).absolute().parent / 'version'
         text = path.read_text(encoding=ToolsConfig.ENCODING).strip()
 
-        if os.getenv('FMTR_DEV', default=False):
+        is_dev = datatype.to_bool(os.getenv('FMTR_DEV', default=False))
+
+        if is_dev:
             import datetime
             from fmtr.tools import version
 
