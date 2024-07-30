@@ -64,6 +64,11 @@ try:
 except ImportError as exception:
     unicode = MissingExtraMockModule('unicode', exception)
 
+try:
+    from fmtr.tools import version_tools as version
+except ImportError as exception:
+    version = MissingExtraMockModule('version', exception)
+
 __all__ = [
     'config',
     'dataclass',
@@ -91,5 +96,6 @@ __all__ = [
     'profiling',
     'Timer',
     'tokenization',
-    'unicode'
+    'unicode',
+    'version'
 ]

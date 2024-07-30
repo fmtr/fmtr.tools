@@ -15,6 +15,7 @@ DEPENDENCIES = {
     'profiling': ['contexttimer'],
     'docker.api': ['docker'],
     'unicode': ['Unidecode'],
+    'version': ['semver']
 }
 
 
