@@ -1,6 +1,5 @@
-from typing import Any
-
 from distutils.util import strtobool
+from typing import Any
 
 from fmtr.tools.tools import Raise
 
@@ -20,6 +19,16 @@ def get_failure_message(raw, type_type):
 
     """
     return f'Failed to convert "{raw}" (type: {type(raw)}) to type {type_type}'
+
+
+def is_numeric(value) -> bool:
+    """
+
+    Test whether a variable is any numeric type
+
+    """
+    import numbers
+    return isinstance(value, numbers.Number)
 
 
 def to_bool(raw: Any, default=None) -> bool:
