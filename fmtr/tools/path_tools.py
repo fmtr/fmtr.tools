@@ -146,31 +146,4 @@ class Path(type(Path())):
         """
         return self.mkdir(parents=True, exist_ok=True)
 
-    @classmethod
-    def read_version(cls) -> str:
-        """
 
-        Read a generic version file from the calling module path
-
-        """
-        import os
-        from fmtr.tools.tools import ToolsConfig
-        from fmtr.tools import datatype
-        frame_called = stack()[1]
-        path = cls(frame_called.filename).absolute().parent / 'version'
-        text = path.read_text(encoding=ToolsConfig.ENCODING).strip()
-
-        is_dev = datatype.to_bool(os.getenv('FMTR_DEV', default=False))
-
-        if is_dev:
-            import datetime
-            from fmtr.tools import version
-
-            timestamp = datetime.datetime.now(datetime.UTC).strftime(ToolsConfig.DATETIME_SEMVER_BUILD_FORMAT)
-
-            version = version.parse(text)
-            version = version.bump_patch()
-            version = version.replace(prerelease='dev', build=timestamp)
-            text = str(version)
-
-        return text
