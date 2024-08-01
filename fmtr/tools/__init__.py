@@ -1,3 +1,7 @@
+from fmtr.tools import version_tools as version
+
+__version__ = version.read()
+
 import fmtr.tools.config_tools as config
 import fmtr.tools.dataclass_tools as dataclass
 import fmtr.tools.datatype_tools as datatype
@@ -64,10 +68,6 @@ try:
 except ImportError as exception:
     unicode = MissingExtraMockModule('unicode', exception)
 
-try:
-    from fmtr.tools import version_tools as version
-except ImportError as exception:
-    version = MissingExtraMockModule('version', exception)
 
 __all__ = [
     'config',

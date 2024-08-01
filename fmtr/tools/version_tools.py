@@ -19,11 +19,11 @@ def read() -> str:
     """
     import os
     from fmtr.tools.tools import ToolsConfig
-    from fmtr.tools import datatype
+    from fmtr.tools import datatype_tools
     path = get_call_path(offset=2).parent / 'version'
     text = path.read_text(encoding=ToolsConfig.ENCODING).strip()
 
-    is_dev = datatype.to_bool(os.getenv('FMTR_DEV', default=False))
+    is_dev = datatype_tools.to_bool(os.getenv('FMTR_DEV', default=False))
 
     if is_dev:
         import datetime
