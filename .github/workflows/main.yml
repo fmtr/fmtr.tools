@@ -17,7 +17,7 @@ jobs:
       NAME: ${{ github.event.repository.name }}
       ORG: ${{ github.repository_owner }}
       NAME_SHORT: tools
-      PATH_VERSION: ${{ github.repository_owner }}/${{ github.event.repository.name }}/version
+      PATH_VERSION: ${{ github.repository_owner }}/tools/version
       #SHLINK_API_KEY: ${{ secrets.SHLINK_API_KEY }}
       #LINK_ID: tools
 
