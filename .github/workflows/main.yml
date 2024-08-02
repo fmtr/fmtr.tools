@@ -36,7 +36,7 @@ jobs:
         run: |
           git config --global user.name 'Frontmatter Actions'
           git config --global user.email "$GIT_EMAIL"       
-          VERSION=$(cat ${NAME_SHORT}/version)      
+          VERSION=$(cat ${ORG}/${NAME_SHORT}/version)      
           git tag -a v${VERSION} -m "Release version ${VERSION}"          
           git checkout --track origin/release
           git rebase main          
