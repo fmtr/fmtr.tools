@@ -1,17 +1,16 @@
 import sys
-from os import getenv, path
+from os import getenv
 
 import importlib
 import logging
 import subprocess
-from pathlib import Path
+
+from fmtr.tools import netrc_tools
 
 
 def run():
     FMTR_LOG_LEVEL = getenv('FMTR_LOG_LEVEL', 'INFO')
     logging.getLogger().setLevel(FMTR_LOG_LEVEL)
-
-    dir_home = Path(path.expanduser("~")).absolute()
 
     MODULE_NAME = getenv('PACKAGE_NAME')
     if not MODULE_NAME:
@@ -29,13 +28,11 @@ def run():
     if not PIP_PASSWORD:
         raise KeyError('No PIP_PASSWORD set.')
 
-    lines_nrc = [
-        f'machine {PIP_INDEX_URL}',
-        f'login {PIP_USERNAME}',
-        f'password {PIP_PASSWORD}'
-    ]
-
-    (dir_home / '.netrc').write_text('\n'.join(lines_nrc))
+    with netrc_tools.get() as netrc_obj:
+        netrc_obj[PIP_INDEX_URL] = {
+            netrc_tools.LOGIN: PIP_USERNAME,
+            netrc_tools.PASSWORD: PIP_PASSWORD
+        }
 
     print(f'Starting {MODULE_NAME}...')
 
