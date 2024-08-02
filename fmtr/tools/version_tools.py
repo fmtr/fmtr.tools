@@ -31,7 +31,7 @@ def read() -> str:
         timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(ToolsConfig.DATETIME_SEMVER_BUILD_FORMAT)
 
         version = parse(text)
-        version = version.bump_minor()
+        version = version.bump_patch()
         version = version.replace(prerelease='dev', build=timestamp)
         text = str(version)
 
