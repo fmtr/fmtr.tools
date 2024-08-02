@@ -16,6 +16,7 @@ import fmtr.tools.path_tools as path
 import fmtr.tools.platform_tools as platform
 import fmtr.tools.random_tools as random
 import fmtr.tools.string_tools as string
+import fmtr.tools.name_tools as name
 
 from fmtr.tools.import_tools import MissingExtraMockModule
 from fmtr.tools.path_tools import Path
