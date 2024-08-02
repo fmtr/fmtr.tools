@@ -1,45 +1,47 @@
 import sys
-from os import getenv
 
 import importlib
 import logging
 import subprocess
 
 from fmtr.tools import netrc_tools
+from fmtr.tools.environment_tools import get
+
+VARS = [
+    (FMTR_LOG_LEVEL := 'FMTR_LOG_LEVEL'),
+    (PACKAGE_NAME := 'PACKAGE_NAME'),
+    (PYPI_HOST := 'PYPI_HOST'),
+    (PYPI_USERNAME := 'PYPI_USERNAME'),
+    (PYPI_PASSWORD := 'PIP_PASSWORD'),
+]
 
 
 def run():
-    FMTR_LOG_LEVEL = getenv('FMTR_LOG_LEVEL', 'INFO')
+    FMTR_LOG_LEVEL = get('FMTR_LOG_LEVEL', default='INFO')
     logging.getLogger().setLevel(FMTR_LOG_LEVEL)
 
-    MODULE_NAME = getenv('PACKAGE_NAME')
-    if not MODULE_NAME:
-        raise KeyError('No MODULE_NAME set.')
-
-    PIP_INDEX_URL = getenv('PIP_INDEX_URL')
-    if not PIP_INDEX_URL:
-        raise KeyError('No PIP_INDEX_URL set.')
-
-    PIP_USERNAME = getenv('PIP_USERNAME')
-    if not PIP_USERNAME:
-        raise KeyError('No PIP_USERNAME set.')
-
-    PIP_PASSWORD = getenv('PIP_PASSWORD')
-    if not PIP_PASSWORD:
-        raise KeyError('No PIP_PASSWORD set.')
+    vars = {key: get(key) for key in VARS}
 
     with netrc_tools.get() as netrc_obj:
-        netrc_obj[PIP_INDEX_URL] = {
-            netrc_tools.LOGIN: PIP_USERNAME,
-            netrc_tools.PASSWORD: PIP_PASSWORD
+        netrc_obj[vars[PYPI_HOST]] = {
+            netrc_tools.LOGIN: vars[PYPI_USERNAME],
+            netrc_tools.PASSWORD: vars[PYPI_PASSWORD]
         }
 
-    print(f'Starting {MODULE_NAME}...')
+    command = [
+        sys.executable,
+        '-m',
+        'pip',
+        'install',
+        vars[PACKAGE_NAME],
+        '--no-input',
+        '--index-url',
+        f'https://{vars[PYPI_HOST]}'
+    ]
 
-    subprocess.run(
-        [sys.executable, '-m', 'pip', 'install', MODULE_NAME, '--no-input', '--index-url', f'https://{PIP_INDEX_URL}'],
-        check=True
-    )
+    print(f'Starting {vars[PACKAGE_NAME]}...')
 
-    interface = importlib.import_module(f'{MODULE_NAME}.interface')
+    subprocess.run(command, check=True)
+
+    interface = importlib.import_module(f'{vars[PACKAGE_NAME]}.interface')
     interface.run()
