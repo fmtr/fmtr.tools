@@ -17,8 +17,13 @@ DEPENDENCIES = {
     'unicode': ['Unidecode'],
     'version': ['semver'],
     'spaces': ['netrc'],
-    'netrc': ['tinynetrc']
+    'netrc': ['tinynetrc'],
+    'hfh': ['huggingface_hub'],
 }
+
+CONSOLE_SCRIPTS = [
+    'cache-hfh = fmtr.tools.console_script_tools:cache_hfh',
+]
 
 
 def resolve_values(values) -> List[str]:

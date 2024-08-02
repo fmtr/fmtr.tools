@@ -28,6 +28,9 @@ setup(
     package_data={
         name: [f'version'],
     },
+    entry_points={
+        'console_scripts': requirements.CONSOLE_SCRIPTS,
+    },
     install_requires=requirements.INSTALL,
     extras_require=requirements.EXTRAS,
 )

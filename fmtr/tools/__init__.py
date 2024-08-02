@@ -80,6 +80,11 @@ try:
 except ImportError as exception:
     spaces = MissingExtraMockModule('spaces', exception)
 
+try:
+    from fmtr.tools import hfh_tools as hfh
+except ImportError as exception:
+    hfh = MissingExtraMockModule('hfh', exception)
+
 
 __all__ = [
     'config',
