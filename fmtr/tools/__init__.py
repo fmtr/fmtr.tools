@@ -85,6 +85,12 @@ try:
 except ImportError as exception:
     hfh = MissingExtraMockModule('hfh', exception)
 
+try:
+    from fmtr.tools import merging_tools as merging
+    from fmtr.tools.merging_tools import merge
+except ImportError as exception:
+    merging = merge = MissingExtraMockModule('merge', exception)
+
 
 __all__ = [
     'config',
