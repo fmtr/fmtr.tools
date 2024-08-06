@@ -19,6 +19,7 @@ DEPENDENCIES = {
     'spaces': ['netrc'],
     'netrc': ['tinynetrc'],
     'hfh': ['huggingface_hub'],
+    'merging': ['deepmerge']
 }
 
 CONSOLE_SCRIPTS = [
