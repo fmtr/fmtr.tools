@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+import re
 from string import Formatter
 from typing import List
 
@@ -42,3 +43,38 @@ def get_var_name(string: str) -> str:
     """
     name, value = string.split('=', maxsplit=1)
     return name
+
+
+def format_data(value, **kwargs):
+    """
+
+    Format a complex object
+
+    """
+    if isinstance(value, str):
+        return value.format(**kwargs)
+    elif isinstance(value, dict):
+        return {format_data(k, **kwargs): format_data(v, **kwargs) for k, v in value.items()}
+    elif isinstance(value, list):
+        return [format_data(item, **kwargs) for item in value]
+    else:
+        return value
+
+
+WHITESPACE = re.compile('[\s\-_]+')
+
+
+def sanitize(*strings, sep: str = '-') -> str:
+    """
+
+    Replace spaces with URL- and ID-friendly characters, etc.
+
+    """
+
+    strings = [string for string in strings if string]
+    string = ' '.join(strings)
+    strings = [c.lower() for c in string if c.isalnum() or c in {' '}]
+    string = ''.join(strings)
+    string = WHITESPACE.sub(sep, string).strip()
+
+    return string
