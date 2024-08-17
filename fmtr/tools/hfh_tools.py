@@ -60,5 +60,11 @@ def main():
     run(args.config)
 
 
-if __name__ == '__main__':
-    run('cache.json')
+def tag_model(repo_id: str, tag: str):
+    """
+
+    Tag a model repository
+
+    """
+    api = huggingface_hub.HfApi()
+    return api.create_tag(repo_id, tag=tag, repo_type='model')
