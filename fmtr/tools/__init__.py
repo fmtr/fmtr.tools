@@ -91,6 +91,11 @@ try:
 except ImportError as exception:
     merging = merge = MissingExtraMockModule('merge', exception)
 
+try:
+    from fmtr.tools import api_tools as api
+except ImportError as exception:
+    api = MissingExtraMockModule('api', exception)
+
 
 __all__ = [
     'config',
