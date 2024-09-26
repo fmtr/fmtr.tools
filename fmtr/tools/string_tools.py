@@ -78,3 +78,30 @@ def sanitize(*strings, sep: str = '-') -> str:
     string = WHITESPACE.sub(sep, string).strip()
 
     return string
+
+
+class Mask:
+    """
+
+    Allows partial-like f-strings
+
+    """
+
+    def __init__(self, mask: str):
+        self.mask = mask
+        self.kwargs = {}
+        self.args = []
+
+    def format(self, *args, **kwargs):
+        """
+
+        If the string is complete, return it, else store field values
+
+        """
+        self.args += list(args)
+        self.kwargs.update(kwargs)
+        try:
+            text = self.mask.format(*args, **self.kwargs)
+            return text
+        except (KeyError, IndexError):
+            return None
