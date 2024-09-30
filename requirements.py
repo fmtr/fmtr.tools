@@ -20,7 +20,8 @@ DEPENDENCIES = {
     'netrc': ['tinynetrc'],
     'hfh': ['huggingface_hub'],
     'merging': ['deepmerge'],
-    'api': ['fastapi', 'uvicorn', 'logging']
+    'api': ['fastapi', 'uvicorn', 'logging'],
+    'ai': ['peft', 'transformers[sentencepiece]', 'torchvision', 'torchaudio']
 }
 
 CONSOLE_SCRIPTS = [

@@ -96,6 +96,11 @@ try:
 except ImportError as exception:
     api = MissingExtraMockModule('api', exception)
 
+try:
+    from fmtr.tools import ai_tools as ai
+except ImportError as exception:
+    ai = MissingExtraMockModule('ai', exception)
+
 
 __all__ = [
     'config',

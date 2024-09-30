@@ -1,4 +1,4 @@
-FROM fmtr/python
+FROM fmtr/pytorch
 
 WORKDIR /fmtr/tools
 COPY --from=tools ../requirements.py .

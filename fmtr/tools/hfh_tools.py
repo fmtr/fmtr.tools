@@ -4,6 +4,8 @@ import argparse
 import huggingface_hub
 import json
 import os
+from huggingface_hub.constants import HUGGINGFACE_HUB_CACHE
+from huggingface_hub.file_download import repo_folder_name
 from pathlib import Path
 
 FUNCTIONS = [huggingface_hub.snapshot_download]
@@ -68,3 +70,22 @@ def tag_model(repo_id: str, tag: str):
     """
     api = huggingface_hub.HfApi()
     return api.create_tag(repo_id, tag=tag, repo_type='model')
+
+
+def get_hf_cache_path(repo_id, tag=None):
+    """
+
+    Get the local cache path for the specified repository and tag.
+
+    """
+    tag = tag or 'main'
+    path_base = os.path.join(HUGGINGFACE_HUB_CACHE, repo_folder_name(repo_id=repo_id, repo_type='model'))
+    ref_path = os.path.join(path_base, "refs", tag)
+    if os.path.isfile(ref_path):
+        with open(ref_path) as f:
+            commit_hash = f.read()
+    else:
+        raise FileNotFoundError(ref_path)
+
+    path = os.path.join(path_base, "snapshots", commit_hash)
+    return path
