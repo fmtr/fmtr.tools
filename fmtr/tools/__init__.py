@@ -101,6 +101,11 @@ try:
 except ImportError as exception:
     ai = MissingExtraMockModule('ai', exception)
 
+try:
+    from fmtr.tools import json_fix_tools as json_fix
+except ImportError as exception:
+    json_fix = MissingExtraMockModule('json_fix', exception)
+
 
 __all__ = [
     'config',

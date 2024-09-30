@@ -20,8 +20,10 @@ DEPENDENCIES = {
     'netrc': ['tinynetrc'],
     'hfh': ['huggingface_hub'],
     'merging': ['deepmerge'],
-    'api': ['fastapi', 'uvicorn', 'logging'],
-    'ai': ['peft', 'transformers[sentencepiece]', 'torchvision', 'torchaudio']
+    'api': ['fastapi', 'uvicorn', 'logging', 'dm'],
+    'ai': ['peft', 'transformers[sentencepiece]', 'torchvision', 'torchaudio', 'dm'],
+    'dm': ['pydantic'],
+    'json-fix': ['json_repair']
 }
 
 CONSOLE_SCRIPTS = [

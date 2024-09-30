@@ -1,11 +1,12 @@
 import torch
 from datetime import datetime
 from peft import PeftConfig, PeftModel
+from pydantic import Field
 from statistics import mean
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from typing import List
 
-from fmtr.tools import logger
+from fmtr.tools import logger, data_modelling_tools
 from fmtr.tools.hfh_tools import get_hf_cache_path
 
 CPU = 'cpu'
@@ -319,6 +320,45 @@ class BulkInferenceManager:
         return output
 
 
+class ToolCall(data_modelling_tools.Base):
+    """
+
+    Tool call data
+
+    """
+    name: str = Field(
+        ...,
+        description="The function name"
+    )
+    arguments: dict = Field(
+        ...,
+        description="The function arguments"
+    )
+
+    def apply(self, functions):
+        """
+
+        Apply the specified functions to their arguments
+
+        """
+        functions = {function.__name__: function for function in functions}
+        function = functions[self.name]
+        obj = function(**self.arguments)
+        return obj
+
+
+class ToolsCall(data_modelling_tools.Root):
+    """
+
+    Tool calls data
+
+    """
+    root: List[ToolCall]
+
+    def apply(self, functions):
+        objs = [child.apply(functions) for child in self.root]
+        return objs
+
 def tst():
     """
 
@@ -353,15 +393,20 @@ def tst_tool():
         """
         return "It's 25 degrees and sunny!"
 
-    class BiTools(BulkInferenceManager):
+    class BulkInferenceManagerTools(BulkInferenceManager):
         TOOLS = [get_current_weather]
 
     prompt = "What's the weather like in Paris?"
     prompts = [prompt]
-    manager = BiTools()
+    manager = BulkInferenceManagerTools()
     gen = manager.get_outputs(prompts, max_new_tokens=200, do_sample=True, temperature=1.2, top_p=0.5, top_k=50)
     texts = list(gen)
-    return texts
+
+    for text in texts:
+        objs = ToolsCall.from_json(text).apply(BulkInferenceManagerTools.TOOLS)
+        obj = objs[0]
+        print(obj)
+
 
 
 
