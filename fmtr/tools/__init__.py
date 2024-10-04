@@ -17,6 +17,8 @@ import fmtr.tools.platform_tools as platform
 import fmtr.tools.random_tools as random
 import fmtr.tools.string_tools as string
 import fmtr.tools.name_tools as name
+import fmtr.tools.logging_tools as logging
+from fmtr.tools.logging_tools import logger
 
 from fmtr.tools.import_tools import MissingExtraMockModule
 from fmtr.tools.path_tools import Path
@@ -30,12 +32,6 @@ try:
     from fmtr.tools import yaml_tools as yaml
 except ImportError as exception:
     yaml = MissingExtraMockModule('yaml', exception)
-
-try:
-    from fmtr.tools import logging_tools as logging
-    from fmtr.tools.logging_tools import logger
-except ImportError as exception:
-    logging = logger = MissingExtraMockModule('logging', exception)
 
 try:
     from fmtr.tools import docker_tools as docker
@@ -100,6 +96,11 @@ try:
     from fmtr.tools import ai_tools as ai
 except ImportError as exception:
     ai = MissingExtraMockModule('ai', exception)
+
+try:
+    from fmtr.tools import data_modelling_tools as dm
+except ImportError as exception:
+    dm = MissingExtraMockModule('dm', exception)
 
 try:
     from fmtr.tools import json_fix_tools as json_fix

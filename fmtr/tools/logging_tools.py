@@ -1,7 +1,5 @@
 import sys
 
-from loguru import logger as logger_loguru
-
 from fmtr.tools.config import ToolsConfig
 from fmtr.tools.config_tools import ConfigClass
 from fmtr.tools.environment_tools import get
@@ -30,16 +28,30 @@ def default_patch(record):
     return record
 
 
-def get_logger(logger=logger_loguru, terminal=True, level=LoggingConfig.DEFAULT_LEVEL, time_format=LoggingConfig.TIME,
+def get_logger(terminal=True, level=LoggingConfig.DEFAULT_LEVEL, time_format=LoggingConfig.TIME,
                icon_format=LoggingConfig.ICON,
                level_format=LoggingConfig.LEVEL, file_format=LoggingConfig.FILE, function_format=LoggingConfig.FUNCTION,
                message_format=LoggingConfig.MESSAGE,
                logfile=False, logfile_dir=None):
     """
 
-
+    Get a pre-configured loguru logger, if dependency is present, otherwise default to native logger.
 
     """
+
+    try:
+        from loguru import logger as logger_loguru
+        logger = logger_loguru
+    except ImportError:
+        import logging
+
+        logger = logging.getLogger(None)
+        logger.setLevel(level)
+
+        return logger
+
+
+
     components = [time_format, icon_format, level_format, file_format, function_format, message_format]
     format = LoggingConfig.SEP.join([component for component in components if component])
     logger.remove()
