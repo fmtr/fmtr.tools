@@ -14,3 +14,5 @@ class ToolsConfig(ConfigClass):
     DATETIME_NOW = datetime.datetime.now(datetime.timezone.utc)
     DATETIME_NOW_STR = DATETIME_NOW.strftime(DATETIME_FILENAME_FORMAT)
     SERIALIZATION_INDENT = 4
+
+    FMTR_LOG_LEVEL_KEY = 'FMTR_LOG_LEVEL'
