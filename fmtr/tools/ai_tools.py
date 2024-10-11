@@ -20,10 +20,11 @@ class DynamicBatcher:
 
     """
 
-    def __init__(self, prompts, threshold_stable_reset=None, factor_reduction=None):
+    def __init__(self, prompts, threshold_stable_reset=None, factor_reduction=None, size_max=100):
 
         self.prompts = prompts
         self.size_total = len(self)
+        self.size_max = size_max or self.size_total
         self.threshold_stable_reset = threshold_stable_reset or 50
         self.factor_reduction = factor_reduction or 0.9
         self.size = self.count_stable = None
@@ -37,7 +38,7 @@ class DynamicBatcher:
         Reset inferred, stable batch size. Useful if outlier outputs force the batch size below what's optimal
 
         """
-        self.size = len(self)
+        self.size = min([len(self), self.size_max])
         self.count_stable = 0
 
     def batch_complete(self):
@@ -58,7 +59,7 @@ class DynamicBatcher:
         )
         logger.info(msg)
         msg = (
-            f"Stable for {self.count_stable} batch(es) (threshold: {self.threshold_stable_reset}). "
+            f"Stable for {self.count_stable}/{self.threshold_stable_reset} batch(es). "
             f"{percent:.2f}% complete. "
             f"Elapsed: {datetime.now() - self.started}. "
             f"Estimated: {self.calculate_eta()}."
@@ -151,6 +152,7 @@ class BulkInferenceManager:
 
     BATCH_STABLE_RESET = None
     BATCH_FACTOR_REDUCTION = None
+    BATCH_SIZE_MAX = None
 
     TOOLS = None
 
@@ -235,7 +237,8 @@ class BulkInferenceManager:
         batcher = DynamicBatcher(
             prompts,
             factor_reduction=self.BATCH_FACTOR_REDUCTION,
-            threshold_stable_reset=self.BATCH_STABLE_RESET
+            threshold_stable_reset=self.BATCH_STABLE_RESET,
+            size_max=self.BATCH_SIZE_MAX
         )
 
         self.activate()
