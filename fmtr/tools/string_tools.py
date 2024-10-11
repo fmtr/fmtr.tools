@@ -104,4 +104,4 @@ class Mask:
             text = self.mask.format(*args, **self.kwargs)
             return text
         except (KeyError, IndexError):
-            return None
+            return self
