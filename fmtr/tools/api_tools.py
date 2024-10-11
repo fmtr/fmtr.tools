@@ -1,8 +1,9 @@
 import uvicorn
 from dataclasses import dataclass
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from typing import Callable, List, Optional, Union
 
+from fmtr.tools.environment_tools import IS_DEBUG
 from fmtr.tools.iterator_tools import enlist
 from fmtr.tools.logging_tools import logger
 
@@ -55,6 +56,9 @@ class ApiBase:
         for endpoint in self.get_endpoints():
             self.add_endpoint(endpoint)
 
+        if IS_DEBUG:
+            self.app.exception_handler(Exception)(self.handle_exception)
+
     def get_endpoints(self) -> List[Endpoint]:
         """
 
@@ -67,8 +71,22 @@ class ApiBase:
 
         return endpoints
 
+    async def handle_exception(self, request: Request, exception: Exception):
+        """
+
+        Actually raise exceptions (e.g. for debugging) instead of returning a 500.
+
+        """
+        exception
+        raise
+
+
     @classmethod
     def launch(cls):
         self = cls()
         logger.info(f'Launching API {cls.TITLE}...')
         uvicorn.run(self.app, host=self.HOST, port=self.PORT)
+
+
+if __name__ == '__main__':
+    ApiBase.launch()
