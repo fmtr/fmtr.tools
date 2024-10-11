@@ -107,6 +107,21 @@ try:
 except ImportError as exception:
     json_fix = MissingExtraMockModule('json_fix', exception)
 
+try:
+    from fmtr.tools import semantic_tools as semantic
+except ImportError as exception:
+    semantic = MissingExtraMockModule('semantic', exception)
+
+try:
+    from fmtr.tools import metric_tools as metric
+except ImportError as exception:
+    metric = MissingExtraMockModule('metric', exception)
+
+try:
+    from fmtr.tools import html_tools as html
+except ImportError as exception:
+    html = MissingExtraMockModule('html', exception)
+
 
 __all__ = [
     'config',

@@ -23,7 +23,10 @@ DEPENDENCIES = {
     'api': ['fastapi', 'uvicorn', 'logging', 'dm'],
     'ai': ['peft', 'transformers[sentencepiece]', 'torchvision', 'torchaudio', 'dm'],
     'dm': ['pydantic'],
-    'json-fix': ['json_repair']
+    'json-fix': ['json_repair'],
+    'semantic': ['sentence_transformers', 'pandas'],
+    'metric': ['pandas'],
+    'html': ['html2text'],
 }
 
 CONSOLE_SCRIPTS = [
