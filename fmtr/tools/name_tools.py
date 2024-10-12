@@ -282,6 +282,11 @@ def get_right():
 
 
 def get(sep: str | None = '-') -> str | Tuple[str, str]:
+    """
+
+    Get a random memorable name
+
+    """
     left_right = random.choice(get_left()), random.choice(get_right())
     if not sep:
         return left_right
