@@ -122,6 +122,11 @@ try:
 except ImportError as exception:
     html = MissingExtraMockModule('html', exception)
 
+try:
+    from fmtr.tools import interface_tools as interface
+except ImportError as exception:
+    interface = MissingExtraMockModule('interface', exception)
+
 
 __all__ = [
     'config',
