@@ -53,6 +53,19 @@ class Interface:
             sleep(3)
         st.success("Success!")
 
+    def to_tabs(self, *classes):
+        """
+
+        Add tabs from a list of interface classes
+
+        """
+        tab_names = [cls.NAME for cls in classes]
+        tabs = st.tabs(tab_names)
+
+        for cls, tab in zip(classes, tabs):
+            with tab:
+                cls()
+
     @classmethod
     def is_streamlit(cls):
         """
