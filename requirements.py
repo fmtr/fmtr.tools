@@ -28,6 +28,7 @@ DEPENDENCIES = {
     'metric': ['pandas'],
     'html': ['html2text'],
     'interface': ['streamlit'],
+    'openai.api': ['openai']
 }
 
 CONSOLE_SCRIPTS = [

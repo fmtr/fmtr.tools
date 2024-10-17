@@ -127,6 +127,11 @@ try:
 except ImportError as exception:
     interface = MissingExtraMockModule('interface', exception)
 
+try:
+    from fmtr.tools import openai_tools as openai
+except ImportError as exception:
+    openai = MissingExtraMockModule('openai', exception)
+
 
 __all__ = [
     'config',
