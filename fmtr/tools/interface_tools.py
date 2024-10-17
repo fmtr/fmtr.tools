@@ -16,6 +16,8 @@ class Interface:
     LAYOUT = 'centered'
     NAME = 'Base Interface'
 
+    st = st
+
     def __init__(self, is_root=False):
         """
 
