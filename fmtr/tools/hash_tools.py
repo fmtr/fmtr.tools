@@ -1,7 +1,10 @@
+import base64
+import hashlib
 from zlib import crc32
 
 from fmtr.tools.config import ToolsConfig
 
+SPECIALS = {'O': '9', '=': '9', 'I': '9'}
 
 def hash_unit(value: str) -> float:
     """
@@ -11,3 +14,17 @@ def hash_unit(value: str) -> float:
     """
     value = str(value).encode(ToolsConfig.ENCODING)
     return float(crc32(value) & 0xffffffff) / 2 ** 32
+
+
+def get_hash_readable(string, length=None):
+    """
+
+    Get hash optimised for information density and readability.
+
+    """
+    hash_sha1 = hashlib.sha1(string.encode()).digest()
+    hash_b32 = base64.b32encode(hash_sha1).decode()
+    value = hash_b32[:length]
+    for old, new in SPECIALS.items():
+        value = value.replace(old, new)
+    return value
