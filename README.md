@@ -80,6 +80,8 @@ MissingExtraError: The current module is missing dependencies. To install them, 
 
 The included modules, plus any extra requirements, are as follows:
 
+- `tools.ai`: Manages bulk inference for LLMs using dynamic batching. Includes classes for managing prompt encoding, generating outputs, and handling tool calls, with support for both local and remote models. Uses Pytorch and Transformers for model operations, and provides functionality for encoding prompts, generating responses, and applying tool functions.
+  - Extras: `ai`
 - `tools.config`: Base config class with overridable field processors.
     - Extras: None
 - `tools.dataclass`: Utilities for extracting and filtering fields and metadata from dataclasses, with support for applying filters and retrieving enabled fields based on metadata attributes.
