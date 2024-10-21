@@ -86,6 +86,8 @@ The included modules, plus any extra requirements, are as follows:
     - Extras: None
 - `tools.datatype`
     - Extras: None
+- `tools.dm`: Defines custom data modelling base classes for creating Pydantic models with error-tolerant deserialization from JSON (e.g. when output from an LLM).
+  - Extras: `dm`
 - `tools.environment`: Tools for managing environment variables, including functions to retrieve variables with type conversions and default values. Features include environment variable fetching, handling missing variables, and creating type-specific getters for integers, floats, booleans, dates, and paths.
     - Extras: None
 - `tools.env`: Alias of `tools.environment`.
@@ -94,10 +96,22 @@ The included modules, plus any extra requirements, are as follows:
     - Extras: None
 - `tools.hash`: String hashing
     - Extras: None
+- `tools.hfh`: Utilities for caching and managing Hugging Face model repositories: setting tokens, downloading snapshots, tagging repositories, and retrieving local cache paths.
+  - Extras: `hfh`
+- `tools.html`: Utilities for converting HTML documents to plain text.
+  - Extras: `html`
+- `tools.interface`: Provides a base class for building Streamlit interfaces with a class-based structure.
+  - Extras: `interface`
 - `tools.iterator`: Pivoting/unpivoting data structures
     - Extras: None
 - `tools.json`: Serialisation/deserialisation to human-readable, unicode JSON.
     - Extras: None
+- `tools.merge`: Utility for recursively merging multiple dictionaries or objects using the DeepMerge library.
+  - Extras: `merge`
+- `tools.name`: Generates random memorable names (similar to Docker Container names) by combining an adjective with a surname.
+  - Extras: None
+- `tools.openai`: Utilities for interacting with the OpenAI API, simple text-to-text output, etc.
+  - Extras: `openai.api`
 - `tools.Path`: Enhanced `pathlib.Path` object with additional functionality for Windows-to-Unix path conversion, reading/writing JSON and YAML files, and convenient directory creation with parent directories. Includes methods for obtaining paths to modules and temporary directories.
     - Extras: None
 - `tools.platform`: Detecting if host is WSL, Docker etc.
@@ -106,6 +120,8 @@ The included modules, plus any extra requirements, are as follows:
     - Extras: None
 - `tools.random`: Provides additional functions for random number generation and selection, useful for data augmentation.
     - Extras: None
+- `tools.semantic`: Manages semantic similarity operations using Sentence Transformers: loading a pre-trained model, vectorizing a text corpus, and retrieving the top matches based on similarity scores for a given query string.
+  - Extras: `semantic`
 - `tools.string`: Provides utilities for handling string formatting.
     - Extras: None
 - `tools.logging`: Configures and initializes a logger using the Loguru library. Provides customizable logging formats for time, level, file, function, and message components.
