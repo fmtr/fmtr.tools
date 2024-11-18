@@ -1,7 +1,8 @@
-from distutils.util import strtobool
 from typing import Any
 
 from fmtr.tools.tools import Raise
+
+TRUES = {str(True).lower(), str(1), 'y', 'yes'}
 
 
 class TypeConversionFailed(ValueError):
@@ -39,9 +40,8 @@ def to_bool(raw: Any, default=None) -> bool:
     """
 
     try:
-        converted = str(raw)
-        converted = strtobool(converted)
-        converted = bool(converted)
+        converted = str(raw).lower()
+        converted = converted in TRUES
         return converted
     except ValueError as exception:
         if default is Raise:
