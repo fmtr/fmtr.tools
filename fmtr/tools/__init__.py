@@ -85,7 +85,7 @@ try:
     from fmtr.tools import merging_tools as merging
     from fmtr.tools.merging_tools import merge
 except ImportError as exception:
-    merging = merge = MissingExtraMockModule('merge', exception)
+    merging = merge = MissingExtraMockModule('merging', exception)
 
 try:
     from fmtr.tools import api_tools as api
