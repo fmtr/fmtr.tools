@@ -1,9 +1,9 @@
-from collections import namedtuple
-
 import re
+from collections import namedtuple
 from string import Formatter
 from typing import List
 
+ELLIPSIS = '…'
 formatter = Formatter()
 
 Segment = namedtuple('Segment', ['literal_text', 'field_name', 'format_spec', 'conversion'])
@@ -78,6 +78,29 @@ def sanitize(*strings, sep: str = '-') -> str:
     string = WHITESPACE.sub(sep, string).strip()
 
     return string
+
+
+def truncate_mid(text, length=None, sep=ELLIPSIS):
+    """
+
+    Truncate a string to `length` characters in the middle
+
+    """
+    if len(text) <= length or not length:
+        return text
+    half_length = (length - 3) // 2
+    return text[:half_length] + sep + text[-half_length:]
+
+
+def flatten(raw):
+    """
+
+    Flatten a multiline string to a single line
+
+    """
+    lines = raw.splitlines()
+    text = ' '.join(lines)
+    return text
 
 
 class Mask:
