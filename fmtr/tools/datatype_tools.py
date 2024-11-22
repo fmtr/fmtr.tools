@@ -51,5 +51,36 @@ def to_bool(raw: Any, default=None) -> bool:
             return default
 
 
+def is_nan(value: Any) -> bool:
+    """
+
+    Import-tolerant test if nan
+
+    """
+    try:
+        import pandas as pd
+        return pd.isna(value)
+    except ImportError:
+        return False
+
 def is_none(value: Any) -> bool:
+    """
+
+    Test if none - or nan
+
+    """
+    if is_nan(value):
+        return True
+
     return value is None
+
+
+def none_else(value: Any, default: Any) -> Any:
+    """
+
+    Ternary "if none else" function
+
+    """
+    if is_none(value):
+        return default
+    return value
