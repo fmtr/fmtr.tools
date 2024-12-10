@@ -27,7 +27,7 @@ DEPENDENCIES = {
     'semantic': ['sentence_transformers', 'pandas'],
     'metric': ['pandas'],
     'html': ['html2text'],
-    'interface': ['streamlit'],
+    'interface': ['streamlit', 'dm'],
     'openai.api': ['openai']
 }
 
