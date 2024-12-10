@@ -19,6 +19,7 @@ class SemanticManager:
         self.data = data
         logger.info(f"Vectorising {len(data)} texts using {self.model.device}...")
         self.embs = self.vectorise()
+        logger.info(f"Vectorising complete.")
 
     def vectorise(self):
         """
