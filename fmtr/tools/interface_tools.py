@@ -87,7 +87,7 @@ class Interface(Base):
         Initialise this Interface and keep cached
 
         """
-        msg = f'Initialising State: for App {cls.NAME}...'
+        msg = f'Initialising State "{cls.NAME}"...'
         logger.info(msg)
         self = cls()
         return self
@@ -101,6 +101,7 @@ class Interface(Base):
         """
         if cls.is_streamlit():
             self = cls.get_state()
+            logger.debug(f'Rendering Interface "{self.NAME}" with state: {st.session_state}...')
             self.set_title()
             self.render()
         else:
