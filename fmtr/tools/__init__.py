@@ -132,6 +132,11 @@ try:
 except ImportError as exception:
     openai = MissingExtraMockModule('openai', exception)
 
+try:
+    from fmtr.tools import google_api_tools as google_api
+except ImportError as exception:
+    google_api = MissingExtraMockModule('google.api', exception)
+
 
 __all__ = [
     'config',

@@ -28,7 +28,8 @@ DEPENDENCIES = {
     'metric': ['pandas'],
     'html': ['html2text'],
     'interface': ['streamlit', 'dm'],
-    'openai.api': ['openai']
+    'openai.api': ['openai'],
+    'google.api': ['google-auth', 'google-auth-oauthlib', 'google-auth-httplib2', 'google-api-python-client']
 }
 
 CONSOLE_SCRIPTS = [
