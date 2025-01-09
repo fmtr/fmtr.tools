@@ -100,6 +100,7 @@ def flatten(raw):
     """
     lines = raw.splitlines()
     text = ' '.join(lines)
+    text = text.strip()
     return text
 
 
