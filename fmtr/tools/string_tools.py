@@ -4,6 +4,8 @@ import re
 from string import Formatter
 from typing import List
 
+from fmtr.tools.datatype_tools import is_none
+
 ELLIPSIS = '…'
 formatter = Formatter()
 
@@ -103,6 +105,18 @@ def flatten(raw):
     lines = raw.splitlines()
     text = ' '.join(lines)
     text = text.strip()
+    return text
+
+
+def join(strings, sep=' '):
+    """
+
+    Join a list of strings while removing Nones
+
+    """
+
+    lines = [string for string in strings if not is_none(string) and string != '']
+    text = sep.join(str(line) for line in lines)
     return text
 
 
