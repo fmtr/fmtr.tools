@@ -1,5 +1,6 @@
-import re
 from collections import namedtuple
+
+import re
 from string import Formatter
 from typing import List
 
@@ -86,6 +87,7 @@ def truncate_mid(text, length=None, sep=ELLIPSIS):
     Truncate a string to `length` characters in the middle
 
     """
+    text = flatten(text)
     if len(text) <= length or not length:
         return text
     half_length = (length - 3) // 2
