@@ -23,12 +23,13 @@ DEPENDENCIES = {
     'api': ['fastapi', 'uvicorn', 'logging', 'dm'],
     'ai': ['peft', 'transformers[sentencepiece]', 'torchvision', 'torchaudio', 'dm'],
     'dm': ['pydantic'],
+    'openai.api': ['openai'],
+    'ai.client': ['dm', 'openai.api', 'pydantic-ai[openai]', 'ollama'],
     'json-fix': ['json_repair'],
     'semantic': ['sentence_transformers', 'pandas'],
     'metric': ['pandas'],
     'html': ['html2text'],
     'interface': ['streamlit', 'dm'],
-    'openai.api': ['openai'],
     'google.api': ['google-auth', 'google-auth-oauthlib', 'google-auth-httplib2', 'google-api-python-client']
 }
 
