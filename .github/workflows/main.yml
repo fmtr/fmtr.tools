@@ -36,6 +36,7 @@ jobs:
       - name: Install Tools
         run: |
           pip install twine
+          pip install -U packaging #https://github.com/pypa/twine/issues/1216
 
       - name: Increment Version
         env:
