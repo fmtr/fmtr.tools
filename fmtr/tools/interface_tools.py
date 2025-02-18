@@ -8,6 +8,24 @@ from fmtr.tools.logging_tools import logger
 from fmtr.tools.path_tools import Path
 
 
+def material(name):
+    """
+
+    Get Material Design icon markdown
+
+    """
+    return f":material/{name}:"
+
+
+def color(name, text):
+    """
+
+    Get markdown coloured text
+
+    """
+    return f":{name}[{text}]"
+
+
 class Interface(Base):
     """
 
@@ -17,9 +35,14 @@ class Interface(Base):
 
     PATH: ClassVar = __file__
     LAYOUT: ClassVar = 'centered'
+    NAME: ClassVar = None
 
     parent: Base = None
     st: ClassVar = st
+
+    @classmethod
+    def get_name(cls):
+        return cls.NAME or cls.__name__
 
     def set_title(self):
         """
@@ -28,8 +51,8 @@ class Interface(Base):
 
         """
 
-        self.st.set_page_config(page_title=self.NAME, layout=self.LAYOUT)
-        self.st.title(self.NAME)
+        self.st.set_page_config(page_title=self.get_name(), layout=self.LAYOUT)
+        self.st.title(self.get_name())
 
     def render(self):
         """
@@ -45,10 +68,13 @@ class Interface(Base):
         Get a structure-friendly unique ID
 
         """
+
+        suffix = f'{self.__class__.__name__}({self.get_key_self()})'
+
         if self.parent is None:
-            base = Path()
+            base = Path(suffix)
         else:
-            base = self.parent.get_key() / str(id(self))
+            base = self.parent.get_key() / suffix
 
         if seg:
             path = base / seg
@@ -57,13 +83,57 @@ class Interface(Base):
 
         return path
 
+    def get_url_data(self):
+        """
+
+        Get URL params data pertaining to the current object
+
+        """
+
+        if self.parent is None:
+            data = {}
+        else:
+            data = self.parent.get_url_data()
+
+        url_self = self.get_url_self()
+
+        if url_self:
+            data |= {self.__class__.__name__.lower(): url_self}
+
+        return data
+
+    def get_url_self(self):
+        """
+
+        Get URL params ID pertaining to the current object
+
+        """
+        return str(id(self))
+
+    def get_key_self(self):
+        """
+
+        Get a streamlit key pertaining to the current object
+
+        """
+        return str(id(self))
+
+    def get_url(self):
+        """
+
+        Get URL string suffix pertaining to the current object
+
+        """
+        import urllib
+        return urllib.parse.urlencode(self.get_url_data())
+
     def to_tabs(self, *classes):
         """
 
         Add tabs from a list of interface classes
 
         """
-        tab_names = [cls.NAME for cls in classes]
+        tab_names = [cls.get_name() for cls in classes]
         tabs = st.tabs(tab_names)
 
         for cls, tab in zip(classes, tabs):
@@ -84,10 +154,11 @@ class Interface(Base):
     def get_state(cls):
         """
 
-        Initialise this Interface and keep cached
+        Initialise this Interface and keep cached. This needs to be a cached_resource to avoid serialisation/copying.
+        This is global, so session handling needs to happen downstream.
 
         """
-        msg = f'Initialising State "{cls.NAME}"...'
+        msg = f'Initialising State "{cls.get_name()}"...'
         logger.info(msg)
         self = cls()
         return self
@@ -101,10 +172,11 @@ class Interface(Base):
         """
         if cls.is_streamlit():
             self = cls.get_state()
-            logger.debug(f'Rendering Interface "{self.NAME}" with state: {st.session_state}...')
+            logger.debug(f'Rendering Interface "{self.get_name()}" with state: {st.session_state}...')
             self.set_title()
             self.render()
         else:
+            logger.info(f'Launching Streamlit interface "{cls.get_name()}"...')
             from streamlit.web import bootstrap
             bootstrap.run(cls.PATH, False, [], {})
 
@@ -130,3 +202,4 @@ class InterfaceTest(Interface):
 
 if __name__ == '__main__':
     InterfaceTest.launch()
+
