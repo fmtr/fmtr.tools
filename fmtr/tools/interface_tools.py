@@ -36,6 +36,7 @@ class Interface(Base):
     PATH: ClassVar = __file__
     LAYOUT: ClassVar = 'centered'
     NAME: ClassVar = None
+    IS_ASYNC: ClassVar = False
 
     parent: Base = None
     st: ClassVar = st
@@ -171,6 +172,11 @@ class Interface(Base):
 
         """
         if cls.is_streamlit():
+
+            if cls.IS_ASYNC:
+                from fmtr.tools import async_tools
+                async_tools.ensure_loop()
+
             self = cls.get_state()
             logger.debug(f'Rendering Interface "{self.get_name()}" with state: {st.session_state}...')
             self.set_title()
