@@ -30,7 +30,8 @@ DEPENDENCIES = {
     'metric': ['pandas'],
     'html': ['html2text'],
     'interface': ['streamlit', 'dm'],
-    'google.api': ['google-auth', 'google-auth-oauthlib', 'google-auth-httplib2', 'google-api-python-client']
+    'google.api': ['google-auth', 'google-auth-oauthlib', 'google-auth-httplib2', 'google-api-python-client'],
+    'caching': ['diskcache'],
 }
 
 CONSOLE_SCRIPTS = [

@@ -1,8 +1,6 @@
 from time import sleep
 from typing import ClassVar
 
-import streamlit as st
-
 from fmtr.tools.data_modelling_tools import Base
 from fmtr.tools.logging_tools import logger
 from fmtr.tools.path_tools import Path
@@ -26,6 +24,10 @@ def color(name, text):
     return f":{name}[{text}]"
 
 
+def get_streamlit():
+    import streamlit
+    return streamlit
+
 class Interface(Base):
     """
 
@@ -39,7 +41,10 @@ class Interface(Base):
     IS_ASYNC: ClassVar = False
 
     parent: Base = None
-    st: ClassVar = st
+
+    @property
+    def st(self):
+        return get_streamlit()
 
     @classmethod
     def get_name(cls):
@@ -148,10 +153,9 @@ class Interface(Base):
         Infer whether we are running within StreamLit
 
         """
-        return bool(st.context.headers)
+        return bool(get_streamlit().context.headers)
 
     @classmethod
-    @st.cache_resource(show_spinner=False)
     def get_state(cls):
         """
 
@@ -171,13 +175,16 @@ class Interface(Base):
         Launch StreamLit, if not already running - otherwise get self from cache and render
 
         """
+
+        st = get_streamlit()
+
         if cls.is_streamlit():
 
             if cls.IS_ASYNC:
                 from fmtr.tools import async_tools
                 async_tools.ensure_loop()
 
-            self = cls.get_state()
+            self = st.cache_resource(show_spinner=False)(cls.get_state)()
             logger.debug(f'Rendering Interface "{self.get_name()}" with state: {st.session_state}...')
             self.set_title()
             self.render()
