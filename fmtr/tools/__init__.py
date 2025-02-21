@@ -138,6 +138,11 @@ try:
 except ImportError as exception:
     google_api = MissingExtraMockModule('google.api', exception)
 
+try:
+    from fmtr.tools import caching_tools as caching
+except ImportError as exception:
+    caching = MissingExtraMockModule('caching', exception)
+
 
 __all__ = [
     'config',
