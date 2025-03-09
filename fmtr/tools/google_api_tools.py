@@ -23,7 +23,7 @@ class Authenticator:
         logger.info(msg)
 
         PATH_CREDS = cls.PATH / 'credentials.json'
-        PATH_TOKEN = cls.PATH / 'token.json'
+        PATH_TOKEN = cls.PATH / f'{cls.SERVICE}.json'
 
         if PATH_TOKEN.exists():
             data_token = PATH_TOKEN.read_json()
