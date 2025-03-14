@@ -1,4 +1,4 @@
-from itertools import chain
+from itertools import chain, batched
 from typing import List, Dict, Any
 
 
@@ -43,3 +43,12 @@ def chunk_data(data, size: int):
     """
     chunked = [data[offset:offset + size] for offset in range(0, len(data), size)]
     return chunked
+
+
+def rebatch(batches, size: int):
+    """
+
+    Rebatch arbitrary-sized input batches into fixed-size output batches.
+
+    """
+    return batched(chain.from_iterable(batches), size)
