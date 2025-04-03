@@ -126,9 +126,9 @@ The included modules, plus any extra requirements, are as follows:
   - Extras: `semantic`
 - `tools.string`: Provides utilities for handling string formatting.
     - Extras: None
-- `tools.logging`: Configures and initializes a logger using the Loguru library. Provides customizable logging formats for time, level, file, function, and message components.
+- `tools.logging`: Configures and initializes a logger using the Logfire library to log to an OpenTelemetry consumer.
     - Extras: `logging`
-- `tools.logger`: Prefabricated `logger` object, suitable for most projects, timestamped, color-coded, etc.
+- `tools.logger`: Prefabricated `logger` object, suitable for most projects: service name, timestamped, etc.
     - Extras: `logging`
 - `tools.augmentation`: Data augmentation stub.
     - Extras: `augmentation`
