@@ -16,6 +16,7 @@ class Authenticator:
     SCOPES = []
     SERVICE = None
     VERSION = None
+    PORT = 0
 
     @classmethod
     def auth(cls):
@@ -30,7 +31,7 @@ class Authenticator:
             credentials = Credentials.from_authorized_user_info(data_token, cls.SCOPES)
         else:
             flow = InstalledAppFlow.from_client_secrets_file(PATH_CREDS, cls.SCOPES)
-            credentials = flow.run_local_server(open_browser=False)
+            credentials = flow.run_local_server(open_browser=False, port=cls.PORT)
             PATH_TOKEN.write_text(credentials.to_json())
         service = build(cls.SERVICE, cls.VERSION, credentials=credentials)
         return service
