@@ -86,6 +86,10 @@ class Disk(Cache):
             data[key] = child.dump()
         return data
 
+    def iterkeys(self):
+        yield from self.children.keys()
+        yield from super().iterkeys()
+
     @property
     def data(self):
         return self.dump()
