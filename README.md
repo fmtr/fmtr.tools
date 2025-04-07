@@ -128,7 +128,8 @@ The included modules, plus any extra requirements, are as follows:
     - Extras: None
 - `tools.logging`: Configures and initializes a logger using the Logfire library to log to an OpenTelemetry consumer.
     - Extras: `logging`
-- `tools.logger`: Prefabricated `logger` object, suitable for most projects: service name, timestamped, etc.
+- `tools.logger`: Prefabricated
+  `logger` object, suitable for most projects: service name, colour-coded, timestamped, etc.
     - Extras: `logging`
 - `tools.augmentation`: Data augmentation stub.
     - Extras: `augmentation`

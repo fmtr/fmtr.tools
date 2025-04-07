@@ -1,5 +1,6 @@
 import logging
 import os
+from logfire import ConsoleOptions
 
 from fmtr.tools import environment_tools
 
@@ -42,7 +43,8 @@ def get_logger(name, version, host=HOST_DEFAULT, org=ORG_DEFAULT, stream=STREAM_
         service_name=name,
         service_version=version,
         environment=environment,
-        send_to_logfire=False
+        send_to_logfire=False,
+        console=ConsoleOptions(colors='always' if environment_tools.IS_DEBUG else 'auto')
 
     )
 
