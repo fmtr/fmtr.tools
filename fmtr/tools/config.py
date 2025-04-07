@@ -5,7 +5,8 @@ from fmtr.tools.config_tools import ConfigClass
 
 class ToolsConfig(ConfigClass):
     ENCODING = 'UTF-8'
-    LIBRARY_NAME = 'fmtr.tools'
+    ORG_NAME = 'fmtr'
+    LIBRARY_NAME = f'{ORG_NAME}.tools'
     DATE_FILENAME_FORMAT = '%Y-%m-%d'
     TIME_FILENAME_FORMAT = '%H-%M-%S'
 
@@ -16,3 +17,5 @@ class ToolsConfig(ConfigClass):
     SERIALIZATION_INDENT = 4
 
     FMTR_LOG_LEVEL_KEY = 'FMTR_LOG_LEVEL'
+    FMTR_OBS_API_KEY_KEY = 'FMTR_OBS_API_KEY'
+    FMTR_OBS_HOST = 'log.sv.fmtr.dev'

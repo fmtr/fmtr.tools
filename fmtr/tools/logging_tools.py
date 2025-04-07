@@ -3,18 +3,17 @@ import os
 from logfire import ConsoleOptions
 
 from fmtr.tools import environment_tools
+from fmtr.tools.config import ToolsConfig
 
 DEVELOPMENT = "development"
 PRODUCTION = "production"
-HOST_DEFAULT = "log.sv.fmtr.dev"
-ORG_DEFAULT = "fmtr"
 STREAM_DEFAULT = DEVELOPMENT
 ENVIRONMENT_DEFAULT = DEVELOPMENT
 
 LEVEL_DEFAULT = logging.DEBUG if environment_tools.IS_DEBUG else logging.INFO
 
 
-def get_logger(name, version, host=HOST_DEFAULT, org=ORG_DEFAULT, stream=STREAM_DEFAULT,
+def get_logger(name, version=None, host=ToolsConfig.FMTR_OBS_HOST, org=ToolsConfig.ORG_NAME, stream=STREAM_DEFAULT,
                environment=ENVIRONMENT_DEFAULT, level=LEVEL_DEFAULT):
     """
 
@@ -31,13 +30,17 @@ def get_logger(name, version, host=HOST_DEFAULT, org=ORG_DEFAULT, stream=STREAM_
 
         return logger
 
-    key = environment_tools.get("FMTR_OBS_API_KEY")
-    traces_endpoint = f"https://{host}/api/{org}/v1/traces"
+    key = environment_tools.get(ToolsConfig.FMTR_OBS_API_KEY_KEY)
+    url = f"https://{host}/api/{org}/v1/traces"
     headers = f"Authorization=Basic {key},stream-name={stream}"
 
-    os.environ["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] = traces_endpoint
+    os.environ["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] = url
     os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = headers
     os.environ["OTEL_EXPORTER_OTLP_INSECURE"] = str(False).lower()
+
+    if not version:
+        from fmtr.tools import version_tools
+        version = version_tools.read()
 
     logfire.configure(
         service_name=name,
@@ -45,7 +48,6 @@ def get_logger(name, version, host=HOST_DEFAULT, org=ORG_DEFAULT, stream=STREAM_
         environment=environment,
         send_to_logfire=False,
         console=ConsoleOptions(colors='always' if environment_tools.IS_DEBUG else 'auto')
-
     )
 
     logging.getLogger(name).setLevel(level)
@@ -54,6 +56,6 @@ def get_logger(name, version, host=HOST_DEFAULT, org=ORG_DEFAULT, stream=STREAM_
     return logger
 
 
-logger = get_logger(name='fmtr.tools', version='0.0.0')
+logger = get_logger(name=ToolsConfig.LIBRARY_NAME)
 
 logger = get_logger()
