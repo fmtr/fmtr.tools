@@ -1,6 +1,5 @@
 import logging
 import os
-from logfire import ConsoleOptions
 
 from fmtr.tools import environment_tools
 from fmtr.tools.config import ToolsConfig
@@ -13,7 +12,8 @@ ENVIRONMENT_DEFAULT = DEVELOPMENT
 LEVEL_DEFAULT = logging.DEBUG if environment_tools.IS_DEBUG else logging.INFO
 
 
-def get_logger(name, version=None, host=ToolsConfig.FMTR_OBS_HOST, org=ToolsConfig.ORG_NAME, stream=STREAM_DEFAULT,
+def get_logger(name, version=None, host=ToolsConfig.FMTR_OBS_HOST, key=None, org=ToolsConfig.ORG_NAME,
+               stream=STREAM_DEFAULT,
                environment=ENVIRONMENT_DEFAULT, level=LEVEL_DEFAULT):
     """
 
@@ -30,7 +30,8 @@ def get_logger(name, version=None, host=ToolsConfig.FMTR_OBS_HOST, org=ToolsConf
 
         return logger
 
-    key = environment_tools.get(ToolsConfig.FMTR_OBS_API_KEY_KEY)
+    if key is None:
+        key = environment_tools.get(ToolsConfig.FMTR_OBS_API_KEY_KEY)
     url = f"https://{host}/api/{org}/v1/traces"
     headers = f"Authorization=Basic {key},stream-name={stream}"
 
@@ -47,7 +48,7 @@ def get_logger(name, version=None, host=ToolsConfig.FMTR_OBS_HOST, org=ToolsConf
         service_version=version,
         environment=environment,
         send_to_logfire=False,
-        console=ConsoleOptions(colors='always' if environment_tools.IS_DEBUG else 'auto')
+        console=logfire.ConsoleOptions(colors='always' if environment_tools.IS_DEBUG else 'auto')
     )
 
     logging.getLogger(name).setLevel(level)
@@ -58,4 +59,7 @@ def get_logger(name, version=None, host=ToolsConfig.FMTR_OBS_HOST, org=ToolsConf
 
 logger = get_logger(name=ToolsConfig.LIBRARY_NAME)
 
-logger = get_logger()
+if __name__ == '__main__':
+    logger.info('Hello World')
+    logger.warning('test warning')
+    logger.debug('Hello World')
