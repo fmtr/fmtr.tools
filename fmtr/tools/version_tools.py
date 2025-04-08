@@ -14,19 +14,34 @@ except ImportError as exception:
 def read() -> str:
     """
 
-    Read a generic version file from the calling package path. Optionally add dev build info.
+    Read a generic version file from the calling package path.
+
+    """
+
+    from fmtr.tools.tools import ToolsConfig
+
+    path = get_call_path(offset=2).parent / 'version'
+    text = path.read_text(encoding=ToolsConfig.ENCODING).strip()
+
+    text = get(text)
+
+    return text
+
+
+def get(text) -> str:
+    """
+
+    Optionally add dev build info.
 
     """
     import os
-    from fmtr.tools.tools import ToolsConfig
     from fmtr.tools import datatype_tools
-    path = get_call_path(offset=2).parent / 'version'
-    text = path.read_text(encoding=ToolsConfig.ENCODING).strip()
 
     is_dev = datatype_tools.to_bool(os.getenv('FMTR_DEV', default=False))
 
     if is_dev:
         import datetime
+        from fmtr.tools.tools import ToolsConfig
 
         timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(ToolsConfig.DATETIME_SEMVER_BUILD_FORMAT)
 
