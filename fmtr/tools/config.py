@@ -18,4 +18,4 @@ class ToolsConfig(ConfigClass):
 
     FMTR_LOG_LEVEL_KEY = 'FMTR_LOG_LEVEL'
     FMTR_OBS_API_KEY_KEY = 'FMTR_OBS_API_KEY'
-    FMTR_OBS_HOST = 'log.sv.fmtr.dev'
+    FMTR_OBS_HOST = 'obs.sv.fmtr.dev'
