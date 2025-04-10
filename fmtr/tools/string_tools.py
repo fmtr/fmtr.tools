@@ -145,3 +145,10 @@ class Mask:
             return text
         except (KeyError, IndexError):
             return self
+
+
+if __name__ == '__main__':
+    import numpy as np
+
+    st = join([1, None, 'test', np.nan, 0, '', 'yeah'])
+    st
