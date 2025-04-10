@@ -83,6 +83,11 @@ class ApiBase:
 
     @classmethod
     def launch(cls):
+        """
+
+        Initialise self and launch.
+
+        """
         self = cls()
         logger.info(f'Launching API {cls.TITLE}...')
         uvicorn.run(self.app, host=self.HOST, port=self.PORT)
