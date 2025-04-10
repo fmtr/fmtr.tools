@@ -102,7 +102,7 @@ The included modules, plus any extra requirements, are as follows:
   - Extras: `hfh`
 - `tools.html`: Utilities for converting HTML documents to plain text.
   - Extras: `html`
-- `tools.interface`: Provides a base class for building Streamlit interfaces with a class-based structure.
+- `tools.interface`: Provides a base class for building Flutter/Flet apps.
   - Extras: `interface`
 - `tools.iterator`: Pivoting/unpivoting data structures
     - Extras: None
