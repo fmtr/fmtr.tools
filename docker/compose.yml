@@ -5,17 +5,5 @@ services:
     container_name: fmtr.tools
     env_file:
       - ${ENV_PATH}
-    ports:
-      - "8080:8080"
+    network_mode: host
     user: "1000:1000"
-    volumes:
-      - /artifacts:/artifacts
-      - /fm:/fm
-      - /tmp:/tmp
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
