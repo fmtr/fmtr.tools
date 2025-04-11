@@ -97,7 +97,7 @@ class Block(data_modelling_tools.Base):
         Simple text representation
 
         """
-        return ' '.join([span.text for span in self.spans])
+        return ' '.join([line.text for line in self.lines])
 
     @classmethod
     def from_dict(cls, data: Dict) -> Self:
@@ -138,7 +138,7 @@ class Document(pm.Document):
         blocks = []
 
         for page in self:
-            for block in page.get_text("dict")["blocks"]:
+            for block in page.get_text("dict", flags=pm.TEXTFLAGS_TEXT | pm.TEXT_ACCURATE_BBOXES)["blocks"]:
                 obj = Block.from_dict(block)
                 blocks.append(obj)
 
@@ -162,11 +162,6 @@ if __name__ == '__main__':
     assert PATH_PDF.exists()
 
     doc = Document(PATH_PDF)
-    doc.data
-
-    for page in doc:
-        print(page.get_text('dict'))
-        print(page.get_text('html'))
-
+    data = doc.data
     md = doc.to_markdown()
     md
