@@ -96,6 +96,29 @@ class Path(type(Path())):
         """
         return cls(gettempdir())
 
+    @classmethod
+    def data(cls, name='data') -> 'Path':
+        """
+
+        Fetch canonical "data"/"artifacts" path, whether calling package is regular or namespace package.
+
+        """
+        from fmtr.tools.inspection_tools import get_call_path
+        path = get_call_path()
+        path = path.absolute().parent.parent
+
+        path /= name
+
+        if path.exists():
+            return path
+
+        path = path.parent.parent / name
+
+        if path.exists():
+            return path
+
+        raise FileNotFoundError(f'No "{name}" directory found at "{path}"')
+
     def write_json(self, obj) -> int:
         """
 
