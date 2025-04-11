@@ -120,6 +120,32 @@ class Block(data_modelling_tools.Base):
         return self.bbox.rect
 
 
+class Page(data_modelling_tools.Base):
+    number: int
+    width: float
+    height: float
+    blocks: List[Block]
+
+    @property
+    def text(self) -> str:
+        """
+
+        Simple text representation
+
+        """
+        return ' '.join([block.text for block in self.blocks])
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> Self:
+        """
+
+        Instantiate from PyMuPDF dictionary data
+
+        """
+
+        data['blocks'] = [Block.from_dict(block) for block in data['blocks']]
+        return cls(**data)
+
 class Document(pm.Document):
     """
 
@@ -128,21 +154,22 @@ class Document(pm.Document):
     """
 
     @property
-    def data(self) -> List[Block]:
+    def data(self) -> List[Page]:
         """
 
         Get representation of Document elements as Python objects.
 
         """
 
-        blocks = []
+        pages = []
 
-        for page in self:
-            for block in page.get_text("dict", flags=pm.TEXTFLAGS_TEXT | pm.TEXT_ACCURATE_BBOXES)["blocks"]:
-                obj = Block.from_dict(block)
-                blocks.append(obj)
+        for page_pm in self:
+            data = page_pm.get_text("dict", flags=pm.TEXTFLAGS_TEXT | pm.TEXT_ACCURATE_BBOXES)
+            data['number'] = page_pm.number
+            page = Page.from_dict(data)
+            pages.append(page)
 
-        return blocks
+        return pages
 
     def to_markdown(self, **kwargs) -> str:
         """
