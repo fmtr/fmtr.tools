@@ -1,0 +1,172 @@
+import pymupdf as pm
+import pymupdf4llm
+from typing import List, Tuple, Dict, Any, Self
+
+from fmtr.tools import data_modelling_tools
+
+
+class BoundingBox(data_modelling_tools.Base):
+    left: float
+    top: float
+    right: float
+    bottom: float
+
+    @property
+    def order(self):
+        """
+
+        Approximate natural reading order
+
+        """
+        return (self.top, self.left), (self.bottom, self.right)
+
+    @property
+    def rect(self) -> pm.Rect:
+        """
+
+        Position as a PyMuPDF Rect
+
+        """
+        return pm.Rect(self.left, self.top, self.right, self.bottom)
+
+    @classmethod
+    def from_dict(cls, data: Tuple[float]) -> Self:
+        """
+
+        Instantiate from PyMuPDF dictionary data
+
+        """
+        data = {key: value for key, value in zip(cls.model_fields.keys(), data)}
+        return cls(**data)
+
+
+class Span(data_modelling_tools.Base):
+    size: float
+    flags: int
+    font: str
+    color: int
+    ascender: float
+    descender: float
+    text: str
+    origin: Tuple[float, float]
+    bbox: BoundingBox
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> Self:
+        data['bbox'] = BoundingBox.from_dict(data['bbox'])
+        return cls(**data)
+
+
+class Line(data_modelling_tools.Base):
+    spans: List[Span]
+    wmode: int
+    dir: Tuple[float, float]
+    bbox: BoundingBox
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'Line':
+        """
+
+        Instantiate from PyMuPDF dictionary data
+
+        """
+        data['spans'] = [Span.from_dict(span) for span in data['spans']]
+        data['bbox'] = BoundingBox.from_dict(data['bbox'])
+        return cls(**data)
+
+    @property
+    def text(self) -> str:
+        """
+
+        Simple text representation
+
+        """
+        return ' '.join([span.text for span in self.spans])
+
+
+class Block(data_modelling_tools.Base):
+    number: int
+    type: int
+    bbox: BoundingBox
+    lines: List[Line]
+
+    @property
+    def text(self) -> str:
+        """
+
+        Simple text representation
+
+        """
+        return ' '.join([span.text for span in self.spans])
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> Self:
+        """
+
+        Instantiate from PyMuPDF dictionary data
+
+        """
+        data['lines'] = [Line.from_dict(line) for line in data['lines']]
+        data['bbox'] = BoundingBox.from_dict(data['bbox'])
+        return cls(**data)
+
+    @property
+    def rect(self) -> pm.Rect:
+        """
+
+        Position as a PyMuPDF Rect
+
+        """
+        return self.bbox.rect
+
+
+class Document(pm.Document):
+    """
+
+    Subclassed Document object with data-modelled elements property and markdown conversion.
+
+    """
+
+    @property
+    def data(self) -> List[Block]:
+        """
+
+        Get representation of Document elements as Python objects.
+
+        """
+
+        blocks = []
+
+        for page in self:
+            for block in page.get_text("dict")["blocks"]:
+                obj = Block.from_dict(block)
+                blocks.append(obj)
+
+        return blocks
+
+    def to_markdown(self, **kwargs) -> str:
+        """
+
+        Markdown output via `pymupdf4llm`
+
+        """
+        return pymupdf4llm.to_markdown(self, **kwargs)
+
+
+if __name__ == '__main__':
+    from fmtr.tools.path_tools import Path
+
+    PATH_DATA = Path.data()
+    # PATH_PDF=PATH_DATA/'chib.pdf'
+    PATH_PDF = PATH_DATA / 'kvm.pdf'
+    assert PATH_PDF.exists()
+
+    doc = Document(PATH_PDF)
+    doc.data
+
+    for page in doc:
+        print(page.get_text('dict'))
+        print(page.get_text('html'))
+
+    md = doc.to_markdown()
+    md

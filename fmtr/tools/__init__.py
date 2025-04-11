@@ -143,6 +143,11 @@ try:
 except ImportError as exception:
     caching = MissingExtraMockModule('caching', exception)
 
+try:
+    from fmtr.tools import pdf_tools as pdf
+except ImportError as exception:
+    pdf = MissingExtraMockModule('pdf', exception)
+
 
 __all__ = [
     'config',

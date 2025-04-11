@@ -32,6 +32,7 @@ DEPENDENCIES = {
     'interface': ['flet[all]', 'flet-video', 'flet-webview', 'dm'],
     'google.api': ['google-auth', 'google-auth-oauthlib', 'google-auth-httplib2', 'google-api-python-client'],
     'caching': ['diskcache'],
+    'pdf': ['pymupdf', 'dm', 'pymupdf4llm'],
 }
 
 CONSOLE_SCRIPTS = [
