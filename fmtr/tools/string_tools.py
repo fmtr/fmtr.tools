@@ -2,6 +2,7 @@ from collections import namedtuple
 
 import re
 from string import Formatter
+from textwrap import dedent
 from typing import List
 
 from fmtr.tools.datatype_tools import is_none
@@ -146,6 +147,14 @@ class Mask:
         except (KeyError, IndexError):
             return self
 
+
+def to_mask(text):
+    """
+
+    Fix multi-string indents.
+
+    """
+    return dedent(text).strip()
 
 if __name__ == '__main__':
     import numpy as np
