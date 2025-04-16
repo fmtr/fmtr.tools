@@ -148,6 +148,11 @@ try:
 except ImportError as exception:
     pdf = MissingExtraMockModule('pdf', exception)
 
+try:
+    from fmtr.tools import tabular_tools as tabular
+except ImportError as exception:
+    tabular = MissingExtraMockModule('tabular', exception)
+
 
 __all__ = [
     'config',
