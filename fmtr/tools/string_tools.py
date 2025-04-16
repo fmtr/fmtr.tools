@@ -64,7 +64,7 @@ def format_data(value, **kwargs):
         return value
 
 
-WHITESPACE = re.compile('[\s\-_]+')
+WHITESPACE = re.compile(r'[\s\-_]+')
 
 
 def sanitize(*strings, sep: str = '-') -> str:
