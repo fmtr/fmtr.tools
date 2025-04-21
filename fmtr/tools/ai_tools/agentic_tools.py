@@ -9,3 +9,6 @@ class Agent(pydantic_ai.Agent):
     TODO base class is marked `@final`, so is it safe to subclass?
 
     """
+
+
+Agent.instrument_all()
