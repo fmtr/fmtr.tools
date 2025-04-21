@@ -148,10 +148,10 @@ class Mask:
             return self
 
 
-def to_mask(text):
+def trim(text: str) -> str:
     """
 
-    Fix multi-string indents.
+    Trim strings both horizontally and vertically. Useful when multiline strings are defined in an indented context.
 
     """
     return dedent(text).strip()
