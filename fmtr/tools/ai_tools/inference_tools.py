@@ -365,7 +365,7 @@ class ToolsCall(data_modelling_tools.Root):
 def tst():
     """
 
-    Test with a large number of small input/outputs.
+    Test with a large number of small input/outputs. TODO: Unit tests.
 
     """
     mask = 'Write out the following number as words: {}. Just the text please, no explanation or alternatives'
@@ -382,7 +382,7 @@ def tst():
 def tst_tool():
     """
 
-    Test Tool usage
+    Test Tool usage: TODO: Unit tests.
 
     """
 
@@ -409,9 +409,6 @@ def tst_tool():
         objs = ToolsCall.from_json(text).apply(BulkInferenceManagerTools.TOOLS)
         obj = objs[0]
         print(obj)
-
-
-
 
 
 if __name__ == '__main__':
