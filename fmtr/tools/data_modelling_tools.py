@@ -1,14 +1,22 @@
 from pydantic import BaseModel, RootModel
 
 
-def to_df(*objs):
+def to_df(*objs, name_value='value'):
     """
 
     DataFrame representation of Data Models as rows.
 
     """
     from fmtr.tools import tabular
-    rows = [obj.model_dump() for obj in objs]
+
+    rows = []
+    for obj in objs:
+        if isinstance(obj, BaseModel):
+            row = obj.model_dump()
+        else:
+            row = {name_value: obj}
+        rows.append(row)
+
     df = tabular.DataFrame(rows)
     return df
 
@@ -40,7 +48,7 @@ class Base(BaseModel, MixinFromJson):
 
     """
 
-    def to_df(self):
+    def to_df(self, name_value='value'):
         """
 
         DataFrame representation with Fields as rows.
@@ -52,7 +60,7 @@ class Base(BaseModel, MixinFromJson):
             val = getattr(self, name)
             objs.append(val)
 
-        df = to_df(*objs)
+        df = to_df(*objs, name_value=name_value)
         df['id'] = list(self.model_fields.keys())
         return df
 
