@@ -18,6 +18,8 @@ def to_df(*objs, name_value='value'):
         rows.append(row)
 
     df = tabular.DataFrame(rows)
+    if 'id' in df.columns:
+        df.set_index('id', inplace=True, drop=True)
     return df
 
 
@@ -62,6 +64,7 @@ class Base(BaseModel, MixinFromJson):
 
         df = to_df(*objs, name_value=name_value)
         df['id'] = list(self.model_fields.keys())
+        df = df.set_index('id', drop=True)
         return df
 
 
