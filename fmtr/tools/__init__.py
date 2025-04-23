@@ -153,6 +153,11 @@ try:
 except ImportError as exception:
     tabular = MissingExtraMockModule('tabular', exception)
 
+try:
+    from fmtr.tools import debugging_tools as debug
+except ImportError as exception:
+    debug = MissingExtraMockModule('debug', exception)
+
 
 __all__ = [
     'config',
