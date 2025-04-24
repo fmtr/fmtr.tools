@@ -29,3 +29,12 @@ def trace(is_debug=None, host=None, port=None, stdoutToServer=True, stderrToServ
     logger.info(msg)
 
     pydevd_pycharm.settrace(host, port=port, stdoutToServer=stdoutToServer, stderrToServer=stderrToServer, **kwargs)
+
+
+def test(**kwargs):
+    """
+
+    Test debugger connection
+
+    """
+    return trace(is_debug=True, **kwargs)
