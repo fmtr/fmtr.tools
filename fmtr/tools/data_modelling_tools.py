@@ -1,4 +1,4 @@
-from pydantic import BaseModel, RootModel
+from pydantic import BaseModel, RootModel, ConfigDict
 
 
 def to_df(*objs, name_value='value'):
@@ -22,6 +22,14 @@ def to_df(*objs, name_value='value'):
         df.set_index('id', inplace=True, drop=True)
     return df
 
+
+class MixinArbitraryTypes:
+    """
+
+    Convenience for when non-serializable types are needed
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 class MixinFromJson:
 
