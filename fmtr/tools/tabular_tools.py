@@ -1,4 +1,7 @@
 import pandas as pd
 
-DataFrame = pd.DataFrame
+Table = DataFrame = pd.DataFrame
 Series = pd.Series
+
+CONCAT_HORIZONTALLY = 1
+CONCAT_VERTICALLY = 0
