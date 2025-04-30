@@ -129,7 +129,8 @@ class Mask:
     """
 
     def __init__(self, mask: str):
-        self.mask = mask
+        self.mask = trim(mask)
+        self.mask_data = parse_string(self.mask)
         self.kwargs = {}
         self.args = []
 
@@ -147,6 +148,21 @@ class Mask:
         except (KeyError, IndexError):
             return self
 
+    def __str__(self):
+        """
+
+        Force string output, leaving any unfilled slots as-is.
+
+        """
+
+        fills = {}
+
+        for seg in self.mask_data:
+            if seg.field_name:
+                fill = self.kwargs.get(seg.field_name, f'{{{seg.field_name}}}')
+                fills[seg.field_name] = fill
+
+        return self.mask.format(**fills)
 
 def trim(text: str) -> str:
     """
