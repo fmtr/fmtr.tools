@@ -1,7 +1,7 @@
 import pydantic_ai
-from pydantic_ai import RunContext, ModelRetry
-from pydantic_ai.agent import AgentRunResult
-from pydantic_ai.messages import ModelRequest, SystemPromptPart, ToolCallPart, RetryPromptPart, ModelResponse, ToolReturnPart, UserPromptPart
+from pydantic_ai import RunContext
+from pydantic_ai.agent import AgentRunResult, Agent
+from pydantic_ai.messages import ModelRequest, RetryPromptPart
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
 
@@ -9,16 +9,6 @@ from fmtr.tools import environment_tools as env
 from fmtr.tools.config import ToolsConfig
 
 pydantic_ai.Agent.instrument_all()
-
-class Agent(pydantic_ai.Agent):
-    """
-
-    Agent stub
-
-    TODO base class is marked `@final`, so is it safe to subclass?
-
-    """
-
 
 class Task:
     """
@@ -28,10 +18,15 @@ class Task:
     """
 
     PROVIDER = OpenAIProvider(api_key=env.get(ToolsConfig.FMTR_OPENAI_API_KEY_KEY))
+
+    API_HOST_FMTR = env.get(ToolsConfig.FMTR_AI_HOST_KEY, ToolsConfig.FMTR_AI_HOST_DEFAULT)
+    API_URL_FMTR = f'https://{API_HOST_FMTR}/v1'
+    PROVIDER_FMTR = OpenAIProvider(base_url=API_URL_FMTR)
+
     MODEL_ID = 'gpt-4o'
     SYSTEM_PROMPT = None
-    DEPS_TYPE = type(None)
-    RESULT_TYPE = type(None)
+    DEPS_TYPE = str
+    RESULT_TYPE = str
     RESULT_RETRIES = 5
 
     def __init__(self, *args, **kwargs):
@@ -45,7 +40,7 @@ class Task:
         self.agent = Agent(
             *args,
             model=self.model,
-            system_prompt=self.SYSTEM_PROMPT,
+            system_prompt=self.SYSTEM_PROMPT or [],
             deps_type=self.DEPS_TYPE,
             result_type=self.RESULT_TYPE,
             result_retries=self.RESULT_RETRIES,
@@ -90,3 +85,16 @@ class Task:
 
         """
         return output
+
+
+class TaskTest(Task):
+    PROVIDER = Task.PROVIDER_FMTR
+    MODEL_ID = 'mixtral:8x7b'
+
+
+if __name__ == '__main__':
+    import asyncio
+
+    task = TaskTest()
+    result = asyncio.run(task.run('Hello! What is your name?'))
+    result
