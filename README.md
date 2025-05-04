@@ -86,6 +86,7 @@ The included modules, plus any extra requirements, are as follows:
     - Extras: None
 -
 `tools.settings`: A base configuration system built on Pydantic Settings that provides a flexible way to manage application settings from multiple sources, based on a standard
+  - Extras: `sets`
 `path.PackagePaths` project layout.
   - Extras: `sets`
 - `tools.dataclass`: Utilities for extracting and filtering fields and metadata from dataclasses, with support for applying filters and retrieving enabled fields based on metadata attributes.
