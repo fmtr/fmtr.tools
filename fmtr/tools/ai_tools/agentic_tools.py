@@ -24,6 +24,7 @@ class Task:
     PROVIDER_FMTR = OpenAIProvider(base_url=API_URL_FMTR)
 
     MODEL_ID = 'gpt-4o'
+    MODEL_ID_FMTR = 'qwen2.5-coder:14b'
     SYSTEM_PROMPT = None
     DEPS_TYPE = str
     RESULT_TYPE = str
@@ -86,14 +87,19 @@ class Task:
         """
         return output
 
-
-class TaskTest(Task):
-    PROVIDER = Task.PROVIDER_FMTR
-    MODEL_ID = 'mixtral:8x7b'
-
-
 if __name__ == '__main__':
     import asyncio
+    from fmtr.tools import dm
+
+
+    class TestOutput(dm.BaseModel):
+        text: str
+
+
+    class TaskTest(Task):
+        PROVIDER = Task.PROVIDER_FMTR
+        MODEL_ID = 'qwen2.5-coder:14b'
+        RESULT_TYPE = TestOutput
 
     task = TaskTest()
     result = asyncio.run(task.run('Hello! What is your name?'))
