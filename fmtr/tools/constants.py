@@ -1,9 +1,7 @@
 import datetime
 
-from fmtr.tools.config_tools import ConfigClass
 
-
-class ToolsConfig(ConfigClass):
+class Constants:
     ENCODING = 'UTF-8'
     ORG_NAME = 'fmtr'
     LIBRARY_NAME = f'{ORG_NAME}.tools'

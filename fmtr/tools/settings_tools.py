@@ -1,0 +1,65 @@
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, YamlConfigSettingsSource, EnvSettingsSource, CliSettingsSource
+from typing import ClassVar
+
+from fmtr.tools.path_tools import PackagePaths
+
+
+class Base(BaseSettings):
+    """
+
+    Base class for settings configuration using Pydantic BaseSettings.
+    Provides functionality for setting up and customizing sources for retrieving configuration values.
+    Defines sources for configuration through environment variables, CLI arguments, YAML files.
+
+    """
+
+    paths: ClassVar = PackagePaths()
+
+    @classmethod
+    def settings_customise_sources(
+            cls,
+            settings_cls: type[BaseSettings],
+            init_settings: PydanticBaseSettingsSource,
+            env_settings: PydanticBaseSettingsSource,
+            dotenv_settings: PydanticBaseSettingsSource,
+            file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        """
+
+        Define priority and additional sources. Note: the earlier items have higher priority.
+
+        """
+
+        sources = (
+            init_settings,
+            CliSettingsSource(settings_cls, cli_parse_args=True),
+            EnvSettingsSource(settings_cls, env_prefix=cls.get_env_prefix()),
+            YamlConfigSettingsSource(settings_cls, yaml_file=cls.paths.settings),
+        )
+
+        return sources
+
+    @classmethod
+    def get_env_prefix(cls):
+        """
+
+        Get environment variable prefix, which depends on whether the package is a namespace/singleton.
+
+        """
+        if cls.paths.is_namespace:
+            stem = f'{cls.paths.org}_{cls.paths.name}'
+        else:
+            stem = f'{cls.paths.name}'
+
+        prefix = f'{stem}_'.upper()
+        return prefix
+
+    @property
+    def version(self):
+        """
+
+        Read in version file.
+
+        """
+        from fmtr.tools import version
+        return version.read_path(self.paths.version)

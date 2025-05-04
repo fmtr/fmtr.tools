@@ -8,11 +8,10 @@ from tokenizers.trainers import BpeTrainer
 from tokenizers.trainers import WordLevelTrainer
 from typing import List
 
-from fmtr.tools.config_tools import ConfigClass
 from fmtr.tools.path_tools import Path
 
 
-class TokenConfig(ConfigClass):
+class TokenConfig:
     """
 
     Default config for special characters etc.

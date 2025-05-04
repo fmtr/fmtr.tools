@@ -2,7 +2,7 @@ import logging
 import os
 
 from fmtr.tools import environment_tools
-from fmtr.tools.config import ToolsConfig
+from fmtr.tools.constants import Constants
 
 DEVELOPMENT = "development"
 PRODUCTION = "production"
@@ -12,7 +12,7 @@ ENVIRONMENT_DEFAULT = DEVELOPMENT
 LEVEL_DEFAULT = logging.DEBUG if environment_tools.IS_DEBUG else logging.INFO
 
 
-def get_logger(name, version=None, host=ToolsConfig.FMTR_OBS_HOST, key=None, org=ToolsConfig.ORG_NAME,
+def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=Constants.ORG_NAME,
                stream=STREAM_DEFAULT,
                environment=ENVIRONMENT_DEFAULT, level=LEVEL_DEFAULT):
     """
@@ -31,7 +31,7 @@ def get_logger(name, version=None, host=ToolsConfig.FMTR_OBS_HOST, key=None, org
         return logger
 
     if key is None:
-        key = environment_tools.get(ToolsConfig.FMTR_OBS_API_KEY_KEY)
+        key = environment_tools.get(Constants.FMTR_OBS_API_KEY_KEY)
     url = f"https://{host}/api/{org}/v1/traces"
     headers = f"Authorization=Basic {key},stream-name={stream}"
 
@@ -57,7 +57,7 @@ def get_logger(name, version=None, host=ToolsConfig.FMTR_OBS_HOST, key=None, org
     return logger
 
 
-logger = get_logger(name=ToolsConfig.LIBRARY_NAME)
+logger = get_logger(name=Constants.LIBRARY_NAME)
 
 if __name__ == '__main__':
     logger.info('Hello World')

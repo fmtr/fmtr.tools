@@ -1,11 +1,10 @@
 import re
 import subprocess
-from inspect import stack
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Union, Any
 
-from fmtr.tools.config import ToolsConfig
+from fmtr.tools.constants import Constants
 from fmtr.tools.platform_tools import is_wsl
 
 WIN_PATH_PATTERN = r'''([a-z]:(\\|$)|\\\\)'''
@@ -72,8 +71,8 @@ class Path(type(Path())):
         Get path to originating module (e.g. directory containing .py file).
 
         """
-        frame_called = stack()[1]
-        path = cls(frame_called.filename).absolute().parent
+        from fmtr.tools.inspection_tools import get_call_path
+        path = get_call_path(offset=2).absolute().parent
         return path
 
     @classmethod
@@ -83,8 +82,8 @@ class Path(type(Path())):
         Get path to originating module (i.e. .py file).
 
         """
-        frame_called = stack()[1]
-        path = cls(frame_called.filename).absolute()
+        from fmtr.tools.inspection_tools import get_call_path
+        path = get_call_path(offset=2).absolute()
         return path
 
     @classmethod
@@ -96,29 +95,6 @@ class Path(type(Path())):
         """
         return cls(gettempdir())
 
-    @classmethod
-    def data(cls, name='data') -> 'Path':
-        """
-
-        Fetch canonical "data"/"artifacts" path, whether calling package is regular or namespace package.
-
-        """
-        from fmtr.tools.inspection_tools import get_call_path
-        path = get_call_path()
-        path = path.absolute().parent.parent
-
-        path /= name
-
-        if path.exists():
-            return path
-
-        path = path.parent.parent / name
-
-        if path.exists():
-            return path
-
-        raise FileNotFoundError(f'No "{name}" directory found at "{path}"')
-
     def write_json(self, obj) -> int:
         """
 
@@ -127,7 +103,7 @@ class Path(type(Path())):
         """
         from fmtr.tools import json
         json_str = json.to_json(obj)
-        return self.write_text(json_str, encoding=ToolsConfig.ENCODING)
+        return self.write_text(json_str, encoding=Constants.ENCODING)
 
     def read_json(self) -> Any:
         """
@@ -136,7 +112,7 @@ class Path(type(Path())):
 
         """
         from fmtr.tools import json
-        json_str = self.read_text(encoding=ToolsConfig.ENCODING)
+        json_str = self.read_text(encoding=Constants.ENCODING)
         obj = json.from_json(json_str)
         return obj
 
@@ -148,7 +124,7 @@ class Path(type(Path())):
         """
         from fmtr.tools import yaml
         yaml_str = yaml.to_yaml(obj)
-        return self.write_text(yaml_str, encoding=ToolsConfig.ENCODING)
+        return self.write_text(yaml_str, encoding=Constants.ENCODING)
 
     def read_yaml(self) -> Any:
         """
@@ -157,7 +133,7 @@ class Path(type(Path())):
 
         """
         from fmtr.tools import yaml
-        yaml_str = self.read_text(encoding=ToolsConfig.ENCODING)
+        yaml_str = self.read_text(encoding=Constants.ENCODING)
         obj = yaml.from_yaml(yaml_str)
         return obj
 
@@ -170,3 +146,107 @@ class Path(type(Path())):
         return self.mkdir(parents=True, exist_ok=True)
 
 
+class PackagePaths:
+    """
+
+    Canonical paths for a package.
+
+    """
+
+    FILENAME_CONFIG = 'settings.yaml'
+    DIR_NAME_ARTIFACTS = 'artifacts'
+    FILENAME_VERSION = 'version'
+
+    def __init__(self, path=None, org_singleton=None, dir_name_artifacts=DIR_NAME_ARTIFACTS, filename_config=FILENAME_CONFIG, file_version=FILENAME_VERSION):
+
+        """
+
+        Use calling module path as default path, if not otherwise specified.
+
+        """
+        if not path:
+            from fmtr.tools.inspection_tools import get_call_path
+            path = get_call_path(offset=2).parent
+
+        self.path = Path(path)
+        self.org_singleton = org_singleton
+        self.dir_name_artifacts = dir_name_artifacts
+        self.filename_config = filename_config
+        self.filename_version = file_version
+
+    @property
+    def is_namespace(self) -> bool:
+        """
+
+        If organization is not hard-specified, then the package is a namespace.
+
+        """
+        return not bool(self.org_singleton)
+
+    @property
+    def name(self) -> str:
+        """
+
+        Name of package.
+
+        """
+        return self.path.stem
+
+    @property
+    def org(self) -> str:
+        """
+
+        Name of organization.
+
+        """
+        if not self.is_namespace:
+            return self.org_singleton
+        else:
+            return self.path.parent.stem
+
+    @property
+    def repo(self) -> Path:
+        """
+
+        Path of repo (i.e. parent of package base directory).
+
+        """
+        if self.is_namespace:
+            return self.path.parent.parent
+        else:
+            return self.path.parent
+
+    @property
+    def version(self) -> Path:
+        """
+
+        Path of version file.
+
+        """
+        return self.path / self.filename_version
+
+    @property
+    def artifacts(self) -> Path:
+        """
+
+        Path of artifacts directory.
+
+        """
+        return self.repo / self.dir_name_artifacts
+
+    @property
+    def settings(self) -> Path:
+        """
+
+        Path of settings file.
+
+        """
+        return self.artifacts / self.filename_config
+
+    def __repr__(self) -> str:
+        """
+
+        Show base path in repr.
+
+        """
+        return f'{self.__class__.__name__}("{self.path}")'

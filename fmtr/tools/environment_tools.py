@@ -8,7 +8,7 @@ from collections.abc import Callable
 from datetime import date, datetime
 from typing import Any, Dict
 
-from fmtr.tools.config import ToolsConfig
+from fmtr.tools.constants import Constants
 from fmtr.tools.datatype_tools import to_bool
 from fmtr.tools.path_tools import Path
 from fmtr.tools.tools import identity, EMPTY
@@ -76,4 +76,4 @@ get_date = get_getter(date.fromisoformat)
 get_datetime = get_getter(datetime.fromisoformat)
 get_path = get_getter(Path)
 
-IS_DEBUG = get(ToolsConfig.FMTR_LOG_LEVEL_KEY, None, converter=str.upper) == 'DEBUG'
+IS_DEBUG = get(Constants.FMTR_LOG_LEVEL_KEY, None, converter=str.upper) == 'DEBUG'

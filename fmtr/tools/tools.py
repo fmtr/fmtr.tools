@@ -1,6 +1,6 @@
 from typing import Any
 
-from fmtr.tools.config import ToolsConfig
+from fmtr.tools.constants import Constants
 
 
 class MissingExtraError(ImportError):
@@ -13,7 +13,7 @@ class MissingExtraError(ImportError):
     MASK = 'The current module is missing dependencies. To install them, run: `pip install {library}[{extra}] --upgrade`'
 
     def __init__(self, extra):
-        self.message = self.MASK.format(library=ToolsConfig.LIBRARY_NAME, extra=extra)
+        self.message = self.MASK.format(library=Constants.LIBRARY_NAME, extra=extra)
 
         super().__init__(self.message)
 

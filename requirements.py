@@ -34,7 +34,9 @@ DEPENDENCIES = {
     'google.api': ['google-auth', 'google-auth-oauthlib', 'google-auth-httplib2', 'google-api-python-client'],
     'caching': ['diskcache'],
     'pdf': ['pymupdf', 'dm', 'pymupdf4llm'],
-    'debug': ['pydevd-pycharm']
+    'debug': ['pydevd-pycharm'],
+    'sets': ['pydantic-settings', 'dm'],
+
 }
 
 CONSOLE_SCRIPTS = [

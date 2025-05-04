@@ -2,7 +2,7 @@ from fmtr.tools import version_tools as version
 
 __version__ = version.read()
 
-import fmtr.tools.config_tools as config
+
 import fmtr.tools.dataclass_tools as dataclass
 import fmtr.tools.datatype_tools as datatype
 import fmtr.tools.environment_tools as env
@@ -22,7 +22,8 @@ import fmtr.tools.async_tools as asyncio
 from fmtr.tools.logging_tools import logger
 
 from fmtr.tools.import_tools import MissingExtraMockModule
-from fmtr.tools.path_tools import Path
+from fmtr.tools.path_tools import Path, PackagePaths
+from fmtr.tools.constants import Constants
 
 try:
     from fmtr.tools import augmentation_tools as augmentation
@@ -158,9 +159,13 @@ try:
 except ImportError as exception:
     debug = MissingExtraMockModule('debug', exception)
 
+try:
+    from fmtr.tools import settings_tools as sets
+except ImportError as exception:
+    sets = MissingExtraMockModule('sets', exception)
+
 
 __all__ = [
-    'config',
     'dataclass',
     'datatype',
     'environment',

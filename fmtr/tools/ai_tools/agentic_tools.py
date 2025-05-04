@@ -6,7 +6,7 @@ from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
 
 from fmtr.tools import environment_tools as env
-from fmtr.tools.config import ToolsConfig
+from fmtr.tools.constants import Constants
 
 pydantic_ai.Agent.instrument_all()
 
@@ -17,9 +17,9 @@ class Task:
 
     """
 
-    PROVIDER = OpenAIProvider(api_key=env.get(ToolsConfig.FMTR_OPENAI_API_KEY_KEY))
+    PROVIDER = OpenAIProvider(api_key=env.get(Constants.FMTR_OPENAI_API_KEY_KEY))
 
-    API_HOST_FMTR = env.get(ToolsConfig.FMTR_AI_HOST_KEY, ToolsConfig.FMTR_AI_HOST_DEFAULT)
+    API_HOST_FMTR = env.get(Constants.FMTR_AI_HOST_KEY, Constants.FMTR_AI_HOST_DEFAULT)
     API_URL_FMTR = f'https://{API_HOST_FMTR}/v1'
     PROVIDER_FMTR = OpenAIProvider(base_url=API_URL_FMTR)
 

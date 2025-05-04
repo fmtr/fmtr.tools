@@ -6,13 +6,12 @@ from contextlib import nullcontext as NullContext
 from dask.diagnostics import ProgressBar
 from typing import List, Callable, Any, Union
 
-from fmtr.tools.config_tools import ConfigClass
 from fmtr.tools.iterator_tools import dict_records_to_lists
 from fmtr.tools.logging_tools import logger
 from fmtr.tools.path_tools import Path
 
 
-class ParallelConfig(ConfigClass):
+class ParallelConfig:
     """
 
     Configuration values.

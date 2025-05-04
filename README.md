@@ -84,6 +84,10 @@ The included modules, plus any extra requirements, are as follows:
   - Extras: `ai`
 - `tools.config`: Base config class with overridable field processors.
     - Extras: None
+-
+`tools.settings`: A base configuration system built on Pydantic Settings that provides a flexible way to manage application settings from multiple sources, based on a standard
+`path.PackagePaths` project layout.
+  - Extras: `sets`
 - `tools.dataclass`: Utilities for extracting and filtering fields and metadata from dataclasses, with support for applying filters and retrieving enabled fields based on metadata attributes.
     - Extras: None
 - `tools.datatype`
@@ -114,8 +118,12 @@ The included modules, plus any extra requirements, are as follows:
   - Extras: None
 - `tools.openai`: Utilities for interacting with the OpenAI API, simple text-to-text output, etc.
   - Extras: `openai.api`
-- `tools.Path`: Enhanced `pathlib.Path` object with additional functionality for Windows-to-Unix path conversion, reading/writing JSON and YAML files, and convenient directory creation with parent directories. Includes methods for obtaining paths to modules and temporary directories.
+- `tools.Path`: Enhanced
+  `pathlib.Path` object with additional functionality for Windows-to-Unix path conversion in WSL environments, reading/writing JSON and YAML files with proper encoding.
     - Extras: None
+-
+`tools.PackagePaths` class for managing canonical package paths, like settings files, artifact directories, version files.
+  - Extras: None
 - `tools.platform`: Detecting if host is WSL, Docker etc.
     - Extras: None
 - `tools.ContextProcess`: Manages a function running in a separate process using a context manager. Provides methods to start, stop, and restart the process, with configurable restart delays. Useful for ensuring clean process management and automatic stopping when the context manager exits.

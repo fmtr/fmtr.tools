@@ -1,6 +1,6 @@
 import json
 
-from fmtr.tools.config import ToolsConfig
+from fmtr.tools.constants import Constants
 
 
 def to_json(obj):
@@ -9,7 +9,7 @@ def to_json(obj):
     Serialise to JSON
 
     """
-    json_str = json.dumps(obj, indent=ToolsConfig.SERIALIZATION_INDENT, ensure_ascii=False)
+    json_str = json.dumps(obj, indent=Constants.SERIALIZATION_INDENT, ensure_ascii=False)
     return json_str
 
 
