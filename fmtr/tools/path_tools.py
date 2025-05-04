@@ -153,11 +153,7 @@ class PackagePaths:
 
     """
 
-    FILENAME_CONFIG = 'settings.yaml'
-    DIR_NAME_ARTIFACTS = 'artifacts'
-    FILENAME_VERSION = 'version'
-
-    def __init__(self, path=None, org_singleton=None, dir_name_artifacts=DIR_NAME_ARTIFACTS, filename_config=FILENAME_CONFIG, file_version=FILENAME_VERSION):
+    def __init__(self, path=None, org_singleton=None, dir_name_artifacts=Constants.DIR_NAME_ARTIFACTS, filename_config=Constants.FILENAME_CONFIG, file_version=Constants.FILENAME_VERSION):
 
         """
 

@@ -27,3 +27,7 @@ class Constants:
 
     FMTR_AI_HOST_KEY = 'FMTR_URL_HOST'
     FMTR_AI_HOST_DEFAULT = 'ai.gex.fmtr.dev'
+
+    FILENAME_CONFIG = 'settings.yaml'
+    DIR_NAME_ARTIFACTS = 'artifacts'
+    FILENAME_VERSION = 'version'
