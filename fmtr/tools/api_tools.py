@@ -52,6 +52,7 @@ class ApiBase:
 
     def __init__(self):
         self.app = FastAPI(title=self.TITLE)
+        logger.instrument_fastapi(self.app)
 
         for endpoint in self.get_endpoints():
             self.add_endpoint(endpoint)

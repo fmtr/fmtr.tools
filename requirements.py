@@ -20,7 +20,7 @@ DEPENDENCIES = {
     'netrc': ['tinynetrc'],
     'hfh': ['huggingface_hub'],
     'merging': ['deepmerge'],
-    'api': ['fastapi', 'uvicorn', 'logging', 'dm'],
+    'api': ['fastapi', 'uvicorn[standard]', 'logging', 'dm', 'logfire[fastapi]'],
     'ai': ['peft', 'transformers[sentencepiece]', 'torchvision', 'torchaudio', 'dm'],
     'dm': ['pydantic'],
     'openai.api': ['openai'],
