@@ -1,9 +1,9 @@
 import pydantic_ai
 from pydantic_ai import RunContext
 from pydantic_ai.agent import AgentRunResult, Agent
-from pydantic_ai.messages import ModelRequest, RetryPromptPart
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
+from typing import List, Optional
 
 from fmtr.tools import environment_tools as env
 from fmtr.tools.constants import Constants
@@ -25,7 +25,7 @@ class Task:
 
     MODEL_ID = 'gpt-4o'
     MODEL_ID_FMTR = 'qwen2.5-coder:14b'
-    SYSTEM_PROMPT = None
+    SYSTEM_PROMPT_STATIC = None
     DEPS_TYPE = str
     RESULT_TYPE = str
     RESULT_RETRIES = 5
@@ -41,7 +41,7 @@ class Task:
         self.agent = Agent(
             *args,
             model=self.model,
-            system_prompt=self.SYSTEM_PROMPT or [],
+            system_prompt=self.SYSTEM_PROMPT_STATIC or [],
             deps_type=self.DEPS_TYPE,
             result_type=self.RESULT_TYPE,
             result_retries=self.RESULT_RETRIES,
@@ -49,34 +49,27 @@ class Task:
         )
 
         self.agent.output_validator(self.validate)
+        self.agent.system_prompt(self.add_system_prompt)
         self.history = []
 
-    async def run(self, *args, **kwargs) -> AgentRunResult[RESULT_TYPE]:
+    @property
+    def sync_runner(self):
         """
 
-        Run Agent storing history
+        Convenience/debug function to run without async.
 
         """
+        import asyncio
+        return asyncio.run
 
-        result = await self.agent.run(*args, message_history=self.history, **kwargs)
+    async def run(self, *args, deps=None, **kwargs) -> AgentRunResult[RESULT_TYPE]:
+        """
+
+        Run Agent with deps-relative user prompt and while storing history
+
+        """
+        result = await self.agent.run(*args, user_prompt=self.get_prompt(deps), deps=deps, message_history=self.history, **kwargs)
         self.history = result.all_messages()
-        return result
-
-    async def revert(self, msg, deps):
-        """
-
-        Post-hoc, user-initiated tool retry.
-
-        """
-        msg_final = self.history.pop(-1)
-        tool_return_part = msg_final.parts[0]
-
-        retry_prompt = RetryPromptPart(content=msg, tool_name=tool_return_part.tool_name, tool_call_id=tool_return_part.tool_call_id, timestamp=tool_return_part.timestamp, part_kind='retry-prompt')
-        retry_request = ModelRequest(parts=[retry_prompt], instructions=msg_final.instructions, kind='request')
-
-        self.history.append(retry_request)
-
-        result = await Task.run(self, deps=deps)
         return result
 
     async def validate(self, ctx: RunContext[DEPS_TYPE], output: RESULT_TYPE) -> RESULT_TYPE:
@@ -87,20 +80,54 @@ class Task:
         """
         return output
 
+    def get_prompt(self, deps: Optional[DEPS_TYPE]) -> Optional[str]:
+        """
+
+        Dummy prompt generator
+
+        """
+        return None
+
+    def add_system_prompt(self, ctx: RunContext[DEPS_TYPE]) -> str | List[str]:
+        """
+
+        Dummy system prompt append
+
+        """
+
+        return []
+
 if __name__ == '__main__':
     import asyncio
     from fmtr.tools import dm
 
 
-    class TestOutput(dm.BaseModel):
+    class TestOutput(dm.Base):
         text: str
 
 
+    class TestDeps(dm.Base):
+        lang: str
+        subject: str
+
+
     class TaskTest(Task):
-        PROVIDER = Task.PROVIDER_FMTR
-        MODEL_ID = 'qwen2.5-coder:14b'
+        # PROVIDER = Task.PROVIDER_FMTR
+        # MODEL_ID = 'qwen2.5-coder:14b'
         RESULT_TYPE = TestOutput
+        SYSTEM_PROMPT_STATIC = 'Tell the user jokes.'
+
+        def add_system_prompt(self, ctx: RunContext[TestDeps]) -> str:
+            return f'The jokes must be in the {ctx.deps.lang} language.'
+
+        def get_prompt(self, deps: Optional[TestDeps]) -> str:
+            return f'Tell me one about {deps.subject}.'
 
     task = TaskTest()
-    result = asyncio.run(task.run('Hello! What is your name?'))
-    result
+    deps = TestDeps(lang='English', subject='eggs')
+    result1 = task.sync_runner(task.run(deps=deps))
+    result1
+
+    deps = TestDeps(lang='German', subject='sausages')
+    result2 = task.sync_runner(task.run(deps=deps))
+    result2
