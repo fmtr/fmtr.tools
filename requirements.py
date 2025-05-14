@@ -42,6 +42,7 @@ DEPENDENCIES = {
 CONSOLE_SCRIPTS = [
     'cache-hfh = fmtr.tools.console_script_tools:cache_hfh',
     'remote-debug-test = fmtr.tools.console_script_tools:remote_debug_test',
+    'fmtr-shell-debug = fmtr.tools.console_script_tools:shell_debug',
 ]
 
 
