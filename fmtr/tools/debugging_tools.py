@@ -74,6 +74,7 @@ def debug_shell():
     and enabling tracing with debug mode turned on.
 
     """
+    import sys
     path_str = sys.argv[1]
     data = ShellDebug.from_path(path_str)
     trace(is_debug=True)
