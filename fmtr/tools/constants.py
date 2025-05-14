@@ -31,3 +31,4 @@ class Constants:
     FILENAME_CONFIG = 'settings.yaml'
     DIR_NAME_ARTIFACTS = 'artifacts'
     FILENAME_VERSION = 'version'
+    DIR_NAME_HF = 'hf'

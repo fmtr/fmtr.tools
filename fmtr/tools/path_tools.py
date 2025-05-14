@@ -228,7 +228,14 @@ class PackagePaths:
         Path of artifacts directory.
 
         """
-        return self.repo / self.dir_name_artifacts
+
+        from fmtr.tools import env
+        if env.IS_DEBUG:
+            path = self.repo / self.dir_name_artifacts
+        else:
+            path = Path('/') / self.dir_name_artifacts
+
+        return path
 
     @property
     def settings(self) -> Path:
@@ -238,6 +245,15 @@ class PackagePaths:
 
         """
         return self.artifacts / self.filename_config
+
+    @property
+    def hf(self) -> Path:
+        """
+
+        Path of HuggingFace directory
+
+        """
+        return self.artifacts / Constants.DIR_NAME_HF
 
     def __repr__(self) -> str:
         """
