@@ -1,12 +1,14 @@
+from typing import List, Optional
+
 import pydantic_ai
 from pydantic_ai import RunContext
 from pydantic_ai.agent import AgentRunResult, Agent
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
-from typing import List, Optional
 
 from fmtr.tools import environment_tools as env
 from fmtr.tools.constants import Constants
+from fmtr.tools.string_tools import truncate_mid
 
 pydantic_ai.Agent.instrument_all()
 
@@ -96,6 +98,14 @@ class Task:
         """
 
         return []
+
+    def __repr__(self):
+        """
+
+        String representation of the object
+
+        """
+        return f'{self.__class__.__name__}({repr(truncate_mid(self.SYSTEM_PROMPT_STATIC, 100))})'
 
 if __name__ == '__main__':
     import asyncio
