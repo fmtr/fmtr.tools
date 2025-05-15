@@ -29,6 +29,9 @@ class Constants:
     FMTR_AI_HOST_DEFAULT = 'ai.gex.fmtr.dev'
 
     FILENAME_CONFIG = 'settings.yaml'
-    DIR_NAME_ARTIFACTS = 'artifacts'
+    DIR_NAME_REPO = 'repo'
+    DIR_NAME_DATA = 'data'
+    DIR_NAME_ARTIFACT = 'artifact'
+    DIR_NAME_SOURCE = 'source'
     FILENAME_VERSION = 'version'
     DIR_NAME_HF = 'hf'

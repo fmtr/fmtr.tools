@@ -145,6 +145,15 @@ class Path(type(Path())):
         """
         return self.mkdir(parents=True, exist_ok=True)
 
+    @property
+    def exist(self):
+        """
+
+        Exists as property
+
+        """
+        return super().exists()
+
 
 class PackagePaths:
     """
@@ -153,7 +162,10 @@ class PackagePaths:
 
     """
 
-    def __init__(self, path=None, org_singleton=None, dir_name_artifacts=Constants.DIR_NAME_ARTIFACTS, filename_config=Constants.FILENAME_CONFIG, file_version=Constants.FILENAME_VERSION):
+    dev = Path('/') / 'opt' / 'dev'
+    data_global = dev / Constants.DIR_NAME_DATA
+
+    def __init__(self, path=None, org_singleton=None, dir_name_data=Constants.DIR_NAME_DATA, filename_config=Constants.FILENAME_CONFIG, file_version=Constants.FILENAME_VERSION):
 
         """
 
@@ -166,9 +178,18 @@ class PackagePaths:
 
         self.path = Path(path)
         self.org_singleton = org_singleton
-        self.dir_name_artifacts = dir_name_artifacts
+        self.dir_name_data = dir_name_data
         self.filename_config = filename_config
         self.filename_version = file_version
+
+    @property
+    def is_dev(self) -> bool:
+        """
+
+        Is the package in the dev directory - as opposed to `site-packages` etc?
+
+        """
+        return self.path.is_relative_to(self.dev)
 
     @property
     def is_namespace(self) -> bool:
@@ -187,6 +208,19 @@ class PackagePaths:
 
         """
         return self.path.stem
+
+    @property
+    def name_ns(self) -> str:
+        """
+
+        Name of namespace package.
+
+        """
+
+        if self.is_namespace:
+            return f'{self.org}.{self.name}'
+        else:
+            return self.name
 
     @property
     def org(self) -> str:
@@ -222,20 +256,36 @@ class PackagePaths:
         return self.path / self.filename_version
 
     @property
-    def artifacts(self) -> Path:
+    def data(self) -> Path:
         """
 
-        Path of artifacts directory.
+        Path of project-specific data directory.
 
         """
 
-        from fmtr.tools import env
-        if env.IS_DEBUG:
-            path = self.repo / self.dir_name_artifacts
-        else:
-            path = Path('/') / self.dir_name_artifacts
+        return self.dev / Constants.DIR_NAME_REPO / self.name_ns / self.dir_name_data
 
-        return path
+    @property
+    def artifact(self) -> Path:
+        """
+
+        Path of project-specific artifact directory
+
+        """
+
+        return self.data / Constants.DIR_NAME_ARTIFACT
+
+    @property
+    def source(self) -> Path:
+        """
+
+        Path of project-specific source directory
+
+        """
+
+        return self.data / Constants.DIR_NAME_SOURCE
+
+
 
     @property
     def settings(self) -> Path:
@@ -244,7 +294,7 @@ class PackagePaths:
         Path of settings file.
 
         """
-        return self.artifacts / self.filename_config
+        return self.data / self.filename_config
 
     @property
     def hf(self) -> Path:
@@ -253,7 +303,7 @@ class PackagePaths:
         Path of HuggingFace directory
 
         """
-        return self.artifacts / Constants.DIR_NAME_HF
+        return self.artifact / Constants.DIR_NAME_HF
 
     def __repr__(self) -> str:
         """
@@ -262,3 +312,8 @@ class PackagePaths:
 
         """
         return f'{self.__class__.__name__}("{self.path}")'
+
+
+if __name__ == "__main__":
+    paths = PackagePaths()
+    paths
