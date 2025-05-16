@@ -1,0 +1,48 @@
+x-gpus:
+  resources: &gpus
+    reservations:
+      devices:
+        - driver: nvidia
+          count: all
+          capabilities: [ gpu ]
+
+services:
+  interpreter:
+    image: ${ORG}.${PACKAGE}:dev
+    container_name: ${ORG}.${PACKAGE}
+    env_file:
+      - /opt/dev/repo/env
+    volumes:
+      - /opt/dev:/opt/dev
+    network_mode: host
+    user: "1000:1000"
+    #deploy: *gpus
+    environment:
+      FMTR_DEV_SSH_PORT: ${PORT}
+
+    build:
+      context: .
+      pull: true
+      dockerfile: Dockerfile
+      target: ${CHANNEL:-dev}
+      secrets:
+        - source: hf_token
+
+      args:
+        ORG: ${ORG}
+        PACKAGE: ${PACKAGE}
+        BASE: ${BASE}
+
+      tags:
+        - ${ORG}.${PACKAGE}:${CHANNEL:-dev}
+        - ${ORG}.${PACKAGE}:${CHANNEL:-dev}-${VERSION}
+      platforms:
+        - linux/amd64
+      additional_contexts:
+        package: .
+    x-bake:
+      load: true  # Required if you want the image loaded locally
+
+secrets:
+  hf_token:
+    environment: HF_TOKEN

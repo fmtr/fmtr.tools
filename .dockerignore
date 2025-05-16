@@ -1,3 +1,5 @@
-**/artifacts/**
-artifacts/**
-docker/**
+data/**
+build.sh
+compose.yml
+Dockerfile
+
