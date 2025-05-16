@@ -25,6 +25,7 @@ services:
         ORG: ${ORG}
         PACKAGE: ${PACKAGE}
         BASE: ${BASE}
+        EXTRAS: ${EXTRAS}
 
       tags:
         - ${ORG}.${PACKAGE}:${CHANNEL:-dev}

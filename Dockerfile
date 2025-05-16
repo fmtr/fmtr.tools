@@ -1,16 +1,16 @@
 ARG BASE
 
-FROM fmtr/${BASE} AS base
+FROM fmtr/${BASE} AS dev
 
 ARG ORG
 ARG PACKAGE
 WORKDIR /opt/dev/repo/${ORG}.${PACKAGE}
 
 COPY --from=package requirements.py .
-RUN python requirements.py pdf,logging,debug,ai.client,sets > requirements.txt
-RUN pip install -r requirements.txt --no-cache-dir
 
-FROM base AS dev
+ARG EXTRAS
+RUN python requirements.py ${EXTRAS} > requirements.txt
+RUN pip install -r requirements.txt --no-cache-dir
 
 FROM base AS prod
 COPY --from=package .. .
