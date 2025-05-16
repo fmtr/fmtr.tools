@@ -1,13 +1,6 @@
-x-gpus:
-  resources: &gpus
-    reservations:
-      devices:
-        - driver: nvidia
-          count: all
-          capabilities: [ gpu ]
-
 services:
   interpreter:
+
     image: ${ORG}.${PACKAGE}:dev
     container_name: ${ORG}.${PACKAGE}
     env_file:
@@ -16,7 +9,7 @@ services:
       - /opt/dev:/opt/dev
     network_mode: host
     user: "1000:1000"
-    #deploy: *gpus
+
     environment:
       FMTR_DEV_SSH_PORT: ${PORT}
 
