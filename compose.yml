@@ -1,21 +1,41 @@
+#    volumes:
+#      - type: volume
+#        source: mydata
+#        target: /data
+#        # nocopy has no equivalent in the short syntax:
+#        volume:
+#          nocopy: true
+#      - type: bind
+
 services:
   interpreter:
 
     image: ${ORG}.${PACKAGE}:dev
+
     container_name: ${ORG}.${PACKAGE}
     env_file:
       - /opt/dev/repo/env
     volumes:
-      - /opt/dev:/opt/dev
+      - type: volume
+        source: dev
+        target: /opt/dev/repo
+    #         volume:
+    #           nocopy: true
+
+
+
     network_mode: host
     user: "1000:1000"
 
     environment:
       FMTR_DEV_SSH_PORT: ${PORT}
 
+    pull_policy: build
     build:
       context: .
-      pull: true
+
+      #pull: true
+
       dockerfile: Dockerfile
       target: ${CHANNEL:-dev}
       secrets:
@@ -40,3 +60,8 @@ services:
 secrets:
   hf_token:
     environment: HF_TOKEN
+
+
+volumes:
+  dev:
+    name: ${ORG}.${PACKAGE}
