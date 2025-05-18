@@ -1,9 +1,0 @@
-services:
-
-  fmtr.tools.dev:
-    image: fmtr.tools:dev
-    container_name: fmtr.tools
-    env_file:
-      - ${ENV_PATH}
-    network_mode: host
-    user: "1000:1000"
