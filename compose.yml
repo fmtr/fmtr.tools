@@ -1,12 +1,3 @@
-#    volumes:
-#      - type: volume
-#        source: mydata
-#        target: /data
-#        # nocopy has no equivalent in the short syntax:
-#        volume:
-#          nocopy: true
-#      - type: bind
-
 services:
   interpreter:
 
@@ -16,13 +7,7 @@ services:
     env_file:
       - /opt/dev/repo/env
     volumes:
-      - type: volume
-        source: dev
-        target: /opt/dev/repo
-    #         volume:
-    #           nocopy: true
-
-
+      - dev:/opt/dev/repo
 
     network_mode: host
     user: "1000:1000"
@@ -30,12 +15,8 @@ services:
     environment:
       FMTR_DEV_SSH_PORT: ${PORT}
 
-    pull_policy: build
     build:
       context: .
-
-      #pull: true
-
       dockerfile: Dockerfile
       target: ${CHANNEL:-dev}
       secrets:
