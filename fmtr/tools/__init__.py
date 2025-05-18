@@ -19,6 +19,7 @@ import fmtr.tools.string_tools as string
 import fmtr.tools.name_tools as name
 import fmtr.tools.logging_tools as logging
 import fmtr.tools.async_tools as asyncio
+import fmtr.tools.packaging_tools as packaging
 from fmtr.tools.logging_tools import logger
 
 from fmtr.tools.import_tools import MissingExtraMockModule

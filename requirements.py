@@ -6,7 +6,7 @@ INSTALL=[]
 
 DEPENDENCIES = {
     'test': ['pytest-cov'],
-    'yaml': ['pyyaml'],
+    'yaml': ['yamlscript'],
     'logging': ['logfire', 'version'],
     'parallel': ['dask[bag]', 'distributed', 'bokeh'],
     'tokenization': ['tokenizers'],
