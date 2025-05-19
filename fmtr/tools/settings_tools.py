@@ -1,7 +1,24 @@
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, YamlConfigSettingsSource, EnvSettingsSource, CliSettingsSource
-from typing import ClassVar
+from typing import ClassVar, Any
 
-from fmtr.tools.path_tools import PackagePaths
+from fmtr.tools.path_tools import PackagePaths, Path
+
+
+class YamlScriptConfigSettingsSource(YamlConfigSettingsSource):
+    """
+
+    Customer source for reading YAML *Script* (as opposed to plain YAML) configuration files.
+
+    """
+
+    def _read_file(self, file_path: Path) -> dict[str, Any]:
+        """
+
+        Use our own Path class to read YAML Script.
+
+        """
+        data = Path(file_path).read_yaml() or {}
+        return data
 
 
 class Base(BaseSettings):
@@ -34,7 +51,7 @@ class Base(BaseSettings):
             init_settings,
             CliSettingsSource(settings_cls, cli_parse_args=True),
             EnvSettingsSource(settings_cls, env_prefix=cls.get_env_prefix()),
-            YamlConfigSettingsSource(settings_cls, yaml_file=cls.paths.settings),
+            YamlScriptConfigSettingsSource(settings_cls, yaml_file=cls.paths.settings),
         )
 
         return sources
