@@ -5,6 +5,13 @@ from yaml import dump
 
 from fmtr.tools import environment_tools as env
 
+try:
+    import yamlscript
+except ImportError:
+    raise  # Raise if even the package isn't installed, to trigger the regular missing extra exception.
+except Exception as exception:
+    pass  # Allow missing binary, so we can install on-demand
+
 
 def install():
     """
@@ -67,3 +74,11 @@ def from_yaml(yaml_str: str) -> Any:
     """
     obj = get_interpreter().load(yaml_str)
     return obj
+
+
+if __name__ == '__main__':
+    from fmtr.tools import Path
+
+    py = Path('hw.yml')
+    data = py.read_yaml()
+    data
