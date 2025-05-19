@@ -23,7 +23,7 @@ import fmtr.tools.packaging_tools as packaging
 from fmtr.tools.logging_tools import logger
 
 from fmtr.tools.import_tools import MissingExtraMockModule
-from fmtr.tools.path_tools import Path, PackagePaths
+from fmtr.tools.path_tools import Path, PackagePaths, AppPaths
 from fmtr.tools.constants import Constants
 
 try:

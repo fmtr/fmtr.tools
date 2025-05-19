@@ -154,6 +154,15 @@ class Path(type(Path())):
         """
         return super().exists()
 
+    @classmethod
+    def app(cls):
+        """
+
+        Convenience method for getting application paths
+
+        """
+        from fmtr.tools import path
+        return path.AppPaths()
 
 class PackagePaths:
     """
@@ -315,5 +324,6 @@ class PackagePaths:
 
 
 if __name__ == "__main__":
-    paths = PackagePaths()
-    paths
+    path = Path()
+    path.app.user_log_dir()
+    path

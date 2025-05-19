@@ -36,6 +36,7 @@ DEPENDENCIES = {
     'pdf': ['pymupdf', 'dm', 'pymupdf4llm'],
     'debug': ['pydevd-pycharm'],
     'sets': ['pydantic-settings', 'dm'],
+    'path.app': ['appdirs']
 
 }
 
