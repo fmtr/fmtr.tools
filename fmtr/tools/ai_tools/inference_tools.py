@@ -266,6 +266,7 @@ class BulkInferenceManager:
                 yield ids_output
 
             except RuntimeError as exception:
+                # Instability causes CUBLAS_STATUS in str(exception) too
                 if "CUDA out of memory" in str(exception):
                     logger.warning(f"Ran out of memory. Reducing batch size: {repr(exception)}")
                     batcher.reduce()
@@ -412,5 +413,5 @@ def tst_tool():
 
 
 if __name__ == '__main__':
-    texts = tst_tool()
+    texts = tst()
     texts
