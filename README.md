@@ -122,9 +122,10 @@ The included modules, plus any extra requirements, are as follows:
 - `tools.Path`: Enhanced
   `pathlib.Path` object with additional functionality for Windows-to-Unix path conversion in WSL environments, reading/writing JSON and YAML files with proper encoding.
     - Extras: None
+-
 `tools.PackagePaths` class for managing canonical package paths, like settings files, artifact directories, version files.
   - Extras: None
-    `tools.AppPaths` Wrapper around `appdirs` for application paths.
+- `tools.AppPaths` Wrapper around `appdirs` for application paths.
   - Extras: `paths.app`
 - `tools.platform`: Detecting if host is WSL, Docker etc.
     - Extras: None

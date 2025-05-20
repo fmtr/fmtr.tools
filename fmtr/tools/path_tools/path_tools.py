@@ -164,6 +164,19 @@ class Path(type(Path())):
         from fmtr.tools import path
         return path.AppPaths()
 
+    @property
+    def type(self):
+        """
+
+        Infer file type, extension, etc.
+
+        """
+        if not self.exists():
+            return None
+        from fmtr.tools import path
+        kind = path.guess(str(self.absolute()))
+        return kind
+
 class PackagePaths:
     """
 
@@ -324,6 +337,6 @@ class PackagePaths:
 
 
 if __name__ == "__main__":
-    path = Path()
-    path.app.user_log_dir()
+    path = Path('/usr/bin/bash').absolute()
+    path.type
     path
