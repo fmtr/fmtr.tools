@@ -43,15 +43,22 @@ def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=C
         from fmtr.tools import version_tools
         version = version_tools.read()
 
+    # Rigmarole to translate native levels to logfire/otel ones.
+    lev_num_otel = logfire._internal.constants.LOGGING_TO_OTEL_LEVEL_NUMBERS[level]
+    lev_name_otel = logfire._internal.constants.NUMBER_TO_LEVEL[lev_num_otel]
+
+    console_opts = logfire.ConsoleOptions(
+        colors='always' if environment_tools.IS_DEBUG else 'auto',
+        min_log_level=lev_name_otel,
+    )
+
     logfire.configure(
         service_name=name,
         service_version=version,
         environment=environment,
         send_to_logfire=False,
-        console=logfire.ConsoleOptions(colors='always' if environment_tools.IS_DEBUG else 'auto')
+        console=console_opts
     )
-
-    logging.getLogger(name).setLevel(level)
 
     logger = logfire
     return logger
@@ -63,3 +70,4 @@ if __name__ == '__main__':
     logger.info('Hello World')
     logger.warning('test warning')
     logger.debug('Hello World')
+    logger
