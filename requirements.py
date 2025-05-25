@@ -37,7 +37,9 @@ DEPENDENCIES = {
     'debug': ['pydevd-pycharm'],
     'sets': ['pydantic-settings', 'dm'],
     'path.app': ['appdirs'],
-    'path.type': ['filetype']
+    'path.type': ['filetype'],
+    'dns': ['dnspython[doh]'],
+    'patterns': ['regex'],
 }
 
 CONSOLE_SCRIPTS = [

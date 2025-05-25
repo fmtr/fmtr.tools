@@ -164,3 +164,13 @@ try:
     from fmtr.tools import settings_tools as sets
 except ImportError as exception:
     sets = MissingExtraMockModule('sets', exception)
+
+try:
+    from fmtr.tools import pattern_tools as patterns
+except ImportError as exception:
+    patterns = MissingExtraMockModule('patterns', exception)
+
+try:
+    from fmtr.tools import dns_tools as dns
+except ImportError as exception:
+    dns = MissingExtraMockModule('dns', exception)
