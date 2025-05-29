@@ -177,7 +177,20 @@ class Path(type(Path())):
         kind = path.guess(str(self.absolute()))
         return kind
 
-class PackagePaths:
+
+class PathsBase:
+    """
+
+
+    """
+
+    def from_caller(self):
+        from fmtr.tools.inspection_tools import get_call_path
+        path = get_call_path(offset=3).parent
+        return path
+
+
+class PackagePaths(PathsBase):
     """
 
     Canonical paths for a package.
@@ -195,8 +208,7 @@ class PackagePaths:
 
         """
         if not path:
-            from fmtr.tools.inspection_tools import get_call_path
-            path = get_call_path(offset=2).parent
+            path = self.from_caller()
 
         self.path = Path(path)
         self.org_singleton = org_singleton
