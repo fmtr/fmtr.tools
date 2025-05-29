@@ -40,6 +40,8 @@ DEPENDENCIES = {
     'path.type': ['filetype'],
     'dns': ['dnspython[doh]'],
     'patterns': ['regex'],
+    'http': ['httpx', 'httpx_retries', 'logging', 'logfire[httpx]'],
+    'setup': ['setuptools']
 }
 
 CONSOLE_SCRIPTS = [
