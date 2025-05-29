@@ -1,13 +1,13 @@
-from itertools import chain
-
 from datetime import datetime
 from functools import cached_property
-from setuptools import find_namespace_packages, find_packages
+from itertools import chain
 from typing import List, Dict
+
+from setuptools import find_namespace_packages, find_packages, setup
 
 from fmtr.tools.constants import Constants
 from fmtr.tools.path_tools import Path
-from fmtr.tools.path_tools.path_tools import PathsBase, path
+from fmtr.tools.path_tools.path_tools import PathsBase
 
 
 class SetupPaths(PathsBase):
@@ -55,7 +55,8 @@ class SetupPaths(PathsBase):
         ]
 
         if len(directories) != 1:
-            raise ValueError(f'Expected exactly one directory in "{path}", found {','.join(directories)}')
+            dirs_str = ', '.join([str(dir) for dir in directories])
+            raise ValueError(f'Expected exactly one directory in "{self.repo}", found {dirs_str}')
 
         target = next(iter(directories))
 
@@ -86,15 +87,14 @@ class Setup:
     AUTHOR = 'Frontmatter'
     AUTHOR_EMAIL = 'innovative.fowler@mask.pro.fmtr.dev'
 
-    paths = SetupPaths(path=Path(__file__).absolute().parent.parent.parent)
+    def __init__(self, paths, dependencies, console_scripts=None, client=None, **kwargs):
 
-    def __init__(self, dependencies, console_scripts=None, client=None, **kwargs):
 
-        self.client = client
         self.kwargs = kwargs
         self.dependencies = dependencies
-        self.paths
+        self.paths = paths
 
+        self.client = client
         self.console_scripts = console_scripts
 
     def get_entrypoint_path(self, key, value):
@@ -141,10 +141,13 @@ class Setup:
 
     @property
     def packages(self):
+
+        excludes = list(SetupPaths.SKIP_DIRS) + [f'{name}.*' for name in SetupPaths.SKIP_DIRS]
+
         if self.paths.is_namespace:
-            return find_namespace_packages(where=str(self.paths.repo))
+            return find_namespace_packages(where=str(self.paths.repo), exclude=excludes)
         else:
-            return find_packages(where=str(self.paths.repo))
+            return find_packages(where=str(self.paths.repo), exclude=excludes)
 
     @property
     def package_dir(self):
@@ -179,6 +182,8 @@ class Setup:
             extras_require=self.dependencies.extras,
         ) | self.kwargs
 
+    def setup(self):
+        return setup(**self.get_data_setup())
 
 class Entrypoints:
     ALL = 'all'
