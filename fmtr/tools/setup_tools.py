@@ -51,7 +51,13 @@ class SetupPaths(PathsBase):
 
         directories = [
             dir for dir in self.repo.iterdir()
-            if dir.is_dir() and not dir.name.startswith('.') and dir.name not in self.SKIP_DIRS
+            if
+            (
+                    dir.is_dir()
+                    and not dir.name.startswith('.')
+                    and dir.name not in self.SKIP_DIRS
+                    and 'egg-info' not in dir.name
+            )
         ]
 
         if len(directories) != 1:
@@ -88,7 +94,6 @@ class Setup:
     AUTHOR_EMAIL = 'innovative.fowler@mask.pro.fmtr.dev'
 
     def __init__(self, paths, dependencies, console_scripts=None, client=None, **kwargs):
-
 
         self.kwargs = kwargs
         self.dependencies = dependencies
@@ -183,7 +188,9 @@ class Setup:
         ) | self.kwargs
 
     def setup(self):
-        return setup(**self.get_data_setup())
+        data = self.get_data_setup()
+        return setup(**data)
+
 
 class Entrypoints:
     ALL = 'all'
