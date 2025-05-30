@@ -5,8 +5,6 @@ from functools import cached_property
 from itertools import chain
 from typing import List, Dict
 
-from setuptools import find_namespace_packages, find_packages, setup
-
 from fmtr.tools.constants import Constants
 from fmtr.tools.path_tools import Path
 from fmtr.tools.path_tools.path_tools import FromCallerMixin
@@ -179,14 +177,22 @@ class Setup(FromCallerMixin):
         return self.paths.version.read_text().strip()
 
     @property
+    def find(self):
+
+        from fmtr.tools import setup
+
+        if self.paths.is_namespace:
+            return setup.find_namespace_packages
+        else:
+            return setup.find_packages
+
+    @property
     def packages(self):
 
         excludes = list(SetupPaths.SKIP_DIRS) + [f'{name}.*' for name in SetupPaths.SKIP_DIRS]
 
-        if self.paths.is_namespace:
-            return find_namespace_packages(where=str(self.paths.repo), exclude=excludes)
-        else:
-            return find_packages(where=str(self.paths.repo), exclude=excludes)
+        packages = self.find(where=str(self.paths.repo), exclude=excludes)
+        return packages
 
     @property
     def package_dir(self):
@@ -224,7 +230,9 @@ class Setup(FromCallerMixin):
 
     def setup(self):
 
-        return setup(**self.data)
+        from fmtr.tools import setup
+
+        return setup.setup_setuptools(**self.data)
 
 
 

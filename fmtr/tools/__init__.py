@@ -23,8 +23,15 @@ import fmtr.tools.packaging_tools as packaging
 from fmtr.tools.logging_tools import logger
 
 from fmtr.tools.import_tools import MissingExtraMockModule
-from fmtr.tools.path_tools import Path, PackagePaths, AppPaths
+
 from fmtr.tools.constants import Constants
+
+# Submodules
+from fmtr.tools.path_tools import Path, PackagePaths, AppPaths
+from fmtr.tools import ai_tools as ai
+
+import fmtr.tools.setup_tools as setup
+from fmtr.tools.setup_tools import Setup, SetupPaths, Dependencies
 
 try:
     from fmtr.tools import augmentation_tools as augmentation
@@ -94,11 +101,6 @@ try:
     from fmtr.tools import api_tools as api
 except ImportError as exception:
     api = MissingExtraMockModule('api', exception)
-
-try:
-    from fmtr.tools import ai_tools as ai
-except ImportError as exception:
-    ai = MissingExtraMockModule('ai', exception)
 
 try:
     from fmtr.tools import data_modelling_tools as dm
@@ -174,9 +176,3 @@ try:
     from fmtr.tools import dns_tools as dns
 except ImportError as exception:
     dns = MissingExtraMockModule('dns', exception)
-
-try:
-    from fmtr.tools import setup_tools as setup
-    from fmtr.tools.setup_tools import Setup, SetupPaths, Dependencies
-except ImportError as exception:
-    setup = Setup = SetupPaths = Dependencies = MissingExtraMockModule('setup', exception)
