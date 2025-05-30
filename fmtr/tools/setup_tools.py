@@ -1,3 +1,4 @@
+import sys
 from datetime import datetime
 from fnmatch import fnmatch
 from functools import cached_property
@@ -14,7 +15,7 @@ from fmtr.tools.path_tools.path_tools import FromCallerMixin
 class SetupPaths(FromCallerMixin):
     """
 
-    Canonical paths for a package.
+    Canonical paths for a repo.
 
     """
 
@@ -89,6 +90,9 @@ class Setup(FromCallerMixin):
     AUTHOR = 'Frontmatter'
     AUTHOR_EMAIL = 'innovative.fowler@mask.pro.fmtr.dev'
 
+    REQUIREMENTS_ARG = 'requirements'
+
+
     def __init__(self, dependencies, paths=None, console_scripts=None, client=None, do_setup=True, **kwargs):
 
         self.kwargs = kwargs
@@ -96,6 +100,12 @@ class Setup(FromCallerMixin):
         if type(dependencies) is not Dependencies:
             dependencies = Dependencies(**dependencies)
         self.dependencies = dependencies
+
+        requirements_extras = self.get_requirements_extras()
+
+        if requirements_extras:
+            self.print_requirements()
+            return
 
         if not paths:
             paths = SetupPaths(path=self.from_caller())
@@ -106,6 +116,25 @@ class Setup(FromCallerMixin):
 
         if do_setup:
             self.setup()
+
+    def get_requirements_extras(self):
+        if self.REQUIREMENTS_ARG not in sys.argv:
+            return None
+
+        extras_str = sys.argv[-1]
+        extras = extras_str.split(',')
+        return extras
+
+    def print_requirements(self):
+        reqs = []
+        reqs += self.dependencies.install
+
+        for extra in sys.argv[-1].split(','):
+            reqs += self.dependencies.extras[extra]
+        reqs = '\n'.join(reqs)
+        print(reqs)
+
+
 
     def get_entrypoint_path(self, key, value):
         if value:
@@ -226,7 +255,7 @@ class Dependencies:
 
         return values_resolved
 
-    @property
+    @cached_property
     def extras(self) -> Dict[str, List[str]]:
         """
 
@@ -238,7 +267,7 @@ class Dependencies:
         resolved[self.ALL] = list(set(chain.from_iterable(resolved.values())))
         return resolved
 
-    @property
+    @cached_property
     def install(self):
         return self.resolve_values(self.INSTALL)
 
