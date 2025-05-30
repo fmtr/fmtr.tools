@@ -177,5 +177,6 @@ except ImportError as exception:
 
 try:
     from fmtr.tools import setup_tools as setup
+    from fmtr.tools.setup_tools import Setup, SetupPaths, Dependencies
 except ImportError as exception:
-    setup = MissingExtraMockModule('setup', exception)
+    setup = Setup = SetupPaths = Dependencies = MissingExtraMockModule('setup', exception)

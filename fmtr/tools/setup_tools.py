@@ -1,4 +1,5 @@
 from datetime import datetime
+from fnmatch import fnmatch
 from functools import cached_property
 from itertools import chain
 from typing import List, Dict
@@ -7,17 +8,17 @@ from setuptools import find_namespace_packages, find_packages, setup
 
 from fmtr.tools.constants import Constants
 from fmtr.tools.path_tools import Path
-from fmtr.tools.path_tools.path_tools import PathsBase
+from fmtr.tools.path_tools.path_tools import FromCallerMixin
 
 
-class SetupPaths(PathsBase):
+class SetupPaths(FromCallerMixin):
     """
 
     Canonical paths for a package.
 
     """
 
-    SKIP_DIRS = {'data'}
+    SKIP_DIRS = {'data', 'build', 'dist', '.*', '*egg-info*'}
 
     def __init__(self, path=None):
 
@@ -51,18 +52,13 @@ class SetupPaths(PathsBase):
 
         directories = [
             dir for dir in self.repo.iterdir()
-            if
-            (
-                    dir.is_dir()
-                    and not dir.name.startswith('.')
-                    and dir.name not in self.SKIP_DIRS
-                    and 'egg-info' not in dir.name
-            )
+            if dir.is_dir()
+               and not any(fnmatch(dir.name, pattern) for pattern in self.SKIP_DIRS)
         ]
 
         if len(directories) != 1:
             dirs_str = ', '.join([str(dir) for dir in directories])
-            raise ValueError(f'Expected exactly one directory in "{self.repo}", found {dirs_str}')
+            raise ValueError(f'Expected exactly one directory in {self.repo}, found {dirs_str}')
 
         target = next(iter(directories))
 
@@ -89,18 +85,27 @@ class SetupPaths(PathsBase):
         return name
 
 
-class Setup:
+class Setup(FromCallerMixin):
     AUTHOR = 'Frontmatter'
     AUTHOR_EMAIL = 'innovative.fowler@mask.pro.fmtr.dev'
 
-    def __init__(self, paths, dependencies, console_scripts=None, client=None, **kwargs):
+    def __init__(self, dependencies, paths=None, console_scripts=None, client=None, do_setup=True, **kwargs):
 
         self.kwargs = kwargs
+
+        if type(dependencies) is not Dependencies:
+            dependencies = Dependencies(**dependencies)
         self.dependencies = dependencies
+
+        if not paths:
+            paths = SetupPaths(path=self.from_caller())
         self.paths = paths
 
         self.client = client
         self.console_scripts = console_scripts
+
+        if do_setup:
+            self.setup()
 
     def get_entrypoint_path(self, key, value):
         if value:
@@ -169,7 +174,8 @@ class Setup:
     def url(self):
         return f'https://github.com/{self.paths.org}/{self.paths.name}'
 
-    def get_data_setup(self):
+    @property
+    def data(self):
         return dict(
             name=self.name,
             version=self.version,
@@ -188,27 +194,10 @@ class Setup:
         ) | self.kwargs
 
     def setup(self):
-        data = self.get_data_setup()
-        return setup(**data)
+
+        return setup(**self.data)
 
 
-class Entrypoints:
-    ALL = 'all'
-    INSTALL = 'install'
-
-    def __init__(self, console_scripts=None, **kwargs):
-        self.kwargs = kwargs
-        self._console_scripts = console_scripts
-
-    @property
-    def console_scripts(self):
-        return [f'{key} = {value}:{key}' for key, value in self._console_scripts.items()]
-
-    @property
-    def data(self):
-        return dict(
-            console_scripts=self.console_scripts,
-        ) | self.kwargs
 
 
 class Dependencies:

@@ -177,8 +177,14 @@ class Path(type(Path())):
         kind = path.guess(str(self.absolute()))
         return kind
 
+    @property
+    def children(self):
+        if not self.is_dir():
+            return None
+        return sorted(self.iterdir(), key=lambda x: x.is_dir(), reverse=True)
 
-class PathsBase:
+
+class FromCallerMixin:
     """
 
 
@@ -190,7 +196,7 @@ class PathsBase:
         return path
 
 
-class PackagePaths(PathsBase):
+class PackagePaths(FromCallerMixin):
     """
 
     Canonical paths for a package.
