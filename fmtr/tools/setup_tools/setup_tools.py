@@ -1,6 +1,5 @@
 import sys
 from datetime import datetime
-from fnmatch import fnmatch
 from functools import cached_property
 from itertools import chain
 from typing import List, Dict
@@ -17,26 +16,21 @@ class SetupPaths(FromCallerMixin):
 
     """
 
-    SKIP_DIRS = {'data', 'build', 'dist', '.*', '*egg-info*'}
-
-    def __init__(self, path=None):
+    def __init__(self, path=None, org=Constants.ORG_NAME):
 
         """
 
         Use calling module path as default path, if not otherwise specified.
+        :param org:
 
         """
         if not path:
             path = self.from_caller()
 
+        self.org_name = org
         self.repo = Path(path)
 
-    @property
-    def path(self):
-        if self.is_namespace:
-            return self.repo / self.org / self.name
-        else:
-            return self.repo / self.name
+
 
     @property
     def readme(self):
@@ -47,41 +41,43 @@ class SetupPaths(FromCallerMixin):
         return self.path / Constants.FILENAME_VERSION
 
     @cached_property
-    def layout(self):
+    def path(self):
 
-        directories = [
-            dir for dir in self.repo.iterdir()
-            if dir.is_dir()
-               and not any(fnmatch(dir.name, pattern) for pattern in self.SKIP_DIRS)
-        ]
+        if self.org:
+            base = self.org
+        else:
+            base = self.repo
+
+        directories = [base / dir for dir in self.find(base)]
 
         if len(directories) != 1:
             dirs_str = ', '.join([str(dir) for dir in directories])
             raise ValueError(f'Expected exactly one directory in {self.repo}, found {dirs_str}')
 
-        target = next(iter(directories))
-
-        contents = list(target.iterdir())
-        if len(contents) == 1 and (item := next(iter(contents))).is_dir():
-            return True, target.name, item.name
-
-        else:
-            return False, None, target.name
+        package = next(iter(directories))
+        return package
 
     @property
-    def is_namespace(self) -> str:
-        is_namespace, org, name = self.layout
-        return is_namespace
-
-    @property
-    def org(self) -> str:
-        is_namespace, org, name = self.layout
+    def org(self):
+        if not self.org_name:
+            return False
+        org = self.repo / self.org_name
+        if not org.is_dir():
+            return False
         return org
 
     @property
+    def is_namespace(self) -> bool:
+        return bool(self.org)
+
+    @property
     def name(self) -> str:
-        is_namespace, org, name = self.layout
-        return name
+        return self.path.stem
+
+    @property
+    def find(self):
+        from fmtr.tools import setup
+        return setup.find_packages
 
 
 class Setup(FromCallerMixin):
@@ -89,9 +85,9 @@ class Setup(FromCallerMixin):
     AUTHOR_EMAIL = 'innovative.fowler@mask.pro.fmtr.dev'
 
     REQUIREMENTS_ARG = 'requirements'
+    SKIP_DIRS = {'data', 'build', 'dist', '.*', '*egg-info*'}
 
-
-    def __init__(self, dependencies, paths=None, console_scripts=None, client=None, do_setup=True, **kwargs):
+    def __init__(self, dependencies, paths=None, org=Constants.ORG_NAME, console_scripts=None, client=None, do_setup=True, **kwargs):
 
         self.kwargs = kwargs
 
@@ -105,8 +101,10 @@ class Setup(FromCallerMixin):
             self.print_requirements()
             return
 
+        self.org = org
+
         if not paths:
-            paths = SetupPaths(path=self.from_caller())
+            paths = SetupPaths(path=self.from_caller(), org=self.org)
         self.paths = paths
 
         self.client = client
@@ -189,7 +187,7 @@ class Setup(FromCallerMixin):
     @property
     def packages(self):
 
-        excludes = list(SetupPaths.SKIP_DIRS) + [f'{name}.*' for name in SetupPaths.SKIP_DIRS]
+        excludes = list(self.SKIP_DIRS) + [f'{name}.*' for name in self.SKIP_DIRS if '*' not in name]
 
         packages = self.find(where=str(self.paths.repo), exclude=excludes)
         return packages
