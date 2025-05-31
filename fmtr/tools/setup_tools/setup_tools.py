@@ -21,7 +21,6 @@ class SetupPaths(FromCallerMixin):
         """
 
         Use calling module path as default path, if not otherwise specified.
-        :param org:
 
         """
         if not path:
@@ -29,8 +28,6 @@ class SetupPaths(FromCallerMixin):
 
         self.org_name = org
         self.repo = Path(path)
-
-
 
     @property
     def readme(self):
@@ -43,12 +40,14 @@ class SetupPaths(FromCallerMixin):
     @cached_property
     def path(self):
 
+        from fmtr.tools import setup
+
         if self.org:
             base = self.org
         else:
             base = self.repo
 
-        directories = [base / dir for dir in self.find(base)]
+        directories = [base / dir for dir in setup.find_packages(base)]
 
         if len(directories) != 1:
             dirs_str = ', '.join([str(dir) for dir in directories])
@@ -73,11 +72,6 @@ class SetupPaths(FromCallerMixin):
     @property
     def name(self) -> str:
         return self.path.stem
-
-    @property
-    def find(self):
-        from fmtr.tools import setup
-        return setup.find_packages
 
 
 class Setup(FromCallerMixin):
@@ -209,7 +203,7 @@ class Setup(FromCallerMixin):
 
     @property
     def data(self):
-        return dict(
+        data = dict(
             name=self.name,
             version=self.version,
             author=self.author,
@@ -225,6 +219,7 @@ class Setup(FromCallerMixin):
             install_requires=self.dependencies.install,
             extras_require=self.dependencies.extras,
         ) | self.kwargs
+        return data
 
     def setup(self):
 
@@ -232,6 +227,16 @@ class Setup(FromCallerMixin):
 
         return setup.setup_setuptools(**self.data)
 
+
+class Tools:
+    MASK = f'{Constants.LIBRARY_NAME}[{{extras}}]'
+
+    def __init__(self, *extras):
+        self.extras = extras
+
+    def __str__(self):
+        extras_str = ','.join(self.extras)
+        return self.MASK.format(extras=extras_str)
 
 
 
@@ -254,7 +259,7 @@ class Dependencies:
         for value in values:
             if value == key or value not in self.dependencies:
                 # Add the value directly if it references itself or is not a dependency key.
-                values_resolved.append(value)
+                values_resolved.append(str(value))
             else:
                 # Recurse into nested dependencies.
                 values_resolved += self.resolve_values(value)

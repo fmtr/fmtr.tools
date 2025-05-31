@@ -31,7 +31,7 @@ from fmtr.tools.path_tools import Path, PackagePaths, AppPaths
 from fmtr.tools import ai_tools as ai
 
 import fmtr.tools.setup_tools as setup
-from fmtr.tools.setup_tools import Setup, SetupPaths, Dependencies
+from fmtr.tools.setup_tools import Setup, SetupPaths, Dependencies, Tools
 
 try:
     from fmtr.tools import augmentation_tools as augmentation
