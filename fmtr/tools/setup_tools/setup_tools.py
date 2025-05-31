@@ -144,7 +144,7 @@ class Setup(FromCallerMixin):
     @property
     def name(self):
         if self.paths.is_namespace:
-            return f'{self.paths.org}.{self.paths.name}'
+            return f'{self.paths.org_name}.{self.paths.name}'
         return self.paths.name
 
     @property
@@ -199,7 +199,7 @@ class Setup(FromCallerMixin):
 
     @property
     def url(self):
-        return f'https://github.com/{self.paths.org}/{self.paths.name}'
+        return f'https://github.com/{self.org}/{self.paths.name}'
 
     @property
     def data(self):
