@@ -176,3 +176,9 @@ try:
     from fmtr.tools import dns_tools as dns
 except ImportError as exception:
     dns = MissingExtraMockModule('dns', exception)
+
+try:
+    from fmtr.tools import http_tools as http
+    from fmtr.tools.http_tools import Client
+except ImportError as exception:
+    http = Client = MissingExtraMockModule('http', exception)
