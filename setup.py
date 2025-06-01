@@ -1,50 +1,49 @@
-from datetime import datetime
-from pathlib import Path
-from setuptools import find_namespace_packages, setup, find_packages
+from fmtr.tools import Setup
 
-import requirements
+DEPENDENCIES = {
+    'install': [],
+    'test': ['pytest-cov'],
+    'yaml': ['yamlscript', 'pyyaml'],
+    'logging': ['logfire', 'version'],
+    'parallel': ['dask[bag]', 'distributed', 'bokeh'],
+    'tokenization': ['tokenizers'],
+    'augmentation': ['faker', 'sre_yield'],
+    'process': ['logging'],
+    'profiling': ['contexttimer'],
+    'docker.api': ['docker'],
+    'unicode': ['Unidecode'],
+    'version': ['semver'],
+    'spaces': ['netrc'],
+    'netrc': ['tinynetrc'],
+    'hfh': ['huggingface_hub'],
+    'merging': ['deepmerge'],
+    'api': ['fastapi', 'uvicorn[standard]', 'logging', 'dm', 'logfire[fastapi]'],
+    'ai': ['peft', 'transformers[sentencepiece]', 'torchvision', 'torchaudio', 'dm'],
+    'dm': ['pydantic'],
+    'openai.api': ['openai'],
+    'ai.client': ['logging', 'dm', 'openai.api', 'pydantic-ai[logfire,openai]', 'ollama'],
+    'json-fix': ['json_repair'],
+    'semantic': ['sentence_transformers', 'metric'],
+    'metric': ['tabular'],
+    'tabular': ['pandas', 'tabulate', 'openpyxl'],
+    'html': ['html2text'],
+    'interface': ['flet[all]', 'flet-video', 'flet-webview', 'dm'],
+    'google.api': ['google-auth', 'google-auth-oauthlib', 'google-auth-httplib2', 'google-api-python-client'],
+    'caching': ['diskcache'],
+    'pdf': ['pymupdf', 'dm', 'pymupdf4llm'],
+    'debug': ['pydevd-pycharm'],
+    'sets': ['pydantic-settings', 'dm'],
+    'path.app': ['appdirs'],
+    'path.type': ['filetype'],
+    'dns': ['dnspython[doh]'],
+    'patterns': ['regex'],
+    'http': ['httpx', 'httpx_retries', 'logging', 'logfire[httpx]'],
+    'setup': ['setuptools']
+}
 
-ORG, PACKAGE = 'fmtr', 'tools'
-ORG_GITHUB = ORG
-AUTHOR = 'Frontmatter'
-AUTHOR_EMAIL = 'innovative.fowler@mask.pro.fmtr.dev'
-DESCRIPTION = 'Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML'
-
-PATH_BASE = Path(__file__).absolute().parent
-IS_SINGLETON = (PATH_BASE / PACKAGE).exists()
-VERSION = 'version'
-
-if IS_SINGLETON:
-    packages = find_packages()
-    package_dir = None
-    name = PACKAGE
-    path_ver = PATH_BASE / name / VERSION
-else:
-    packages = find_namespace_packages()
-    package_dir = {'': '.'}
-    name = f'{ORG}.{PACKAGE}'
-    path_ver = PATH_BASE / ORG / PACKAGE / VERSION
-
-__version__ = path_ver.read_text().strip()
-
-setup(
-    name=name,
-    version=__version__,
-    url=f'https://github.com/{ORG_GITHUB}/{name}',
-    author=AUTHOR,
-    license=f'Copyright © {datetime.now().year} {AUTHOR}. All rights reserved.',
-    author_email=AUTHOR_EMAIL,
-    description=DESCRIPTION,
-    long_description=(PATH_BASE / 'README.md').read_text(),
-    long_description_content_type='text/markdown',
-    packages=packages,
-    package_dir=package_dir,
-    package_data={
-        name: [VERSION],
-    },
-    entry_points={
-        'console_scripts': requirements.CONSOLE_SCRIPTS,
-    },
-    install_requires=requirements.INSTALL,
-    extras_require=requirements.EXTRAS,
+setup = Setup(
+    dependencies=DEPENDENCIES,
+    description='Collection of high-level tools to simplify everyday development tasks, with a focus on AI/ML',
 )
+
+setup
