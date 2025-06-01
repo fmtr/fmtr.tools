@@ -1,5 +1,6 @@
 import sys
 from datetime import datetime
+from fnmatch import fnmatch
 from functools import cached_property
 from itertools import chain
 from typing import List, Dict
@@ -40,20 +41,22 @@ class SetupPaths(FromCallerMixin):
     @cached_property
     def path(self):
 
-        from fmtr.tools import setup
-
-        if self.org:
+        if self.is_namespace:
             base = self.org
         else:
             base = self.repo
 
-        directories = [base / dir for dir in setup.find_packages(base)]
+        packages = [
+            dir for dir in base.iterdir()
+            if (dir / Constants.INIT_FILENAME).is_file()
+               and not any(fnmatch(dir.name, pattern) for pattern in Constants.PACKAGE_EXCLUDE_DIRS)
+        ]
 
-        if len(directories) != 1:
-            dirs_str = ', '.join([str(dir) for dir in directories])
-            raise ValueError(f'Expected exactly one directory in {self.repo}, found {dirs_str}')
+        if len(packages) != 1:
+            dirs_str = ', '.join([str(dir) for dir in packages])
+            raise ValueError(f'Expected exactly one package in {self.repo}, found {dirs_str}')
 
-        package = next(iter(directories))
+        package = next(iter(packages))
         return package
 
     @property
@@ -64,6 +67,10 @@ class SetupPaths(FromCallerMixin):
         if not org.is_dir():
             return False
         return org
+
+    @property
+    def entrypoints(self):
+        return self.path / Constants.ENTRYPOINTS_DIR
 
     @property
     def is_namespace(self) -> bool:
@@ -79,9 +86,13 @@ class Setup(FromCallerMixin):
     AUTHOR_EMAIL = 'innovative.fowler@mask.pro.fmtr.dev'
 
     REQUIREMENTS_ARG = 'requirements'
-    SKIP_DIRS = {'data', 'build', 'dist', '.*', '*egg-info*'}
 
-    def __init__(self, dependencies, paths=None, org=Constants.ORG_NAME, console_scripts=None, client=None, do_setup=True, **kwargs):
+    ENTRYPOINT_COMMAND_SEP = '-'
+    ENTRYPOINT_FUNCTION_SEP = '_'
+    ENTRYPOINT_FUNC_NAME = 'main'
+
+    def __init__(self, dependencies, paths=None, org=Constants.ORG_NAME, client=None, do_setup=True, **kwargs):
+
 
         self.kwargs = kwargs
 
@@ -102,7 +113,7 @@ class Setup(FromCallerMixin):
         self.paths = paths
 
         self.client = client
-        self.console_scripts = console_scripts
+
 
         if do_setup:
             self.setup()
@@ -124,22 +135,21 @@ class Setup(FromCallerMixin):
         reqs = '\n'.join(reqs)
         print(reqs)
 
-
-
-    def get_entrypoint_path(self, key, value):
-        if value:
-            return f'{self.name}.{value}:{key}'
-        else:
-            return f'{self.name}:{key}'
-
     @property
-    def entrypoints(self):
-        if self.console_scripts:
-            return dict(
-                console_scripts=[f'{key} = {self.get_entrypoint_path(key, value)}' for key, value in self.console_scripts.items()],
-            )
-        else:
-            return dict()
+    def console_scripts(self):
+
+        if not self.paths.entrypoints.exists():
+            return {}
+
+        names_mods = [path.stem for path in self.paths.entrypoints.iterdir() if path.is_file() and not path.stem.startswith('_')]
+        command_prefix = self.name.replace('.', self.ENTRYPOINT_COMMAND_SEP)
+        command_suffixes = [name_mod.replace(self.ENTRYPOINT_FUNCTION_SEP, self.ENTRYPOINT_COMMAND_SEP) for name_mod in names_mods]
+        commands = [f'{command_prefix}-{command_suffix}' for command_suffix in command_suffixes]
+        paths = [f'{self.name}.{Constants.ENTRYPOINTS_DIR}.{name_mod}:{self.ENTRYPOINT_FUNC_NAME}' for name_mod in names_mods]
+
+        console_scripts = [f'{command} = {path}' for command, path in zip(commands, paths)]
+
+        return console_scripts
 
     @property
     def name(self):
@@ -180,9 +190,7 @@ class Setup(FromCallerMixin):
 
     @property
     def packages(self):
-
-        excludes = list(self.SKIP_DIRS) + [f'{name}.*' for name in self.SKIP_DIRS if '*' not in name]
-
+        excludes = list(Constants.PACKAGE_EXCLUDE_DIRS) + [f'{name}.*' for name in Constants.PACKAGE_EXCLUDE_DIRS if '*' not in name]
         packages = self.find(where=str(self.paths.repo), exclude=excludes)
         return packages
 
@@ -215,7 +223,9 @@ class Setup(FromCallerMixin):
             packages=self.packages,
             package_dir=self.package_dir,
             package_data=self.package_data,
-            entry_points=self.entrypoints,
+            entry_points=dict(
+                console_scripts=self.console_scripts,
+            ),
             install_requires=self.dependencies.install,
             extras_require=self.dependencies.extras,
         ) | self.kwargs
@@ -280,7 +290,10 @@ class Dependencies:
 
     @cached_property
     def install(self):
-        return self.resolve_values(self.INSTALL)
+        if self.INSTALL in self.dependencies:
+            return self.resolve_values(self.INSTALL)
+        else:
+            return []
 
 
 if __name__ == '__main__':
