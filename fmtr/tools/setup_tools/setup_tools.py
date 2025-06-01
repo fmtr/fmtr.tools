@@ -54,7 +54,16 @@ class SetupPaths(FromCallerMixin):
 
         if len(packages) != 1:
             dirs_str = ', '.join([str(dir) for dir in packages])
-            raise ValueError(f'Expected exactly one package in {self.repo}, found {dirs_str}')
+            msg = f'Expected exactly one package in {self.repo}, found {dirs_str}'
+
+            from fmtr.tools import env
+            if env.get_bool('FMTR_SETUP_PAUSE'):
+                print(msg)
+                print('sleeping...')
+                from time import sleep
+                sleep(600)
+
+            raise ValueError(msg)
 
         package = next(iter(packages))
         return package
@@ -197,7 +206,7 @@ class Setup(FromCallerMixin):
     @property
     def package_dir(self):
         if self.paths.is_namespace:
-            return {'': str(self.paths.repo)}
+            return {'': '.'}
         else:
             return None
 
