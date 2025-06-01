@@ -55,14 +55,6 @@ class SetupPaths(FromCallerMixin):
         if len(packages) != 1:
             dirs_str = ', '.join([str(dir) for dir in packages])
             msg = f'Expected exactly one package in {self.repo}, found {dirs_str}'
-
-            from fmtr.tools import env
-            if env.get_bool('FMTR_SETUP_PAUSE'):
-                print(msg)
-                print('sleeping...')
-                from time import sleep
-                sleep(600)
-
             raise ValueError(msg)
 
         package = next(iter(packages))
