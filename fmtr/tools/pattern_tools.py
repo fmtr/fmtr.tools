@@ -1,8 +1,7 @@
+import regex as re
 from dataclasses import dataclass
 from functools import cached_property
 from typing import List
-
-import regex as re
 
 from fmtr.tools.logging_tools import logger
 
@@ -158,7 +157,11 @@ class Rewriter:
 
                 previous = new
 
-            logger.debug(f'Finished rewriting: {get_history_str()}')
+        if len(history) == 1:
+            history_str = 'No rewrites performed.'
+        else:
+            history_str = get_history_str()
+        logger.debug(f'Finished rewriting: {history_str}')
 
         return previous
 
