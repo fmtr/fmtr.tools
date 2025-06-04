@@ -1,16 +1,30 @@
-from typing import List, Optional
-
 import pydantic_ai
-from pydantic_ai import RunContext
+from pydantic_ai import RunContext, ModelRetry
 from pydantic_ai.agent import AgentRunResult, Agent
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
+from typing import List, Optional, Any
 
 from fmtr.tools import environment_tools as env
 from fmtr.tools.constants import Constants
+from fmtr.tools.logging_tools import logger
 from fmtr.tools.string_tools import truncate_mid
 
 pydantic_ai.Agent.instrument_all()
+
+
+class Validator:
+    """
+
+    Subclassable validator
+
+    """
+
+    async def validate(self, ctx: RunContext[Any], output: Any) -> List[str]:
+        raise NotImplementedError()
+
+
+
 
 class Task:
     """
@@ -31,6 +45,7 @@ class Task:
     DEPS_TYPE = str
     RESULT_TYPE = str
     RESULT_RETRIES = 5
+    VALIDATORS: List[Validator] = []
 
     def __init__(self, *args, **kwargs):
         """
@@ -77,9 +92,18 @@ class Task:
     async def validate(self, ctx: RunContext[DEPS_TYPE], output: RESULT_TYPE) -> RESULT_TYPE:
         """
 
-        Dummy validator
+        Aggregate any validation failures and combine them into a single ModelRetry exception
 
         """
+        msgs = []
+        for validator in self.VALIDATORS:
+            msgs += validator.validate(ctx, output)
+
+        if msgs:
+            msg = '. '.join(msgs)
+            logger.warning(msg)
+            raise ModelRetry(msg)
+
         return output
 
     def get_prompt(self, deps: Optional[DEPS_TYPE]) -> Optional[str]:
