@@ -35,7 +35,7 @@ DEPENDENCIES = {
     'sets': ['pydantic-settings', 'dm'],
     'path.app': ['appdirs'],
     'path.type': ['filetype'],
-    'dns': ['dnspython[doh]'],
+    'dns': ['dnspython[doh]', 'http'],
     'patterns': ['regex'],
     'http': ['httpx', 'httpx_retries', 'logging', 'logfire[httpx]'],
     'setup': ['setuptools']
