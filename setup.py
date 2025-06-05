@@ -32,7 +32,7 @@ DEPENDENCIES = {
     'caching': ['diskcache'],
     'pdf': ['pymupdf', 'dm', 'pymupdf4llm'],
     'debug': ['pydevd-pycharm'],
-    'sets': ['pydantic-settings', 'dm'],
+    'sets': ['pydantic-settings', 'dm', 'yaml'],
     'path.app': ['appdirs'],
     'path.type': ['filetype'],
     'dns': ['dnspython[doh]', 'http'],

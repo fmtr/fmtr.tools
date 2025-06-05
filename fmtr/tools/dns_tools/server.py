@@ -1,10 +1,12 @@
 import socket
+from dataclasses import dataclass
 
 from fmtr.tools import logger
 from fmtr.tools.dns_tools.client import ClientDoH
-from fmtr.tools.dns_tools.dm import Exchange, Response
+from fmtr.tools.dns_tools.dm import Exchange
 
 
+@dataclass
 class ServerBasePlain:
     """
 
@@ -12,9 +14,11 @@ class ServerBasePlain:
 
     """
 
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
+    host: str
+    port: int
+
+    def __post_init__(self):
+
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     def resolve(self, exchange: Exchange):
@@ -36,6 +40,7 @@ class ServerBasePlain:
             sock.sendto(exchange.response.wire, (ip, port))
 
 
+@dataclass
 class ServerBaseDoHProxy(ServerBasePlain):
     """
 
@@ -43,25 +48,13 @@ class ServerBaseDoHProxy(ServerBasePlain):
 
     """
 
-    def __init__(self, host, port, client: ClientDoH):
-        super().__init__(host, port)
-        self.client = client
+    client: ClientDoH
 
     def process_question(self, exchange: Exchange):
         return
 
     def process_upstream(self, exchange: Exchange):
         return
-
-    def from_upstream(self, exchange: Exchange) -> Exchange:
-
-        request = exchange.request
-        response_doh = self.client.post(self.URL, headers=self.HEADERS, content=request.wire)
-        response_doh.raise_for_status()
-        response = Response.from_http(response_doh)
-        exchange.response_upstream = response
-
-        return exchange
 
     def resolve(self, exchange: Exchange):
         """

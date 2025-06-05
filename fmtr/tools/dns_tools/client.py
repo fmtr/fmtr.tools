@@ -1,4 +1,5 @@
 import dns
+from dataclasses import dataclass
 from dns import query
 from functools import cached_property
 from httpx_retries import Retry, RetryTransport
@@ -39,6 +40,7 @@ class ClientBasePlain:
             exchange.response_upstream = Response.from_message(response)
 
 
+@dataclass
 class ClientDoH:
     """
 
@@ -47,19 +49,19 @@ class ClientDoH:
     """
 
     HEADERS = {"Content-Type": "application/dns-message"}
-    client = HTTPClientDoH()
+    CLIENT = HTTPClientDoH()
+    BOOTSTRAP = ClientBasePlain('8.8.8.8')
 
-    def __init__(self, host, url):
-        self.host = host
-        self.url = url
-        self.bootstrap = ClientBasePlain('8.8.8.8')
+    host: str
+    url: str
+
 
     @cached_property
     def ip(self):
         message = dns.message.make_query(self.host, dns.rdatatype.A, flags=0)
         request = Request.from_message(message)
         exchange = Exchange(request=request, ip=None, port=None)
-        self.bootstrap.resolve(exchange)
+        self.BOOTSTRAP.resolve(exchange)
         ip = next(iter(exchange.response_upstream.answer.items.keys())).address
         return ip
 
@@ -72,7 +74,7 @@ class ClientDoH:
         request = exchange.request
         headers = self.HEADERS | dict(Host=self.host)
         url = self.url.format(host=self.ip)
-        response_doh = self.client.post(url, headers=headers, content=request.wire)
+        response_doh = self.CLIENT.post(url, headers=headers, content=request.wire)
         response_doh.raise_for_status()
         response = Response.from_http(response_doh)
         exchange.response_upstream = response
