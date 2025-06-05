@@ -29,6 +29,7 @@ from fmtr.tools.constants import Constants
 # Submodules
 from fmtr.tools.path_tools import Path, PackagePaths, AppPaths
 from fmtr.tools import ai_tools as ai
+from fmtr.tools import dns_tools as dns
 
 import fmtr.tools.setup_tools as setup
 from fmtr.tools.setup_tools import Setup, SetupPaths, Dependencies, Tools
@@ -171,11 +172,6 @@ try:
     from fmtr.tools import pattern_tools as patterns
 except ImportError as exception:
     patterns = MissingExtraMockModule('patterns', exception)
-
-try:
-    from fmtr.tools import dns_tools as dns
-except ImportError as exception:
-    dns = MissingExtraMockModule('dns', exception)
 
 try:
     from fmtr.tools import http_tools as http
