@@ -1,9 +1,10 @@
 import regex as re
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from functools import cached_property
-from typing import List
+from typing import List, Any
 
 from fmtr.tools.logging_tools import logger
+from fmtr.tools.string_tools import join
 
 
 class RewriteCircularLoopError(Exception):
@@ -14,59 +15,101 @@ class RewriteCircularLoopError(Exception):
     """
 
 
+MASK_GROUP = '(?:{pattern})'
+MASK_NAMED = r"(?P<{key}>{pattern})"
+
+
+def alt(*patterns):
+    patterns = sorted(patterns, key=len, reverse=True)
+    pattern = '|'.join(patterns)
+    pattern = MASK_GROUP.format(pattern=pattern)
+    return pattern
+
+
+
+
+
+
 @dataclass
-class Rewrite:
-    """
-    Represents a single rule for pattern matching and target string replacement.
+class Key:
+    RECORD_SEP = '␞'
 
-    This class is used to define a rule with a pattern and a target string.
-    The `pattern` is a regular expression used to identify matches in input text.
-    The `target` allows rewriting the identified matches with a formatted string.
-    It provides properties for generating a unique identifier for use as a regex group name and compiling the provided pattern into a regular expression object.
+    def flatten(self, data):
+        """
 
-    """
-    pattern: str
-    target: str
+        Flatten/serialise dictionary data
+
+        """
+        pairs = [f'{value}' for key, value in data.items()]
+        string = self.RECORD_SEP.join(pairs)
+        return string
 
     @cached_property
-    def id(self):
+    def pattern(self):
         """
-        
-        Regex group name.
-        
+
+        Serialise to pattern
+
         """
-        return f'id{abs(hash(self.pattern))}'
+        data = {key: MASK_NAMED.format(key=key, pattern=value) for key, value in asdict(self).items()}
+        pattern = self.flatten(data)
+        return pattern
 
     @cached_property
     def rx(self):
         """
 
-        Regex object.
+        Compile to Regular Expression
 
         """
         return re.compile(self.pattern)
 
-    def apply(self, match: re.Match):
+    @cached_property
+    def string(self):
         """
 
-        Rewrite using the target string and match groups.
+        Serialise to string
 
         """
-        target = self.target.format(**match.groupdict())
-        return target
+        string = self.flatten(asdict(self))
+        return string
+
+    def transform(self, match: re.Match):
+        """
+
+        Transform match object into a new object of the same type.
+
+        """
+        groupdict = match.groupdict()
+        data = {key: value.format(**groupdict) for key, value in asdict(self).items()}
+        obj = self.__class__(**data)
+        return obj
 
 
 @dataclass
-class Rewriter:
+class Item:
     """
-    
-    Represents a Rewriter class that handles pattern matching, rule application, and text rewriting.
-    Compiles a single regex pattern from a list of rules, and determines which rule matched.
-    It supports initialization from structured rule data, execution of a single rewrite pass, and
-    recursive rewriting until a stable state is reached.
+
+    Key-value pair
 
     """
-    rules: List[Rewrite]
+    key: Key
+    value: Key
+
+@dataclass
+class Mapper:
+    """
+    
+    Pattern-based, dictionary-like mapper.
+    Compiles a single regex pattern from a list of rules, and determines which rule matched.
+    It supports initialization from structured rule data, execution of a single lookup pass, and
+    recursive lookups until a stable state is reached.
+
+    """
+    PREFIX_GROUP = '__'
+    items: List[Item]
+    default: Any = None
+    is_recursive: bool = False
 
     @cached_property
     def pattern(self):
@@ -75,19 +118,12 @@ class Rewriter:
         Provides a dynamically generated regex pattern based on the rules provided.
 
         """
-        patterns = [fr"(?P<{rule.id}>{rule.pattern})" for rule in self.rules]
-        sorted(patterns, key=len, reverse=True)
-        pattern = '|'.join(patterns)
+        patterns = [
+            MASK_NAMED.format(key=f'{self.PREFIX_GROUP}{i}', pattern=item.key.pattern)
+            for i, item in enumerate(self.items)
+        ]
+        pattern = alt(*patterns)
         return pattern
-
-    @cached_property
-    def rule_lookup(self):
-        """
-
-        Dictionary mapping rule identifiers to their corresponding rules.
-        """
-
-        return {rule.id: rule for rule in self.rules}
 
     @cached_property
     def rx(self):
@@ -98,48 +134,74 @@ class Rewriter:
         """
         return re.compile(self.pattern)
 
-    def rewrite_pass(self, source: str):
+    def get_default(self, key: Key):
+        if self.is_recursive:
+            return key
+        else:
+            return self.default
+
+    def get(self, key: Key) -> Key:
         """
 
-        Single rewrite pass.
-        Rewrites the provided source string based on the matching rule.
+        Use recursive or single lookup pass, depending on whether recursive lookups have been specified.
+
+        """
+        if self.is_recursive:
+            return self.get_recursive(key)
+        else:
+            return self.get_one(key)
+
+    def get_one(self, key: Key):
+        """
+
+        Single lookup pass.
+        Lookup the source string based on the matching rule.
 
         """
 
-        match = self.rx.fullmatch(source)
+        match = self.rx.fullmatch(key.string)
 
         if not match:
-            return source
+            value = self.get_default(key)
+            logger.debug(f'No match for {key=}.')
+        else:
 
-        match_ids = {k: v for k, v in match.groupdict().items() if v}
-        match_id = match_ids & self.rule_lookup.keys()
+            match_ids = {name: v for name, v in match.groupdict().items() if v}
+            rule_ids = {
+                int(id.removeprefix(self.PREFIX_GROUP))
+                for id in match_ids.keys() if id.startswith(self.PREFIX_GROUP)
+            }
 
-        if len(match_id) != 1:
-            msg = f'Multiple group matches: {match_id}'
-            raise ValueError(msg)
+            if len(rule_ids) != 1:
+                msg = f'Multiple group matches: {rule_ids}'
+                raise ValueError(msg)
 
-        match_id = next(iter(match_id))
-        rule = self.rule_lookup[match_id]
-        target = rule.apply(match)
+            rule_id = next(iter(rule_ids))
+            rule = self.items[rule_id]
 
-        logger.debug(f'Rewrote using {match_id=}: {source=} -> {target=}')
+            if isinstance(rule.value, Key):
+                value = rule.value.transform(match)
+            else:
+                value = rule.value
 
-        return target
+            logger.debug(f'Matched using {rule_id=}: {key=} → {value=}')
 
-    def rewrite(self, source: str) -> str:
+        return value
+
+    def get_recursive(self, key: Key) -> Key:
         """
 
-        Rewrites the provided text by continuously applying rewrite rules until no changes are made
+        Lookup the provided text by continuously applying lookup rules until no changes are made
         or a circular loop is detected.
 
         """
         history = []
-        previous = source
+        previous = key
 
         def get_history_str():
-            return ' -> '.join(history)
+            return join(history, sep=' → ')
 
-        with logger.span(f'Rewriting "{source}"...'):
+        with logger.span(f'Matching {key=}...'):
             while True:
                 if previous in history:
                     history.append(previous)
@@ -150,7 +212,7 @@ class Rewriter:
 
                 new = previous
 
-                new = self.rewrite_pass(new)
+                new = self.get_one(new)
 
                 if new == previous:
                     break
@@ -158,18 +220,13 @@ class Rewriter:
                 previous = new
 
         if len(history) == 1:
-            history_str = 'No rewrites performed.'
+            history_str = 'No matching performed.'
         else:
             history_str = get_history_str()
-        logger.debug(f'Finished rewriting: {history_str}')
+        logger.debug(f'Finished matching: {history_str}')
 
         return previous
 
-    @classmethod
-    def from_data(cls, data):
-        rules = [Rewrite(*pair) for pair in data.items()]
-        self = cls(rules=rules)
-        return self
 
-
-
+if __name__ == '__main__':
+    ...
