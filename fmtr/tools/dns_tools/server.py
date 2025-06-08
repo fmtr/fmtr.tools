@@ -66,7 +66,7 @@ class ServerBaseDoHProxy(ServerBasePlain):
 
         request = exchange.request
 
-        with logger.span(f'Handling request for {request.name_text} from {exchange.client}...'):
+        with logger.span(f'Handling request ID {request.message.id} for {request.name_text} from {exchange.client}...'):
 
             if not request.is_valid:
                 raise ValueError(f'Only one question per request is supported. Got {len(request.question)} questions.')
