@@ -3,7 +3,7 @@ from datetime import datetime
 from fnmatch import fnmatch
 from functools import cached_property
 from itertools import chain
-from typing import List, Dict
+from typing import List, Dict, Any, Callable, Optional
 
 from fmtr.tools.constants import Constants
 from fmtr.tools.path_tools import Path
@@ -18,7 +18,6 @@ class SetupPaths(FromCallerMixin):
     """
 
     def __init__(self, path=None, org=Constants.ORG_NAME):
-
         """
 
         Use calling module path as default path, if not otherwise specified.
@@ -31,15 +30,30 @@ class SetupPaths(FromCallerMixin):
         self.repo = Path(path)
 
     @property
-    def readme(self):
+    def readme(self) -> Path:
+        """
+
+        Path of the README file.
+
+        """
         return self.repo / 'README.md'
 
     @property
-    def version(self):
+    def version(self) -> Path:
+        """
+
+        Path of the version file
+
+        """
         return self.path / Constants.FILENAME_VERSION
 
     @cached_property
-    def path(self):
+    def path(self) -> Path:
+        """
+
+        Infer the package path. It should be the only non-excluded package in the repo/org Path.
+
+        """
 
         if self.is_namespace:
             base = self.org
@@ -61,7 +75,12 @@ class SetupPaths(FromCallerMixin):
         return package
 
     @property
-    def org(self):
+    def org(self) -> bool | Path:
+        """
+
+        Get the org path, i.e. the namespace parent directory.
+
+        """
         if not self.org_name:
             return False
         org = self.repo / self.org_name
@@ -70,7 +89,12 @@ class SetupPaths(FromCallerMixin):
         return org
 
     @property
-    def entrypoints(self):
+    def entrypoints(self) -> Path:
+        """
+
+        Path of entrypoints sub-package.
+
+        """
         return self.path / Constants.ENTRYPOINTS_DIR
 
     @property
@@ -83,6 +107,11 @@ class SetupPaths(FromCallerMixin):
 
 
 class Setup(FromCallerMixin):
+    """
+
+    Abstract canonical pacakge setup for setuptools.
+
+    """
     AUTHOR = 'Frontmatter'
     AUTHOR_EMAIL = 'innovative.fowler@mask.pro.fmtr.dev'
 
@@ -93,8 +122,12 @@ class Setup(FromCallerMixin):
     ENTRYPOINT_FUNC_NAME = 'main'
 
     def __init__(self, dependencies, paths=None, org=Constants.ORG_NAME, client=None, do_setup=True, **kwargs):
+        """
 
+        First check if commandline arguments for requirements output exist. If so, print them and return early.
+        Otherwise, continue generating data to pass to setuptools.
 
+        """
         self.kwargs = kwargs
 
         if type(dependencies) is not Dependencies:
@@ -115,11 +148,15 @@ class Setup(FromCallerMixin):
 
         self.client = client
 
-
         if do_setup:
             self.setup()
 
-    def get_requirements_extras(self):
+    def get_requirements_extras(self) -> Optional[List[str]]:
+        """
+
+        Get list of extras from command line arguments.
+
+        """
         if self.REQUIREMENTS_ARG not in sys.argv:
             return None
 
@@ -128,6 +165,11 @@ class Setup(FromCallerMixin):
         return extras
 
     def print_requirements(self):
+        """
+
+        Output flat list of requirements for specified extras
+
+        """
         reqs = []
         reqs += self.dependencies.install
 
@@ -137,12 +179,17 @@ class Setup(FromCallerMixin):
         print(reqs)
 
     @property
-    def console_scripts(self):
+    def console_scripts(self) -> List[str]:
+        """
+
+        Generate console scripts for any modules in the `entrypoints` sub-package.
+
+        """
 
         if not self.paths.entrypoints.exists():
-            return {}
+            return []
 
-        names_mods = [path.stem for path in self.paths.entrypoints.iterdir() if path.is_file() and not path.stem.startswith('_')]
+        names_mods = [path.stem for path in self.paths.entrypoints.iterdir() if path.is_file() and path.name != Constants.INIT_FILENAME]
         command_prefix = self.name.replace('.', self.ENTRYPOINT_COMMAND_SEP)
         command_suffixes = [name_mod.replace(self.ENTRYPOINT_FUNCTION_SEP, self.ENTRYPOINT_COMMAND_SEP) for name_mod in names_mods]
         commands = [f'{command_prefix}-{command_suffix}' for command_suffix in command_suffixes]
@@ -153,35 +200,63 @@ class Setup(FromCallerMixin):
         return console_scripts
 
     @property
-    def name(self):
+    def name(self) -> str:
+        """
+
+        Full library name
+
+        """
         if self.paths.is_namespace:
             return f'{self.paths.org_name}.{self.paths.name}'
         return self.paths.name
 
     @property
-    def author(self):
+    def author(self) -> str:
+        """
+
+        Create appropriate author string
+
+        """
         if self.client:
             return f'{self.AUTHOR} on behalf of {self.client}'
         return self.AUTHOR
 
     @property
-    def copyright(self):
+    def copyright(self) -> str:
+        """
+
+        Create appropriate copyright string
+
+        """
         if self.client:
             return self.client
         return self.AUTHOR
 
     @property
-    def long_description(self):
+    def long_description(self) -> str:
+        """
 
+        Read in README.md
+
+        """
         return self.paths.readme.read_text()
 
     @property
-    def version(self):
+    def version(self) -> str:
+        """
+
+        Read in the version string from file
+
+        """
         return self.paths.version.read_text().strip()
 
     @property
-    def find(self):
+    def find(self) -> Callable:
+        """
 
+        Use the appropriate package finding function from setuptools
+
+        """
         from fmtr.tools import setup
 
         if self.paths.is_namespace:
@@ -190,13 +265,23 @@ class Setup(FromCallerMixin):
             return setup.find_packages
 
     @property
-    def packages(self):
+    def packages(self) -> List[str]:
+        """
+
+        Fetch list of packages excluding canonical paths
+
+        """
         excludes = list(Constants.PACKAGE_EXCLUDE_DIRS) + [f'{name}.*' for name in Constants.PACKAGE_EXCLUDE_DIRS if '*' not in name]
         packages = self.find(where=str(self.paths.repo), exclude=excludes)
         return packages
 
     @property
     def package_dir(self):
+        """
+
+        Needs to be relative apparently as absolute paths break during packaging
+
+        """
         if self.paths.is_namespace:
             return {'': '.'}
         else:
@@ -204,14 +289,29 @@ class Setup(FromCallerMixin):
 
     @property
     def package_data(self):
+        """
+
+        Default package data is just the version file
+
+        """
         return {self.name: [Constants.FILENAME_VERSION]}
 
     @property
-    def url(self):
-        return f'https://github.com/{self.org}/{self.paths.name}'
+    def url(self) -> str:
+        """
+
+        Default to GitHub URL
+
+        """
+        return f'https://github.com/{self.org}/{self.name}'
 
     @property
-    def data(self):
+    def data(self) -> Dict[str, Any]:
+        """
+
+        Generate data for use by setuptools
+
+        """
         data = dict(
             name=self.name,
             version=self.version,
@@ -233,13 +333,30 @@ class Setup(FromCallerMixin):
         return data
 
     def setup(self):
+        """
+
+        Call setuptools.setup using generated data
+
+        """
 
         from fmtr.tools import setup
 
         return setup.setup_setuptools(**self.data)
 
+    def __repr__(self) -> str:
+        """
+
+        Show library name
+
+        """
+        return f'{self.__class__.__name__}("{self.name}")'
 
 class Tools:
+    """
+
+    Helper for downstream libraries to specify lists of `fmtr.tools` extras
+
+    """
     MASK = f'{Constants.LIBRARY_NAME}[{{extras}}]'
 
     def __init__(self, *extras):
@@ -261,7 +378,7 @@ class Dependencies:
     def resolve_values(self, key) -> List[str]:
         """
 
-        Flatten a list of values.
+        Flatten a list of dependencies.
 
         """
         values_resolved = []
@@ -290,7 +407,12 @@ class Dependencies:
         return resolved
 
     @cached_property
-    def install(self):
+    def install(self) -> List[str]:
+        """
+
+        Get install_requires
+
+        """
         if self.INSTALL in self.dependencies:
             return self.resolve_values(self.INSTALL)
         else:
@@ -298,26 +420,4 @@ class Dependencies:
 
 
 if __name__ == '__main__':
-    ds = Dependencies(
-        install=['version', 'yaml'],
-
-        yaml=['yamlscript', 'pyyaml'],
-        logging=['logfire', 'version'],
-        version=['semver', 'av'],
-        av=['av']
-        # Add the rest of your dependencies...
-    )
-
-    ds
-
-    setup = Setup(
-        # client='Acme',
-        dependencies=ds,
-        description='some tools test',
-        console_scripts=dict(
-            cache_hfh='console_script_tools',
-            test=None,
-        )
-    )
-    data = setup.get_data_setup()
-    data
+    ...
