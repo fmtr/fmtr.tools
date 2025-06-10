@@ -41,7 +41,7 @@ class Proxy(server.Plain):
 
         request = exchange.request
 
-        with logger.span(f'Handling request ID {request.message.id} for {request.name_text} from {exchange.client}...'):
+        with logger.span(f'Handling request {request.message.id=} {request.question=} {exchange.client=}...'):
 
             if not request.is_valid:
                 raise ValueError(f'Only one question per request is supported. Got {len(request.question)} questions.')
@@ -51,7 +51,7 @@ class Proxy(server.Plain):
             if exchange.response.is_complete:
                 return
 
-            with logger.span(f'Making upstream request for {request.name_text}...'):
+            with logger.span(f'Making upstream request...'):
                 self.client.resolve(exchange)
             if exchange.response.is_complete:
                 return
@@ -61,8 +61,7 @@ class Proxy(server.Plain):
             if exchange.response.is_complete:
                 return
 
-            if exchange.response:
-                return
-
             exchange.response.is_complete = True
-            return
+
+        logger.info(f'Resolution complete {request.message.id=} {exchange.response.answer=}')
+        return
