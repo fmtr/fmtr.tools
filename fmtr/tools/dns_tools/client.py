@@ -1,11 +1,12 @@
-import dns
 from dataclasses import dataclass
-from dns import query
 from functools import cached_property
+
+import dns as dnspython
+from dns import query
 from httpx_retries import Retry, RetryTransport
 
 from fmtr.tools import http_tools as http
-from fmtr.tools.dns_tools.dm import Exchange, Response, Request
+from fmtr.tools.dns_tools.dm import Exchange, Response
 from fmtr.tools.logging_tools import logger
 
 RETRY_STRATEGY = Retry(
@@ -29,28 +30,36 @@ class HTTPClientDoH(http.Client):
     TRANSPORT = RetryTransport(retry=RETRY_STRATEGY)
 
 
-class ClientBasePlain:
-    def __init__(self, host, port=53):
-        self.host = host
-        self.port = port
+@dataclass
+class Plain:
+    """
+
+    Plain DNS
+
+    """
+    host: str
+    port: int = 53
 
     def resolve(self, exchange: Exchange):
+
         with logger.span(f'UDP {self.host}:{self.port}'):
-            response = query.udp(q=exchange.request.message, where=self.host, port=self.port)
-            exchange.response_upstream = Response.from_message(response)
+            response_plain = query.udp(q=exchange.query_last, where=self.host, port=self.port)
+            response = Response.from_message(response_plain)
+
+        exchange.response.message.answer += response.message.answer
 
 
 @dataclass
-class ClientDoH:
+class HTTP:
     """
 
-    Base DoH client.
+    DNS over HTTP
 
     """
 
     HEADERS = {"Content-Type": "application/dns-message"}
     CLIENT = HTTPClientDoH()
-    BOOTSTRAP = ClientBasePlain('8.8.8.8')
+    BOOTSTRAP = Plain('8.8.8.8')
 
     host: str
     url: str
@@ -58,11 +67,10 @@ class ClientDoH:
 
     @cached_property
     def ip(self):
-        message = dns.message.make_query(self.host, dns.rdatatype.A, flags=0)
-        request = Request.from_message(message)
-        exchange = Exchange(request=request, ip=None, port=None)
+        message = dnspython.message.make_query(self.host, dnspython.rdatatype.A, flags=0)
+        exchange = Exchange.from_wire(message.to_wire(), ip=None, port=None)
         self.BOOTSTRAP.resolve(exchange)
-        ip = next(iter(exchange.response_upstream.answer.items.keys())).address
+        ip = next(iter(exchange.response.answer.items.keys())).address
         return ip
 
     def resolve(self, exchange: Exchange):
@@ -71,10 +79,11 @@ class ClientDoH:
         Resolve via DoH
 
         """
-        request = exchange.request
+
         headers = self.HEADERS | dict(Host=self.host)
         url = self.url.format(host=self.ip)
-        response_doh = self.CLIENT.post(url, headers=headers, content=request.wire)
+        response_doh = self.CLIENT.post(url, headers=headers, content=exchange.query_last.to_wire())
         response_doh.raise_for_status()
         response = Response.from_http(response_doh)
-        exchange.response_upstream = response
+
+        exchange.response.message.answer += response.message.answer
