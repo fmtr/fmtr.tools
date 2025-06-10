@@ -1,7 +1,8 @@
-import regex as re
 from dataclasses import dataclass, asdict
 from functools import cached_property
 from typing import List, Any
+
+import regex as re
 
 from fmtr.tools.logging_tools import logger
 from fmtr.tools.string_tools import join
@@ -24,11 +25,6 @@ def alt(*patterns):
     pattern = '|'.join(patterns)
     pattern = MASK_GROUP.format(pattern=pattern)
     return pattern
-
-
-
-
-
 
 @dataclass
 class Key:
@@ -93,17 +89,18 @@ class Item:
     Key-value pair
 
     """
-    key: Key
-    value: Key
+    source: Key
+    target: Key
 
 @dataclass
-class Mapper:
+class Transformer:
     """
     
     Pattern-based, dictionary-like mapper.
-    Compiles a single regex pattern from a list of rules, and determines which rule matched.
-    It supports initialization from structured rule data, execution of a single lookup pass, and
-    recursive lookups until a stable state is reached.
+    Compiles an complex set of rules into single regex pattern, and determines which rule matched.
+    Inputs are then transformed according to the matching rule.
+    Works like a pattern-based dictionary when is_recursive==False.
+    Works something like an FSA/transducer when is_recursive=True.
 
     """
     PREFIX_GROUP = '__'
@@ -112,21 +109,21 @@ class Mapper:
     is_recursive: bool = False
 
     @cached_property
-    def pattern(self):
+    def pattern(self) -> str:
         """
         
-        Provides a dynamically generated regex pattern based on the rules provided.
+        Dynamically generated regex pattern based on the rules provided.
 
         """
         patterns = [
-            MASK_NAMED.format(key=f'{self.PREFIX_GROUP}{i}', pattern=item.key.pattern)
+            MASK_NAMED.format(key=f'{self.PREFIX_GROUP}{i}', pattern=item.source.pattern)
             for i, item in enumerate(self.items)
         ]
         pattern = alt(*patterns)
         return pattern
 
     @cached_property
-    def rx(self):
+    def rx(self) -> re.Pattern:
         """
 
         Regex object.
@@ -134,24 +131,26 @@ class Mapper:
         """
         return re.compile(self.pattern)
 
-    def get_default(self, key: Key):
+    def get_default(self, key: Key) -> Any:
         if self.is_recursive:
             return key
         else:
             return self.default
 
-    def get(self, key: Key) -> Key:
+    def get(self, key: Key) -> Key | Any:
         """
 
         Use recursive or single lookup pass, depending on whether recursive lookups have been specified.
 
         """
         if self.is_recursive:
-            return self.get_recursive(key)
+            with logger.span(f'Transforming recursively {key=}...'):
+                return self.get_recursive(key)
         else:
-            return self.get_one(key)
+            with logger.span(f'Transforming linearly {key=}...'):
+                return self.get_one(key)
 
-    def get_one(self, key: Key):
+    def get_one(self, key: Key) -> Key | Any:
         """
 
         Single lookup pass.
@@ -163,7 +162,7 @@ class Mapper:
 
         if not match:
             value = self.get_default(key)
-            logger.debug(f'No match for {key=}.')
+            logger.debug(f'No match for {key=}. Returning {self.default=}')
         else:
 
             match_ids = {name: v for name, v in match.groupdict().items() if v}
@@ -179,19 +178,21 @@ class Mapper:
             rule_id = next(iter(rule_ids))
             rule = self.items[rule_id]
 
-            if isinstance(rule.value, Key):
-                value = rule.value.transform(match)
-            else:
-                value = rule.value
+            logger.debug(f'Matched using {rule_id=}: {rule.source=}')
 
-            logger.debug(f'Matched using {rule_id=}: {key=} → {value=}')
+            if isinstance(rule.target, Key):
+                value = rule.target.transform(match)
+            else:
+                value = rule.target
+
+            logger.debug(f'Transformed using {rule_id=}: {key=} → {value=}')
 
         return value
 
-    def get_recursive(self, key: Key) -> Key:
+    def get_recursive(self, key: Key) -> Key | Any:
         """
 
-        Lookup the provided text by continuously applying lookup rules until no changes are made
+        Lookup the provided key by continuously applying transforms until no changes are made
         or a circular loop is detected.
 
         """
@@ -201,29 +202,28 @@ class Mapper:
         def get_history_str():
             return join(history, sep=' → ')
 
-        with logger.span(f'Matching {key=}...'):
-            while True:
-                if previous in history:
-                    history.append(previous)
-                    msg = f'Loop detected on node "{previous}": {get_history_str()}'
-                    raise RewriteCircularLoopError(msg)
-
+        while True:
+            if previous in history:
                 history.append(previous)
+                msg = f'Loop detected on node "{previous}": {get_history_str()}'
+                raise RewriteCircularLoopError(msg)
 
-                new = previous
+            history.append(previous)
+            new = previous
+            new = self.get_one(new)
+            if new == previous:
+                break
+            previous = new
 
-                new = self.get_one(new)
-
-                if new == previous:
-                    break
-
-                previous = new
+            if not isinstance(new, Key):
+                history.append(previous)
+                break
 
         if len(history) == 1:
-            history_str = 'No matching performed.'
+            history_str = 'No transforms performed.'
         else:
             history_str = get_history_str()
-        logger.debug(f'Finished matching: {history_str}')
+        logger.debug(f'Finished transforming: {history_str}')
 
         return previous
 
