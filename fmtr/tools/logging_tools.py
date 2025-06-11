@@ -30,14 +30,20 @@ def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=C
 
         return logger
 
-    if key is None:
-        key = environment_tools.get(Constants.FMTR_OBS_API_KEY_KEY)
-    url = f"https://{host}/api/{org}/v1/traces"
-    headers = f"Authorization=Basic {key},stream-name={stream}"
+    logger = logfire
 
-    os.environ["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] = url
-    os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = headers
-    os.environ["OTEL_EXPORTER_OTLP_INSECURE"] = str(False).lower()
+    if key is None:
+        key = environment_tools.get(Constants.FMTR_OBS_API_KEY_KEY, default=None)
+        if key is None:
+            logger.warning(f'Observability dependencies installed, but "{Constants.FMTR_OBS_API_KEY_KEY}" not set. Cloud observability will be disabled.')
+
+    if key:
+        url = f"https://{host}/api/{org}/v1/traces"
+        headers = f"Authorization=Basic {key},stream-name={stream}"
+
+        os.environ["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] = url
+        os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = headers
+        os.environ["OTEL_EXPORTER_OTLP_INSECURE"] = str(False).lower()
 
     if not version:
         from fmtr.tools import version_tools
