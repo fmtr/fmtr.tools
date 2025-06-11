@@ -5,4 +5,4 @@ def main():
 
     """
     from fmtr.tools import yaml
-    return yaml.install()
+    yaml.install()

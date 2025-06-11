@@ -34,8 +34,6 @@ def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=C
 
     if key is None:
         key = environment_tools.get(Constants.FMTR_OBS_API_KEY_KEY, default=None)
-        if key is None:
-            logger.warning(f'Observability dependencies installed, but "{Constants.FMTR_OBS_API_KEY_KEY}" not set. Cloud observability will be disabled.')
 
     if key:
         url = f"https://{host}/api/{org}/v1/traces"
@@ -66,7 +64,9 @@ def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=C
         console=console_opts
     )
 
-    logger = logfire
+    if key is None:
+        logger.warning(f'Observability dependencies installed, but "{Constants.FMTR_OBS_API_KEY_KEY}" not set. Cloud observability will be disabled.')
+
     return logger
 
 
