@@ -31,7 +31,7 @@ DEPENDENCIES = {
     'google.api': ['google-auth', 'google-auth-oauthlib', 'google-auth-httplib2', 'google-api-python-client'],
     'caching': ['diskcache'],
     'pdf': ['pymupdf', 'dm', 'pymupdf4llm'],
-    'debug': ['pydevd-pycharm'],
+    'debug': ['pydevd-pycharm~=251.25410.159'],
     'sets': ['pydantic-settings', 'dm', 'yaml'],
     'path.app': ['appdirs'],
     'path.type': ['filetype'],
