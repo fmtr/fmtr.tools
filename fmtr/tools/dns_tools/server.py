@@ -2,6 +2,7 @@ import socket
 from dataclasses import dataclass
 
 from fmtr.tools.dns_tools.dm import Exchange
+from fmtr.tools.logging_tools import logger
 
 
 @dataclass
@@ -30,7 +31,7 @@ class Plain:
         """
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind((self.host, self.port))
-        print(f"Listening on {self.host}:{self.port}")
+        logger.info(f'Listening on {self.host}:{self.port}')
         while True:
             data, (ip, port) = sock.recvfrom(512)
             exchange = Exchange.from_wire(data, ip=ip, port=port)

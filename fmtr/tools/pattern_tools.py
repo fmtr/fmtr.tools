@@ -108,6 +108,11 @@ class Transformer:
     default: Any = None
     is_recursive: bool = False
 
+    def __post_init__(self):
+        with logger.span(f'Compiling expression {len(self.items)=}'):
+            rx = self.rx
+        logger.debug(f'Compiled successfully {rx.groups=}')
+
     @cached_property
     def pattern(self) -> str:
         """
@@ -132,6 +137,11 @@ class Transformer:
         return re.compile(self.pattern)
 
     def get_default(self, key: Key) -> Any:
+        """
+
+        Define what to return in case of no match
+
+        """
         if self.is_recursive:
             return key
         else:
@@ -162,7 +172,7 @@ class Transformer:
 
         if not match:
             value = self.get_default(key)
-            logger.debug(f'No match for {key=}. Returning {self.default=}')
+            logger.debug(f'No match for {key=}. Returning {self.get_default(key)=}')
         else:
 
             match_ids = {name: v for name, v in match.groupdict().items() if v}
