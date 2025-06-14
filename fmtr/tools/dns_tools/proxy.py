@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
-from fmtr.tools import logger
 from fmtr.tools.dns_tools import server, client
 from fmtr.tools.dns_tools.dm import Exchange
+from fmtr.tools.logging_tools import logger
 
 
-@dataclass
+@dataclass(kw_only=True, eq=False)
 class Proxy(server.Plain):
     """
 
@@ -31,7 +31,7 @@ class Proxy(server.Plain):
         """
         return
 
-    def resolve(self, exchange: Exchange):
+    def resolve(self, exchange: Exchange) -> Exchange:
         """
 
         Resolve a request, processing each stage, initial question, upstream response etc.
@@ -39,29 +39,19 @@ class Proxy(server.Plain):
 
         """
 
-        request = exchange.request
+        with logger.span(f'Processing question...'):
+            self.process_question(exchange)
+        if exchange.response.is_complete:
+            return exchange
 
-        with logger.span(f'Handling request {request.message.id=} {request.question=} {exchange.client=}...'):
+        with logger.span(f'Making upstream request...'):
+            self.client.resolve(exchange)
+        if exchange.response.is_complete:
+            return exchange
 
-            if not request.is_valid:
-                raise ValueError(f'Only one question per request is supported. Got {len(request.question)} questions.')
+        with logger.span(f'Processing upstream response...'):
+            self.process_upstream(exchange)
+        if exchange.response.is_complete:
+            return exchange
 
-            with logger.span(f'Processing question...'):
-                self.process_question(exchange)
-            if exchange.response.is_complete:
-                return
-
-            with logger.span(f'Making upstream request...'):
-                self.client.resolve(exchange)
-            if exchange.response.is_complete:
-                return
-
-            with logger.span(f'Processing upstream response...'):
-                self.process_upstream(exchange)
-            if exchange.response.is_complete:
-                return
-
-            exchange.response.is_complete = True
-
-        logger.info(f'Resolution complete {request.message.id=} {exchange.response.answer=}')
-        return
+        return exchange

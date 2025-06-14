@@ -1,11 +1,12 @@
+import dns
+import httpx
 from dataclasses import dataclass
+from dns.message import Message, QueryMessage
+from dns.rrset import RRset
 from functools import cached_property
 from typing import Self, Optional
 
-import dns
-import httpx
-from dns.message import Message, QueryMessage
-from dns.rrset import RRset
+from fmtr.tools.string_tools import join
 
 
 @dataclass
@@ -25,7 +26,6 @@ class BaseDNSData:
     def from_message(cls, message: Message) -> Self:
         return cls(message.to_wire())
 
-
 @dataclass
 class Response(BaseDNSData):
     """
@@ -39,14 +39,40 @@ class Response(BaseDNSData):
 
     @classmethod
     def from_http(cls, response: httpx.Response) -> Self:
+        """
+
+        Initialise from an HTTP response.
+
+        """
         self = cls(response.content, http=response)
         return self
 
     @property
     def answer(self) -> Optional[RRset]:
+        """
+
+        Get the latest answer, if one exists.
+
+        """
         if not self.message.answer:
             return None
         return self.message.answer[-1]
+
+    def __str__(self):
+        """
+
+        Put answer and ID text in string representation.
+
+        """
+        answer = self.answer
+
+        if answer:
+            answer = join(answer.to_text().splitlines(), sep=', ')
+
+        string = join([answer, self.message.flags], sep=', ')
+        string = f'{self.__class__.__name__}({string})'
+        return string
+
 
 
 @dataclass
@@ -157,3 +183,13 @@ class Exchange:
         question_last = self.question_last
         query = dns.message.make_query(qname=question_last.name, rdclass=question_last.rdclass, rdtype=question_last.rdtype)
         return query
+
+    @property
+    def key(self):
+        """
+
+        Hashable key for caching
+
+        """
+        data = tuple(self.request.question.to_text().split())
+        return data
