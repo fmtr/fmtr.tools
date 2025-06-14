@@ -14,6 +14,9 @@ class Constants:
     DATETIME_NOW_STR = DATETIME_NOW.strftime(DATETIME_FILENAME_FORMAT)
     SERIALIZATION_INDENT = 4
 
+    ARROW = '→'
+    ARROW_SEP = f' {ARROW} '
+
     FMTR_LOG_LEVEL_KEY = 'FMTR_LOG_LEVEL'
     FMTR_OBS_API_KEY_KEY = 'FMTR_OBS_API_KEY'
     FMTR_OBS_HOST = 'obs.sv.fmtr.dev'
@@ -31,6 +34,7 @@ class Constants:
     FILENAME_CONFIG = 'settings.yaml'
     DIR_NAME_REPO = 'repo'
     DIR_NAME_DATA = 'data'
+    DIR_NAME_CACHE = 'cache'
     DIR_NAME_ARTIFACT = 'artifact'
     DIR_NAME_SOURCE = 'source'
     FILENAME_VERSION = 'version'

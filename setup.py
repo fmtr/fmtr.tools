@@ -29,7 +29,7 @@ DEPENDENCIES = {
     'html': ['html2text'],
     'interface': ['flet[all]', 'flet-video', 'flet-webview', 'dm'],
     'google.api': ['google-auth', 'google-auth-oauthlib', 'google-auth-httplib2', 'google-api-python-client'],
-    'caching': ['diskcache'],
+    'caching': ['diskcache', 'cachetools'],
     'pdf': ['pymupdf', 'dm', 'pymupdf4llm'],
     'debug': ['pydevd-pycharm~=251.25410.159'],
     'sets': ['pydantic-settings', 'dm', 'yaml'],

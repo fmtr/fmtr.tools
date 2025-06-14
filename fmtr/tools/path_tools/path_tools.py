@@ -306,6 +306,16 @@ class PackagePaths(FromCallerMixin):
         return self.dev / Constants.DIR_NAME_REPO / self.name_ns / self.dir_name_data
 
     @property
+    def cache(self) -> Path:
+        """
+
+        Path of cache directory.
+
+        """
+
+        return self.data / Constants.DIR_NAME_CACHE
+
+    @property
     def artifact(self) -> Path:
         """
 

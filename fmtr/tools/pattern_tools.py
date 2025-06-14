@@ -1,9 +1,9 @@
+import regex as re
 from dataclasses import dataclass, asdict
 from functools import cached_property
 from typing import List, Any
 
-import regex as re
-
+from fmtr.tools import Constants
 from fmtr.tools.logging_tools import logger
 from fmtr.tools.string_tools import join
 
@@ -210,7 +210,7 @@ class Transformer:
         previous = key
 
         def get_history_str():
-            return join(history, sep=' → ')
+            return join(history, sep=Constants.ARROW_SEP)
 
         while True:
             if previous in history:
