@@ -52,7 +52,7 @@ def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=C
     lev_name_otel = logfire._internal.constants.NUMBER_TO_LEVEL[lev_num_otel]
 
     console_opts = logfire.ConsoleOptions(
-        colors='always' if environment_tools.IS_DEBUG else 'auto',
+        colors='always',
         min_log_level=lev_name_otel,
     )
 
