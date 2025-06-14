@@ -92,7 +92,8 @@ class Item:
     source: Key
     target: Key
 
-@dataclass
+
+@dataclass(kw_only=True)
 class Transformer:
     """
     
