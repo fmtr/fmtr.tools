@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from fastapi import FastAPI, Request
 from typing import Callable, List, Optional, Union
 
-from fmtr.tools.environment_tools import IS_DEBUG
+from fmtr.tools import environment_tools
 from fmtr.tools.iterator_tools import enlist
 from fmtr.tools.logging_tools import logger
 
@@ -57,7 +57,7 @@ class ApiBase:
         for endpoint in self.get_endpoints():
             self.add_endpoint(endpoint)
 
-        if IS_DEBUG:
+        if environment_tools.IS_DEV:
             self.app.exception_handler(Exception)(self.handle_exception)
 
     def get_endpoints(self) -> List[Endpoint]:

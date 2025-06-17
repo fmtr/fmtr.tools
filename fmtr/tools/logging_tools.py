@@ -4,22 +4,25 @@ import os
 from fmtr.tools import environment_tools
 from fmtr.tools.constants import Constants
 
-DEVELOPMENT = "development"
-PRODUCTION = "production"
-STREAM_DEFAULT = DEVELOPMENT
-ENVIRONMENT_DEFAULT = DEVELOPMENT
+if environment_tools.IS_DEV:
+    STREAM_DEFAULT = ENVIRONMENT_DEFAULT = Constants.DEVELOPMENT
+else:
+    STREAM_DEFAULT = None
+    ENVIRONMENT_DEFAULT = Constants.PRODUCTION
 
-LEVEL_DEFAULT = logging.DEBUG if environment_tools.IS_DEBUG else logging.INFO
+IS_DEBUG = environment_tools.get(Constants.FMTR_LOG_LEVEL_KEY, None, converter=str.upper) == 'DEBUG'
+LEVEL_DEFAULT = logging.DEBUG if IS_DEBUG else logging.INFO
 
 
 def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=Constants.ORG_NAME,
-               stream=STREAM_DEFAULT,
-               environment=ENVIRONMENT_DEFAULT, level=LEVEL_DEFAULT):
+               stream=STREAM_DEFAULT, environment=ENVIRONMENT_DEFAULT, level=LEVEL_DEFAULT):
     """
 
     Get a pre-configured logfire logger, if dependency is present, otherwise default to native logger.
 
     """
+
+    stream = stream or name
 
     try:
         import logfire
@@ -65,7 +68,8 @@ def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=C
     )
 
     if key is None:
-        logger.warning(f'Observability dependencies installed, but "{Constants.FMTR_OBS_API_KEY_KEY}" not set. Cloud observability will be disabled.')
+        msg = f'Observability dependencies installed, but "{Constants.FMTR_OBS_API_KEY_KEY}" not set. Cloud observability will be disabled.'
+        logger.warning(msg)
 
     return logger
 

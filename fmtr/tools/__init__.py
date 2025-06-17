@@ -1,8 +1,4 @@
-from fmtr.tools import version_tools as version
-
-__version__ = version.read()
-
-
+import fmtr.tools.async_tools as asyncio
 import fmtr.tools.dataclass_tools as dataclass
 import fmtr.tools.datatype_tools as datatype
 import fmtr.tools.environment_tools as env
@@ -12,26 +8,22 @@ import fmtr.tools.hash_tools as hash
 import fmtr.tools.import_tools as import_
 import fmtr.tools.iterator_tools as iterator
 import fmtr.tools.json_tools as json
+import fmtr.tools.logging_tools as logging
+import fmtr.tools.name_tools as name
+import fmtr.tools.packaging_tools as packaging
 import fmtr.tools.path_tools as path
 import fmtr.tools.platform_tools as platform
 import fmtr.tools.random_tools as random
+import fmtr.tools.setup_tools as setup
 import fmtr.tools.string_tools as string
-import fmtr.tools.name_tools as name
-import fmtr.tools.logging_tools as logging
-import fmtr.tools.async_tools as asyncio
-import fmtr.tools.packaging_tools as packaging
-from fmtr.tools.logging_tools import logger
-
-from fmtr.tools.import_tools import MissingExtraMockModule
-
-from fmtr.tools.constants import Constants
-
-# Submodules
-from fmtr.tools.path_tools import Path, PackagePaths, AppPaths
 from fmtr.tools import ai_tools as ai
 from fmtr.tools import dns_tools as dns
-
-import fmtr.tools.setup_tools as setup
+from fmtr.tools import version_tools as version
+from fmtr.tools.constants import Constants
+from fmtr.tools.import_tools import MissingExtraMockModule
+from fmtr.tools.logging_tools import logger
+# Submodules
+from fmtr.tools.path_tools import Path, PackagePaths, AppPaths
 from fmtr.tools.setup_tools import Setup, SetupPaths, Dependencies, Tools
 
 try:
@@ -178,3 +170,12 @@ try:
     from fmtr.tools.http_tools import Client
 except ImportError as exception:
     http = Client = MissingExtraMockModule('http', exception)
+
+
+def get_version():
+    """
+
+    Defer reading version
+
+    """
+    return version.read()

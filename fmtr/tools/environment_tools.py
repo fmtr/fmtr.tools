@@ -76,4 +76,4 @@ get_date = get_getter(date.fromisoformat)
 get_datetime = get_getter(datetime.fromisoformat)
 get_path = get_getter(Path)
 
-IS_DEBUG = get(Constants.FMTR_LOG_LEVEL_KEY, None, converter=str.upper) == 'DEBUG'
+IS_DEV = get_bool(Constants.FMTR_DEV_KEY, default=False)

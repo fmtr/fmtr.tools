@@ -29,7 +29,7 @@ def install():
 
 
 @lru_cache
-def get_module(is_auto=env.IS_DEBUG):
+def get_module(is_auto=env.IS_DEV):
     """
 
     Get the YAML Script runtime module, installing the runtime if specified

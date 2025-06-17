@@ -17,6 +17,7 @@ class Constants:
     ARROW = '→'
     ARROW_SEP = f' {ARROW} '
 
+    FMTR_DEV_KEY = 'FMTR_DEV'
     FMTR_LOG_LEVEL_KEY = 'FMTR_LOG_LEVEL'
     FMTR_OBS_API_KEY_KEY = 'FMTR_OBS_API_KEY'
     FMTR_OBS_HOST = 'obs.sv.fmtr.dev'
@@ -43,3 +44,6 @@ class Constants:
     ENTRYPOINTS_DIR = 'entrypoints'
     PACKAGE_EXCLUDE_DIRS = {'data', 'build', 'dist', '.*', '*egg-info*'}
     INIT_FILENAME = '__init__.py'
+
+    DEVELOPMENT = "development"
+    PRODUCTION = "production"
