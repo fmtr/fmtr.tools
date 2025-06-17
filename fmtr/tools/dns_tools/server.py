@@ -79,7 +79,10 @@ class Plain:
         if not request.is_valid:
             raise ValueError(f'Only one question per request is supported. Got {len(request.question)} questions.')
 
-        with logger.span(f'Handling request {request.message.id=} {request.type_text} {request.name_text} {request.question=} {exchange.ip=} {exchange.port=}...'):
+        span = logger.span(
+            f'Handling request {request.message.id=} {request.type_text} {request.name_text} {request.question=} {exchange.ip=} {exchange.port=}...'
+        )
+        with span:
 
             with logger.span(f'Checking cache...'):
                 self.check_cache(exchange)
@@ -89,5 +92,9 @@ class Plain:
                 exchange.response.is_complete = True
 
             self.cache[exchange.key] = exchange.response
-            logger.info(f'Resolution complete {request.message.id=} {exchange.response.answer=}')
+            logger.info(f'Resolution complete {request.message.id=} {exchange.response.rcode_text=} {exchange.response.answer=}')
+
+            attribs = dict(rcode=exchange.response.rcode, rcode_text=exchange.response.rcode_text)
+            span.set_attributes(attribs)
+
         return exchange

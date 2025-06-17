@@ -1,8 +1,7 @@
-from dataclasses import dataclass
-from functools import cached_property
-
 import dns as dnspython
+from dataclasses import dataclass
 from dns import query
+from functools import cached_property
 from httpx_retries import Retry, RetryTransport
 
 from fmtr.tools import http_tools as http
@@ -82,8 +81,14 @@ class HTTP:
 
         headers = self.HEADERS | dict(Host=self.host)
         url = self.url.format(host=self.ip)
-        response_doh = self.CLIENT.post(url, headers=headers, content=exchange.query_last.to_wire())
-        response_doh.raise_for_status()
-        response = Response.from_http(response_doh)
 
-        exchange.response.message.answer += response.message.answer
+        try:
+            response_doh = self.CLIENT.post(url, headers=headers, content=exchange.query_last.to_wire())
+            response_doh.raise_for_status()
+            response = Response.from_http(response_doh)
+            exchange.response.message.answer += response.message.answer
+
+        except Exception as exception:
+            exchange.response.message.set_rcode(dnspython.rcode.SERVFAIL)
+            exchange.response.is_complete = True
+            logger.exception(exception)

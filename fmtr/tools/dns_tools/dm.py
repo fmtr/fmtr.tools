@@ -1,6 +1,7 @@
 import dns
 import httpx
 from dataclasses import dataclass
+from dns import rcode as dnsrcode
 from dns.message import Message, QueryMessage
 from dns.rrset import RRset
 from functools import cached_property
@@ -57,6 +58,14 @@ class Response(BaseDNSData):
         if not self.message.answer:
             return None
         return self.message.answer[-1]
+
+    @property
+    def rcode(self) -> dnsrcode.Rcode:
+        return self.message.rcode()
+
+    @property
+    def rcode_text(self) -> str:
+        return dnsrcode.to_text(self.rcode)
 
     def __str__(self):
         """
