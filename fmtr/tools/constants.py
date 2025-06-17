@@ -47,3 +47,5 @@ class Constants:
 
     DEVELOPMENT = "development"
     PRODUCTION = "production"
+
+    INFRA = 'infra'

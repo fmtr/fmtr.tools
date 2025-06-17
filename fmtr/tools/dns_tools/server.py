@@ -88,7 +88,7 @@ class Plain:
                 exchange = self.resolve(exchange)
                 exchange.response.is_complete = True
 
-        self.cache[exchange.key] = exchange.response
+            self.cache[exchange.key] = exchange.response
 
-        logger.info(f'Resolution complete {request.message.id=} {exchange.response.answer=}')
+            logger.info(f'Resolution complete {request.message.id=} {exchange.response.answer=}')
         return exchange
