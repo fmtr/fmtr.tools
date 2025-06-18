@@ -68,22 +68,51 @@ class Plain:
             exchange.response.message.id = exchange.request.message.id
             exchange.response.is_complete = True
 
-    def handle(self, exchange: Exchange):
+    def get_span(self, exchange: Exchange):
         """
 
-        Check validity of request, presence in cache and resolve.
+        Get handling span
 
         """
         request = exchange.request
-
-        if not request.is_valid:
-            raise ValueError(f'Only one question per request is supported. Got {len(request.question)} questions.')
-
         span = logger.span(
-            f'Handling request {request.message.id=} {request.type_text} {request.name_text} {request.question=} {exchange.ip=} {exchange.port=}...'
+            f'Handling request {exchange.client_name=} {request.message.id=} {request.type_text} {request.name_text} {request.question=}...'
         )
-        with span:
+        return span
 
+    def log_response(self, exchange: Exchange):
+        """
+
+        Log when resolution complete
+
+        """
+        request = exchange.request
+        response = exchange.response
+
+        logger.info(
+            f'Resolution complete {exchange.client_name=} {request.message.id=} {request.type_text} {request.name_text} {request.question=} {response.is_complete=} {response.rcode=} {response.rcode_text=} {response.answer=} {response.blocked_by=}...'
+        )
+
+
+
+    def handle(self, exchange: Exchange):
+        """
+
+        Check validity of request, reverse lookup client address, check presence in cache and resolve.
+
+        """
+
+        if not exchange.request.is_valid:
+            raise ValueError(f'Only one question per request is supported. Got {len(exchange.request.question)} questions.')
+
+        if not exchange.is_internal:
+            self.handle(exchange.reverse)
+            client_name = exchange.reverse.question_last.name.to_text()
+            if not exchange.reverse.response.answer:
+                logger.warning(f'Client name could not be resolved {client_name=}.')
+            exchange.client_name = client_name
+
+        with self.get_span(exchange):
             with logger.span(f'Checking cache...'):
                 self.check_cache(exchange)
 
@@ -92,9 +121,6 @@ class Plain:
                 exchange.response.is_complete = True
 
             self.cache[exchange.key] = exchange.response
-            logger.info(f'Resolution complete {request.message.id=} {exchange.response.rcode_text=} {exchange.response.answer=}')
-
-            attribs = dict(rcode=exchange.response.rcode, rcode_text=exchange.response.rcode_text)
-            span.set_attributes(attribs)
+            self.log_response(exchange)
 
         return exchange

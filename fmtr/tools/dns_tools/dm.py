@@ -2,6 +2,7 @@ import dns
 import httpx
 from dataclasses import dataclass
 from dns import rcode as dnsrcode
+from dns import reversename
 from dns.message import Message, QueryMessage
 from dns.rrset import RRset
 from functools import cached_property
@@ -37,6 +38,7 @@ class Response(BaseDNSData):
 
     http: Optional[httpx.Response] = None
     is_complete: bool = False
+    blocked_by: Optional[str] = None
 
     @classmethod
     def from_http(cls, response: httpx.Response) -> Self:
@@ -142,14 +144,16 @@ class Exchange:
 
     request: Request
     response: Optional[Response] = None
+    is_internal: bool = False
+    client_name: Optional[str] = None
+
 
 
     @classmethod
-    def from_wire(cls, wire: bytes, ip: str, port: int) -> Self:
+    def from_wire(cls, wire: bytes, **kwargs) -> Self:
         request = Request(wire)
         response = Response.from_message(request.get_response_template())
-
-        return cls(request=request, response=response, ip=ip, port=port)
+        return cls(request=request, response=response, **kwargs)
 
     @cached_property
     def client(self):
@@ -202,3 +206,15 @@ class Exchange:
         """
         data = tuple(self.request.question.to_text().split())
         return data
+
+    @cached_property
+    def reverse(self) -> Self:
+        """
+
+        Create an Exchange for a reverse lookup of this Exchange's client IP.
+
+        """
+        name = reversename.from_address(self.ip)
+        query = dns.message.make_query(name, dns.rdatatype.PTR)
+        exchange = self.__class__.from_wire(query.to_wire(), ip=self.ip, port=self.port, is_internal=True)
+        return exchange
