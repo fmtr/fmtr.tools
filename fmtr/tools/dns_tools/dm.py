@@ -1,12 +1,12 @@
 import dns
 import httpx
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from dns import rcode as dnsrcode
 from dns import reversename
 from dns.message import Message, QueryMessage
 from dns.rrset import RRset
 from functools import cached_property
-from typing import Self, Optional
+from typing import Self, Optional, List
 
 from fmtr.tools.string_tools import join
 
@@ -37,7 +37,6 @@ class Response(BaseDNSData):
     """
 
     http: Optional[httpx.Response] = None
-    is_complete: bool = False
     blocked_by: Optional[str] = None
 
     @classmethod
@@ -144,9 +143,10 @@ class Exchange:
 
     request: Request
     response: Optional[Response] = None
+    answers_pre: List[RRset] = field(default_factory=list)
     is_internal: bool = False
     client_name: Optional[str] = None
-
+    is_complete: bool = False
 
 
     @classmethod
@@ -166,8 +166,8 @@ class Exchange:
         Contrive an RRset representing the latest/current question. This can be the original question - or a hybrid one if we've injected our own answers into the exchange.
 
         """
-        if self.response.answer:
-            rrset = self.response.answer
+        if self.answers_pre:
+            rrset = self.answers_pre[-1]
             ty = self.request.type
             ttl = self.request.question.ttl
             rdclass = self.request.question.rdclass
@@ -178,7 +178,6 @@ class Exchange:
                 ttl=ttl,
                 rdtype=ty,
                 rdclass=rdclass,
-
             )
 
             return rrset_contrived
@@ -194,7 +193,7 @@ class Exchange:
         """
 
         question_last = self.question_last
-        query = dns.message.make_query(qname=question_last.name, rdclass=question_last.rdclass, rdtype=question_last.rdtype)
+        query = dns.message.make_query(qname=question_last.name, rdclass=question_last.rdclass, rdtype=question_last.rdtype, id=self.request.message.id)
         return query
 
     @property

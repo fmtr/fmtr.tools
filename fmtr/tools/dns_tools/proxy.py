@@ -31,6 +31,14 @@ class Proxy(server.Plain):
         """
         return
 
+    def finalize(self, exchange: Exchange):
+        """
+
+        Finalize a still open exchange.
+
+        """
+        exchange.is_complete = True
+
     def resolve(self, exchange: Exchange) -> Exchange:
         """
 
@@ -38,20 +46,21 @@ class Proxy(server.Plain):
         Subclasses can override the relevant processing methods to implement custom behaviour.
 
         """
-
         with logger.span(f'Processing question...'):
             self.process_question(exchange)
-        if exchange.response.is_complete:
+        if exchange.is_complete:
             return exchange
 
         with logger.span(f'Making upstream request...'):
             self.client.resolve(exchange)
-        if exchange.response.is_complete:
+        if exchange.is_complete:
             return exchange
 
         with logger.span(f'Processing upstream response...'):
             self.process_upstream(exchange)
-        if exchange.response.is_complete:
+        if exchange.is_complete:
             return exchange
+
+        self.finalize(exchange)
 
         return exchange

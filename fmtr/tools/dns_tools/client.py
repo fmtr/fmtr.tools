@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from dns import query
 from functools import cached_property
 from httpx_retries import Retry, RetryTransport
+from typing import Optional
 
 from fmtr.tools import http_tools as http
 from fmtr.tools.dns_tools.dm import Exchange, Response
@@ -38,14 +39,17 @@ class Plain:
     """
     host: str
     port: int = 53
+    ttl_min: Optional[int] = None
 
     def resolve(self, exchange: Exchange):
 
         with logger.span(f'UDP {self.host}:{self.port}'):
             response_plain = query.udp(q=exchange.query_last, where=self.host, port=self.port)
             response = Response.from_message(response_plain)
+            for answer in response.message.answer:
+                answer.ttl = max(answer.ttl, self.ttl_min or answer.ttl)
 
-        exchange.response.message.answer += response.message.answer
+        exchange.response = response
 
 
 @dataclass
@@ -86,7 +90,7 @@ class HTTP:
             response_doh = self.CLIENT.post(url, headers=headers, content=exchange.query_last.to_wire())
             response_doh.raise_for_status()
             response = Response.from_http(response_doh)
-            exchange.response.message.answer += response.message.answer
+            exchange.response = response
 
         except Exception as exception:
             exchange.response.message.set_rcode(dnspython.rcode.SERVFAIL)

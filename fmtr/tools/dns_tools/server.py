@@ -66,7 +66,7 @@ class Plain:
             logger.info(f'Request found in cache.')
             exchange.response = self.cache[exchange.key]
             exchange.response.message.id = exchange.request.message.id
-            exchange.response.is_complete = True
+            exchange.is_complete = True
 
     def get_span(self, exchange: Exchange):
         """
@@ -90,7 +90,7 @@ class Plain:
         response = exchange.response
 
         logger.info(
-            f'Resolution complete {exchange.client_name=} {request.message.id=} {request.type_text} {request.name_text} {request.question=} {response.is_complete=} {response.rcode=} {response.rcode_text=} {response.answer=} {response.blocked_by=}...'
+            f'Resolution complete {exchange.client_name=} {request.message.id=} {request.type_text} {request.name_text} {request.question=} {exchange.is_complete=} {response.rcode=} {response.rcode_text=} {response.answer=} {response.blocked_by=}...'
         )
 
 
@@ -116,9 +116,9 @@ class Plain:
             with logger.span(f'Checking cache...'):
                 self.check_cache(exchange)
 
-            if not exchange.response.is_complete:
+            if not exchange.is_complete:
                 exchange = self.resolve(exchange)
-                exchange.response.is_complete = True
+                exchange.is_complete = True
 
             self.cache[exchange.key] = exchange.response
             self.log_response(exchange)
