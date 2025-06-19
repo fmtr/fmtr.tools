@@ -10,6 +10,19 @@ from typing import Self, Optional, List
 
 from fmtr.tools.string_tools import join
 
+TTL_CODE_DEFAULTS = {
+    dnsrcode.NOERROR: 300,  # Successful query
+    dnsrcode.FORMERR: 60,  # Format error
+    dnsrcode.SERVFAIL: 10,  # Server failure
+    dnsrcode.NXDOMAIN: 60 * 60,  # Non-existent domain
+    dnsrcode.NOTIMP: 60,  # Not implemented
+    dnsrcode.REFUSED: 60,  # Refused
+    dnsrcode.YXDOMAIN: 600,  # Name exists when it should not
+    dnsrcode.YXRRSET: 600,  # RR Set exists when it should not
+    dnsrcode.NXRRSET: 300,  # RR Set that should exist does not
+    dnsrcode.NOTAUTH: 60,  # Not authorized
+    dnsrcode.NOTZONE: 60  # Name not contained in zone
+}
 
 @dataclass
 class BaseDNSData:
@@ -67,6 +80,24 @@ class Response(BaseDNSData):
     @property
     def rcode_text(self) -> str:
         return dnsrcode.to_text(self.rcode)
+
+    @property
+    def ttl(self) -> int:
+        """
+
+        Get median TTL from answers, falling back to authority, then to error-code defaults.
+
+        """
+        answers = self.message.answer or self.message.authority
+        if answers:
+            ttls = [answer.ttl for answer in answers]
+            ttl = min(ttls)
+            return ttl
+
+        ttl = TTL_CODE_DEFAULTS.get(self.rcode, dnsrcode.NXDOMAIN)
+        return ttl
+
+
 
     def __str__(self):
         """
@@ -163,26 +194,25 @@ class Exchange:
     def question_last(self) -> RRset:
         """
 
-        Contrive an RRset representing the latest/current question. This can be the original question - or a hybrid one if we've injected our own answers into the exchange.
+        Create an RRset surrogate representing the latest/current question. This can be the original question - or a hybrid one if we've injected our own answers into the Exchange.
 
         """
         if self.answers_pre:
             rrset = self.answers_pre[-1]
-            ty = self.request.type
+            rdtype = self.request.type
             ttl = self.request.question.ttl
             rdclass = self.request.question.rdclass
             name = next(iter(rrset.items.keys())).to_text()
-
-            rrset_contrived = dns.rrset.from_text(
+            rrset_surrogate = dns.rrset.from_text(
                 name=name,
                 ttl=ttl,
-                rdtype=ty,
+                rdtype=rdtype,
                 rdclass=rdclass,
             )
 
-            return rrset_contrived
+            return rrset_surrogate
         else:
-            return self.request.question  # Solves the issue of digging out the name.
+            return self.request.question
 
     @property
     def query_last(self) -> QueryMessage:

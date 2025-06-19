@@ -1,3 +1,4 @@
+import dns
 import socket
 from dataclasses import dataclass
 from datetime import timedelta
@@ -93,7 +94,17 @@ class Plain:
             f'Resolution complete {exchange.client_name=} {request.message.id=} {request.type_text} {request.name_text} {request.question=} {exchange.is_complete=} {response.rcode=} {response.rcode_text=} {response.answer=} {response.blocked_by=}...'
         )
 
+    def log_dns_errors(self, exchange: Exchange):
+        """
 
+        Warn about any errors
+
+        """
+
+        if exchange.response.rcode == dns.rcode.NOERROR:
+            return
+
+        logger.warning(f'Error {exchange.response.rcode_text=}')
 
     def handle(self, exchange: Exchange):
         """
@@ -118,9 +129,9 @@ class Plain:
 
             if not exchange.is_complete:
                 exchange = self.resolve(exchange)
-                exchange.is_complete = True
+                self.cache[exchange.key] = exchange.response
 
-            self.cache[exchange.key] = exchange.response
+            self.log_dns_errors(exchange)
             self.log_response(exchange)
 
         return exchange
