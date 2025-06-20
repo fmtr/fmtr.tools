@@ -1,8 +1,9 @@
-import dns
-import socket
-from dataclasses import dataclass
+import asyncio
+import dns.rcode
+from dataclasses import dataclass, field
 from datetime import timedelta
 from functools import cached_property
+from typing import Optional
 
 from fmtr.tools import caching_tools as caching
 from fmtr.tools.dns_tools.dm import Exchange
@@ -10,59 +11,61 @@ from fmtr.tools.logging_tools import logger
 
 
 @dataclass(kw_only=True, eq=False)
-class Plain:
+class Plain(asyncio.DatagramProtocol):
     """
 
-    Base for starting a plain DNS server
-
+    Async base class for a plain DNS server using asyncio DatagramProtocol.
     """
 
     host: str
     port: int
+    transport: Optional[asyncio.DatagramTransport] = field(default=None, init=False)
 
     @cached_property
-    def sock(self):
-        return socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    def loop(self):
+        return asyncio.get_event_loop()
+
 
     @cached_property
     def cache(self):
         """
 
         Overridable cache.
-
         """
         cache = caching.TLRU(maxsize=1_024, ttu_static=timedelta(hours=1), desc='DNS Request')
         return cache
 
-    def start(self):
-        """
-
-        Listen and resolve via overridden resolve method.
-
-        """
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.bind((self.host, self.port))
+    def connection_made(self, transport: asyncio.DatagramTransport):
+        self.transport = transport
         logger.info(f'Listening on {self.host}:{self.port}')
-        while True:
-            data, (ip, port) = sock.recvfrom(512)
-            exchange = Exchange.from_wire(data, ip=ip, port=port)
-            self.handle(exchange)
-            sock.sendto(exchange.response.message.to_wire(), (ip, port))
 
-    def resolve(self, exchange: Exchange) -> Exchange:
+    def datagram_received(self, data: bytes, addr):
+        ip, port = addr
+        exchange = Exchange.from_wire(data, ip=ip, port=port)
+        asyncio.create_task(self.handle(exchange))
+
+    async def start(self):
         """
 
-        Defined in subclasses
+        Start the async UDP server.
+        """
+
+        logger.info(f'Starting async DNS server on {self.host}:{self.port}...')
+        await self.loop.create_datagram_endpoint(
+            lambda: self,
+            local_addr=(self.host, self.port)
+        )
+        await asyncio.Future()  # Prevent exit by blocking forever
+
+    async def resolve(self, exchange: Exchange) -> Exchange:
+        """
+
+        To be defined in subclasses.
 
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def check_cache(self, exchange: Exchange):
-        """
-
-        Check cache, patch in in new ID and mark complete
-
-        """
         if exchange.key in self.cache:
             logger.info(f'Request found in cache.')
             exchange.response = self.cache[exchange.key]
@@ -89,7 +92,6 @@ class Plain:
         """
         request = exchange.request
         response = exchange.response
-
         logger.info(
             f'Resolution complete {exchange.client_name=} {request.message.id=} {request.type_text} {request.name_text} {request.question=} {exchange.is_complete=} {response.rcode=} {response.rcode_text=} {response.answer=} {response.blocked_by=}...'
         )
@@ -100,24 +102,20 @@ class Plain:
         Warn about any errors
 
         """
+        if exchange.response.rcode != dns.rcode.NOERROR:
+            logger.warning(f'Error {exchange.response.rcode_text=}')
 
-        if exchange.response.rcode == dns.rcode.NOERROR:
-            return
-
-        logger.warning(f'Error {exchange.response.rcode_text=}')
-
-    def handle(self, exchange: Exchange):
+    async def handle(self, exchange: Exchange):
         """
 
-        Check validity of request, reverse lookup client address, check presence in cache and resolve.
+        Warn about any errors
 
         """
-
         if not exchange.request.is_valid:
             raise ValueError(f'Only one question per request is supported. Got {len(exchange.request.question)} questions.')
 
         if not exchange.is_internal:
-            self.handle(exchange.reverse)
+            await self.handle(exchange.reverse)
             client_name = exchange.reverse.question_last.name.to_text()
             if not exchange.reverse.response.answer:
                 logger.warning(f'Client name could not be resolved {client_name=}.')
@@ -128,10 +126,10 @@ class Plain:
                 self.check_cache(exchange)
 
             if not exchange.is_complete:
-                exchange = self.resolve(exchange)
+                exchange = await self.resolve(exchange)
                 self.cache[exchange.key] = exchange.response
 
             self.log_dns_errors(exchange)
             self.log_response(exchange)
 
-        return exchange
+        self.transport.sendto(exchange.response.message.to_wire(), exchange.addr)

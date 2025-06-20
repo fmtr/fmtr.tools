@@ -39,7 +39,7 @@ class Proxy(server.Plain):
         """
         exchange.is_complete = True
 
-    def resolve(self, exchange: Exchange) -> Exchange:
+    async def resolve(self, exchange: Exchange) -> Exchange:
         """
 
         Resolve a request, processing each stage, initial question, upstream response etc.

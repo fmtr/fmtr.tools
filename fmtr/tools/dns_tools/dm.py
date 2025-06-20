@@ -179,6 +179,9 @@ class Exchange:
     client_name: Optional[str] = None
     is_complete: bool = False
 
+    @property
+    def addr(self):
+        return self.ip, self.port
 
     @classmethod
     def from_wire(cls, wire: bytes, **kwargs) -> Self:
