@@ -1,8 +1,7 @@
 import dns
 import httpx
 from dataclasses import dataclass, field
-from dns import rcode as dnsrcode
-from dns import reversename
+from dns import rcode as dnspython_rcode, reversename as dnspython_reversename
 from dns.message import Message, QueryMessage
 from dns.rrset import RRset
 from functools import cached_property
@@ -11,17 +10,17 @@ from typing import Self, Optional, List
 from fmtr.tools.string_tools import join
 
 TTL_CODE_DEFAULTS = {
-    dnsrcode.NOERROR: 300,  # Successful query
-    dnsrcode.FORMERR: 60,  # Format error
-    dnsrcode.SERVFAIL: 10,  # Server failure
-    dnsrcode.NXDOMAIN: 60 * 60,  # Non-existent domain
-    dnsrcode.NOTIMP: 60,  # Not implemented
-    dnsrcode.REFUSED: 60,  # Refused
-    dnsrcode.YXDOMAIN: 600,  # Name exists when it should not
-    dnsrcode.YXRRSET: 600,  # RR Set exists when it should not
-    dnsrcode.NXRRSET: 300,  # RR Set that should exist does not
-    dnsrcode.NOTAUTH: 60,  # Not authorized
-    dnsrcode.NOTZONE: 60  # Name not contained in zone
+    dnspython_rcode.NOERROR: 300,  # Successful query
+    dnspython_rcode.FORMERR: 60,  # Format error
+    dnspython_rcode.SERVFAIL: 10,  # Server failure
+    dnspython_rcode.NXDOMAIN: 60 * 60,  # Non-existent domain
+    dnspython_rcode.NOTIMP: 60,  # Not implemented
+    dnspython_rcode.REFUSED: 60,  # Refused
+    dnspython_rcode.YXDOMAIN: 600,  # Name exists when it should not
+    dnspython_rcode.YXRRSET: 600,  # RR Set exists when it should not
+    dnspython_rcode.NXRRSET: 300,  # RR Set that should exist does not
+    dnspython_rcode.NOTAUTH: 60,  # Not authorized
+    dnspython_rcode.NOTZONE: 60  # Name not contained in zone
 }
 
 @dataclass
@@ -74,12 +73,12 @@ class Response(BaseDNSData):
         return self.message.answer[-1]
 
     @property
-    def rcode(self) -> dnsrcode.Rcode:
+    def rcode(self) -> dnspython_rcode.Rcode:
         return self.message.rcode()
 
     @property
     def rcode_text(self) -> str:
-        return dnsrcode.to_text(self.rcode)
+        return dnspython_rcode.to_text(self.rcode)
 
     @property
     def ttl(self) -> int:
@@ -94,7 +93,7 @@ class Response(BaseDNSData):
             ttl = min(ttls)
             return ttl
 
-        ttl = TTL_CODE_DEFAULTS.get(self.rcode, dnsrcode.NXDOMAIN)
+        ttl = TTL_CODE_DEFAULTS.get(self.rcode, dnspython_rcode.NXDOMAIN)
         return ttl
 
 
@@ -252,7 +251,7 @@ class Exchange:
         Create an Exchange for a reverse lookup of this Exchange's client IP.
 
         """
-        name = reversename.from_address(self.ip)
+        name = dnspython_reversename.from_address(self.ip)
         query = dns.message.make_query(name, dns.rdatatype.PTR)
         exchange = self.__class__.from_wire(query.to_wire(), ip=self.ip, port=self.port, is_internal=True)
         return exchange

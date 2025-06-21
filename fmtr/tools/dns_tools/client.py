@@ -1,6 +1,5 @@
-import dns as dnspython
 from dataclasses import dataclass
-from dns import query
+from dns import query as dnspython_query, message as dnspython_message, rdatatype as dnspython_rdatatype, rcode as dnspython_rcode
 from functools import cached_property
 from httpx_retries import Retry, RetryTransport
 from typing import Optional
@@ -44,7 +43,7 @@ class Plain:
     def resolve(self, exchange: Exchange):
 
         with logger.span(f'UDP {self.host}:{self.port}'):
-            response_plain = query.udp(q=exchange.query_last, where=self.host, port=self.port)
+            response_plain = dnspython_query.udp(q=exchange.query_last, where=self.host, port=self.port)
             response = Response.from_message(response_plain)
             for answer in response.message.answer:
                 answer.ttl = max(answer.ttl, self.ttl_min or answer.ttl)
@@ -70,7 +69,7 @@ class HTTP:
 
     @cached_property
     def ip(self):
-        message = dnspython.message.make_query(self.host, dnspython.rdatatype.A, flags=0)
+        message = dnspython_message.make_query(self.host, dnspython_rdatatype.A, flags=0)
         exchange = Exchange.from_wire(message.to_wire(), ip=None, port=None)
         self.BOOTSTRAP.resolve(exchange)
         ip = next(iter(exchange.response.answer.items.keys())).address
@@ -93,6 +92,6 @@ class HTTP:
             exchange.response = response
 
         except Exception as exception:
-            exchange.response.message.set_rcode(dnspython.rcode.SERVFAIL)
+            exchange.response.message.set_rcode(dnspython_rcode.SERVFAIL)
             exchange.response.is_complete = True
             logger.exception(exception)

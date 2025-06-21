@@ -1,7 +1,7 @@
 import asyncio
-import dns.rcode
 from dataclasses import dataclass, field
 from datetime import timedelta
+from dns import rcode as dnspython_rcode
 from functools import cached_property
 from typing import Optional
 
@@ -102,7 +102,7 @@ class Plain(asyncio.DatagramProtocol):
         Warn about any errors
 
         """
-        if exchange.response.rcode != dns.rcode.NOERROR:
+        if exchange.response.rcode != dnspython_rcode.NOERROR:
             logger.warning(f'Error {exchange.response.rcode_text=}')
 
     async def handle(self, exchange: Exchange):
