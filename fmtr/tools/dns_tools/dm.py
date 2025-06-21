@@ -197,11 +197,17 @@ class Exchange:
     def question_last(self) -> RRset:
         """
 
-        Create an RRset surrogate representing the latest/current question. This can be the original question - or a hybrid one if we've injected our own answers into the Exchange.
+        Create an RRset surrogate representing the latest/current question.
+        This can be the original question - or a hybrid one if we've injected our own answers into the Exchange.
+        If there's a response, use its answers, else fall back to answers_pre, else to the original question.
 
         """
-        if self.answers_pre:
-            rrset = self.answers_pre[-1]
+        answers = self.answers_pre
+        if self.response:
+            answers = self.response.message.answer or answers
+
+        if answers:
+            rrset = answers[-1]
             rdtype = self.request.type
             ttl = self.request.question.ttl
             rdclass = self.request.question.rdclass
