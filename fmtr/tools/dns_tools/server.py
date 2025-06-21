@@ -132,4 +132,7 @@ class Plain(asyncio.DatagramProtocol):
             self.log_dns_errors(exchange)
             self.log_response(exchange)
 
+        if exchange.is_internal:
+            return
+
         self.transport.sendto(exchange.response.message.to_wire(), exchange.addr)
