@@ -24,7 +24,7 @@ class Endpoint:
         self.tags = enlist(self.tags)
 
 
-class ApiBase:
+class Base:
     """
 
     Simple API base class, generalising endpoint-as-method config.
@@ -33,6 +33,8 @@ class ApiBase:
     TITLE = 'Base API'
     HOST = '0.0.0.0'
     PORT = 8080
+    SWAGGER_PARAMS = dict(tryItOutEnabled=True)
+    URL_DOCS = '/docs'
 
     def add_endpoint(self, endpoint: Endpoint):
         """
@@ -51,7 +53,7 @@ class ApiBase:
         )(endpoint.method)
 
     def __init__(self):
-        self.app = FastAPI(title=self.TITLE)
+        self.app = FastAPI(title=self.TITLE, swagger_ui_parameters=self.SWAGGER_PARAMS, docs_url=self.URL_DOCS)
         logger.instrument_fastapi(self.app)
 
         for endpoint in self.get_endpoints():
@@ -95,4 +97,4 @@ class ApiBase:
 
 
 if __name__ == '__main__':
-    ApiBase.launch()
+    Base.launch()
