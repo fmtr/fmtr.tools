@@ -1,12 +1,11 @@
 import flet as ft
-from flet.core.event import Event
 from flet.core.types import AppView
 from flet.core.view import View
 
 from fmtr.tools.logging_tools import logger
 
 
-class Interface:
+class Interface(ft.Column):
     """
 
     Simple interface base class.
@@ -15,50 +14,76 @@ class Interface:
     TITLE = 'Base Interface'
     HOST = '0.0.0.0'
     PORT = 8080
+    URL = None
     APPVIEW = AppView.WEB_BROWSER
     PATH_ASSETS = None
     ROUTE_ROOT = '/'
 
-    def render(self, page: ft.Page):
+    THEME = ft.Theme(color_scheme=ft.ColorScheme(primary=ft.Colors.PINK))
+
+    @classmethod
+    def render(cls, page: ft.Page):
         """
 
-        Interface entry point.
+        Interface entry point. Set relevant callbacks, and add instantiated self to page views
 
         """
-
         if not page.on_route_change:
-            page.on_route_change = lambda e, page=page: self.route(page, e)
-            page.on_view_pop = lambda view, page=page: self.pop(page, view)
+            page.theme = cls.THEME
+            page.views.clear()
+            page.views.append(cls())
 
-            page.go(self.ROUTE_ROOT)
+            page.on_route_change = cls.route
+            page.on_view_pop = cls.pop
 
-    def route(self, page: ft.Page, event: Event):
+            page.go(cls.ROUTE_ROOT)
+
+    @classmethod
+    def route(cls, event: ft.RouteChangeEvent):
         """
 
         Overridable router.
 
         """
-        raise NotImplementedError
+        logger.debug(f'Route change: {event=}')
 
-    def pop(self, page: ft.Page, view: View):
+    @classmethod
+    def pop(cls, view: View, page: ft.Page):
         """
 
         Overridable view pop.
 
         """
-        raise NotImplementedError
+        logger.debug(f'View popped: {page.route=} {len(page.views)=} {view=}')
 
     @classmethod
     def launch(cls):
         """
 
-        Initialise self and launch.
+        Launch via render method
 
         """
-        self = cls()
-        logger.info(f"Launching {self.TITLE} at http://{self.HOST}:{self.PORT}")
-        ft.app(self.render, view=self.APPVIEW, host=self.HOST, port=self.PORT, assets_dir=self.PATH_ASSETS)
 
+        if cls.URL:
+            url = cls.URL
+        else:
+            url = f'http://{cls.HOST}:{cls.PORT}'
+
+        logger.info(f"Launching {cls.TITLE} at {url}")
+        ft.app(cls.render, view=cls.APPVIEW, host=cls.HOST, port=cls.PORT, assets_dir=cls.PATH_ASSETS)
+
+
+class Test(ft.Column):
+    """
+
+    Simple test interface.
+
+    """
+    TITLE = 'Test Interface'
+
+    def __init__(self):
+        controls = [ft.Text(self.TITLE)]
+        super().__init__(controls=controls)
 
 if __name__ == "__main__":
     Interface.launch()
