@@ -5,6 +5,19 @@ from flet.core.view import View
 from fmtr.tools.logging_tools import logger
 
 
+def update(func):
+    """
+
+    Page update decorator
+
+    """
+
+    def wrapped(*args, **kwargs):
+        func(*args, **kwargs)
+        func.__self__.page.update()
+
+    return wrapped
+
 class Interface(ft.Column):
     """
 
@@ -73,7 +86,7 @@ class Interface(ft.Column):
         ft.app(cls.render, view=cls.APPVIEW, host=cls.HOST, port=cls.PORT, assets_dir=cls.PATH_ASSETS)
 
 
-class Test(ft.Column):
+class Test(Interface):
     """
 
     Simple test interface.
@@ -86,4 +99,4 @@ class Test(ft.Column):
         super().__init__(controls=controls)
 
 if __name__ == "__main__":
-    Interface.launch()
+    Test.launch()

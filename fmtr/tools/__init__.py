@@ -18,6 +18,7 @@ import fmtr.tools.setup_tools as setup
 import fmtr.tools.string_tools as string
 from fmtr.tools import ai_tools as ai
 from fmtr.tools import dns_tools as dns
+from fmtr.tools import interface_tools as interface
 from fmtr.tools import version_tools as version
 from fmtr.tools.constants import Constants
 from fmtr.tools.import_tools import MissingExtraMockModule
@@ -119,11 +120,6 @@ try:
     from fmtr.tools import html_tools as html
 except ImportError as exception:
     html = MissingExtraMockModule('html', exception)
-
-try:
-    from fmtr.tools import interface_tools as interface
-except ImportError as exception:
-    interface = MissingExtraMockModule('interface', exception)
 
 try:
     from fmtr.tools import openai_tools as openai
