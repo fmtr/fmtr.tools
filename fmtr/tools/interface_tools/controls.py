@@ -71,3 +71,16 @@ class ProgressButton(ft.Button):
         self.ring = ContextRing()
         super().__init__(*args, content=self.ring, on_click=self.ring.context(on_click), **kwargs)
         self.context = self.ring.context
+
+
+class SliderSteps(ft.Slider):
+    """
+
+    Slider control using step instead of divisions
+
+    """
+
+    def __init__(self, *args, min=10, max=100, step=10, **kwargs):
+        self.step = step
+        divisions = (max - min) // step
+        super().__init__(*args, min=min, max=max, divisions=divisions, **kwargs)
