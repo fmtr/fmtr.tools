@@ -32,8 +32,6 @@ class Interface(ft.Column):
     PATH_ASSETS = None
     ROUTE_ROOT = '/'
 
-    THEME = ft.Theme(color_scheme=ft.ColorScheme(primary=ft.Colors.PINK))
-
     @classmethod
     def render(cls, page: ft.Page):
         """
@@ -42,7 +40,7 @@ class Interface(ft.Column):
 
         """
         if not page.on_route_change:
-            page.theme = cls.THEME
+            page.theme = cls.get_theme()
             page.views.clear()
             page.views.append(cls())
 
@@ -85,6 +83,18 @@ class Interface(ft.Column):
         logger.info(f"Launching {cls.TITLE} at {url}")
         ft.app(cls.render, view=cls.APPVIEW, host=cls.HOST, port=cls.PORT, assets_dir=cls.PATH_ASSETS)
 
+    @classmethod
+    def get_theme(self):
+        """
+
+        Overridable theme definition
+
+        """
+        text_style = ft.TextStyle(size=20)
+        theme = ft.Theme(
+            text_theme=ft.TextTheme(body_large=text_style),
+        )
+        return theme
 
 class Test(Interface):
     """
