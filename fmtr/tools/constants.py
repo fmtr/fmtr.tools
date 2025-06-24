@@ -49,3 +49,5 @@ class Constants:
     PRODUCTION = "production"
 
     INFRA = 'infra'
+
+    PROMPT_NOT_SPECIFIED = '[None Specified]'

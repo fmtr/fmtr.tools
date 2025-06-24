@@ -1,35 +1,32 @@
+import inspect
+
 import flet as ft
 
 
-class ContextRing(ft.ProgressRing):
+class ContextBase:
     """
 
-    Context manager progress ring.
+    A mixin base that can be used as both a synchronous and asynchronous context manager,
+    or as a decorator to wrap synchronous or asynchronous functions.
+    The control becomes visible when entering the context or invoking the wrapped function,
+    and is hidden again when exiting.
 
     """
-
-    def __init__(self, *args, **kwargs):
-        """
-
-        Start out not visible.
-
-        """
-        super().__init__(*args, **kwargs, visible=False)
 
     def start(self):
         """
 
-        Update to visible when in context.
-
+        Show the control and update the page.
         """
+
         self.visible = True
         self.page.update()
 
     def stop(self):
         """
 
-        Update to not visible when exiting context.
-
+        Hide the control and update the page.
+        
         """
         self.visible = False
         self.page.update()
@@ -37,38 +34,92 @@ class ContextRing(ft.ProgressRing):
     def context(self, func):
         """
 
-        Context manager decorator.
+        Decorator that wraps a synchronous or asynchronous function.
+        While the function runs, the control is visible.
 
         """
+        if inspect.iscoroutinefunction(func):
+            async def async_wrapped(*args, **kwargs):
+                async with self:
+                    return await func(*args, **kwargs)
 
-        def wrapped(*args, **kwargs):
-            with self:
-                func(*args, **kwargs)
+            return async_wrapped
+        else:
+            def sync_wrapped(*args, **kwargs):
+                with self:
+                    return func(*args, **kwargs)
 
-        return wrapped
+            return sync_wrapped
 
     def __enter__(self):
+        """
+
+        Enter the control context (sync).
+
+        """
         self.start()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+
+        Exit the control context (sync).
+
+        """
         self.stop()
 
+    async def __aenter__(self):
+        """
+
+        Enter the control context (async).
+        """
+
+        result = self.start()
+        if inspect.isawaitable(result):
+            await result
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """
+
+        Exit the control context (async).
+        """
+
+        result = self.stop()
+        if inspect.isawaitable(result):
+            await result
+
+
+class ContextRing(ft.ProgressRing, ContextBase):
+    """
+
+    A progress ring as a context manager.
+
+    """
+
+    def __init__(self, *args, **kwargs):
+        """
+
+        Initialize the progress ring as hidden by default.
+
+        """
+        super().__init__(*args, **kwargs, visible=False)
 
 class ProgressButton(ft.Button):
     """
 
-    Button with progress ring.
+    Button containing a progress ring.
 
     """
 
-    def __init__(self, *args, on_click=None, **kwargs):
+    def __init__(self, *args, on_click=None, ring: ContextRing = None, **kwargs):
         """
 
         Run on_click in run context manager
 
         """
-        self.ring = ContextRing()
+        self.ring = ring or ContextRing()
+
         super().__init__(*args, content=self.ring, on_click=self.ring.context(on_click), **kwargs)
         self.context = self.ring.context
 
