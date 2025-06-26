@@ -1,4 +1,8 @@
+import functools
+import inspect
 from typing import Tuple
+
+from fmtr.tools import context_tools
 
 
 def combine_args_kwargs(args: dict=None, kwargs: dict=None) -> dict:
@@ -31,3 +35,57 @@ def split_args_kwargs(args_kwargs: dict) -> Tuple[list, dict]:
     return args, kwargs
 
 
+class BoundDecorator:
+    """
+
+    Bound method decorator with overridable start/stop and context manager
+
+    """
+
+    def __init__(self, func):
+        self.func = func
+        self.context_null = context_tools.null()
+        functools.update_wrapper(self, func)
+
+    def get_context(self, instance):
+        """
+
+        By default use a null context.
+
+        """
+        return self.context_null
+
+    def __get__(self, instance, owner):
+        """
+
+        Wrap at runtime, call start/stop within context.
+
+        """
+        if instance is None:
+            return self.func
+
+        if inspect.iscoroutinefunction(self.func):
+            async def async_wrapper(*args, **kwargs):
+                with self.get_context(instance):
+                    self.start(instance)
+                    result = await self.func(instance, *args, **kwargs)
+                    self.stop(instance)
+                    return result
+
+            return functools.update_wrapper(async_wrapper, self.func)
+
+        else:
+            def sync_wrapper(*args, **kwargs):
+                with self.get_context(instance):
+                    self.start(instance)
+                    result = self.func(instance, *args, **kwargs)
+                    self.stop(instance)
+                    return result
+
+            return functools.update_wrapper(sync_wrapper, self.func)
+
+    def start(self, instance):
+        pass
+
+    def stop(self, instance):
+        pass
