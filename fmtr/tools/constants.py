@@ -52,4 +52,4 @@ class Constants:
 
     INFRA = 'infra'
 
-    PROMPT_NOT_SPECIFIED = '[None Specified]'
+    PROMPT_NONE_SPECIFIED = '[None Specified]'

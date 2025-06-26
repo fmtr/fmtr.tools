@@ -1,9 +1,11 @@
+from typing import List, Optional, Any, Annotated
+
 import pydantic_ai
+from pydantic import PlainValidator
 from pydantic_ai import RunContext, ModelRetry
 from pydantic_ai.agent import AgentRunResult, Agent
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
-from typing import List, Optional, Any
 
 from fmtr.tools import environment_tools as env
 from fmtr.tools.constants import Constants
@@ -130,6 +132,21 @@ class Task:
 
         """
         return f'{self.__class__.__name__}({repr(truncate_mid(self.SYSTEM_PROMPT_STATIC, 100))})'
+
+
+def default_prompt_none_specified(text):
+    """
+
+    If the prompt is falsey, explicitly state None Specified
+
+    """
+    if not (text or '').strip():
+        return Constants.PROMPT_NONE_SPECIFIED
+    return text
+
+
+StringDefaultNoneSpecified = Annotated[str, PlainValidator(default_prompt_none_specified)]
+
 
 if __name__ == '__main__':
     import asyncio
