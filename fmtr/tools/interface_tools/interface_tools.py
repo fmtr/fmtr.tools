@@ -2,21 +2,58 @@ import flet as ft
 from flet.core.types import AppView
 from flet.core.view import View
 
+from fmtr.tools import environment_tools
+from fmtr.tools.constants import Constants
+from fmtr.tools.function_tools import BoundDecorator
 from fmtr.tools.logging_tools import logger
 
 
-def update(func):
+class update(BoundDecorator):
     """
 
-    Page update decorator
+    Update the page after the decorated function is called.
 
     """
 
-    def wrapped(*args, **kwargs):
-        func(*args, **kwargs)
-        func.__self__.page.update()
+    def stop(self, instance):
+        instance.page.update()
 
-    return wrapped
+
+class progress(update):
+    """
+
+    Run the function while a progress indicator (e.g. spinner) is and within the object-defined context (e.g. logging span).
+
+    """
+
+    def get_context(self, instance):
+        """
+
+        Use instance-defined context.
+
+        """
+        return instance.context
+
+    def start(self, instance):
+        """
+
+        Make progress visible and update.
+
+        """
+        instance.progress.visible = True
+        instance.page.update()
+
+    def stop(self, instance):
+        """
+
+         Make progress not visible and update.
+
+         """
+        instance.progress.visible = False
+        super().stop(instance)
+
+
+
 
 class Interface(ft.Column):
     """
@@ -27,7 +64,7 @@ class Interface(ft.Column):
     TITLE = 'Base Interface'
     HOST = '0.0.0.0'
     PORT = 8080
-    URL = None
+    URL = Constants.FMTR_DEV_INTERFACE_URL if environment_tools.IS_DEV else None
     APPVIEW = AppView.WEB_BROWSER
     PATH_ASSETS = None
     ROUTE_ROOT = '/'
