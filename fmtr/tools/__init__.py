@@ -6,6 +6,7 @@ import fmtr.tools.environment_tools as environment
 import fmtr.tools.function_tools as function
 import fmtr.tools.hash_tools as hash
 import fmtr.tools.import_tools as import_
+import fmtr.tools.inherit_tools as inherit
 import fmtr.tools.iterator_tools as iterator
 import fmtr.tools.json_tools as json
 import fmtr.tools.logging_tools as logging
