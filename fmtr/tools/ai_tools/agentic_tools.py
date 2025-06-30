@@ -125,6 +125,14 @@ class Task:
 
         return []
 
+    def reset(self):
+        """
+
+        Reset the task by deleting its history.
+
+        """
+        self.history = []
+
     def __repr__(self):
         """
 
