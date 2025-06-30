@@ -4,11 +4,11 @@ from flet.core.view import View
 
 from fmtr.tools import environment_tools
 from fmtr.tools.constants import Constants
-from fmtr.tools.function_tools import BoundDecorator
+from fmtr.tools.function_tools import MethodDecorator
 from fmtr.tools.logging_tools import logger
 
 
-class update(BoundDecorator):
+class update(MethodDecorator):
     """
 
     Update the page after the decorated function is called.
@@ -48,7 +48,7 @@ class progress(update):
 
          Make progress not visible and update.
 
-         """
+        """
         instance.progress.visible = False
         super().stop(instance)
 
@@ -68,6 +68,15 @@ class Interface(ft.Column):
     APPVIEW = AppView.WEB_BROWSER
     PATH_ASSETS = None
     ROUTE_ROOT = '/'
+    SCROLL = ft.ScrollMode.AUTO
+
+    def __init__(self, *args, **kwargs):
+        """
+
+        Instantiate and apply interface config
+
+        """
+        super().__init__(*args, **kwargs, scroll=self.SCROLL)
 
     @classmethod
     def render(cls, page: ft.Page):
@@ -80,7 +89,6 @@ class Interface(ft.Column):
             page.theme = cls.get_theme()
             page.views.clear()
             page.views.append(cls())
-
             page.on_route_change = cls.route
             page.on_view_pop = cls.pop
 

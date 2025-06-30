@@ -1,6 +1,6 @@
 import functools
 import inspect
-from typing import Tuple
+from typing import Tuple, Callable, Self
 
 from fmtr.tools import context_tools
 
@@ -35,25 +35,43 @@ def split_args_kwargs(args_kwargs: dict) -> Tuple[list, dict]:
     return args, kwargs
 
 
-class BoundDecorator:
+class MethodDecorator:
     """
 
     Bound method decorator with overridable start/stop and context manager
 
     """
 
-    def __init__(self, func):
+    CONTEXT_KEY = 'context'
+
+    def __init__(self):
+        """
+
+        Initialise with decorator arguments
+
+        """
+        self.func = None
+
+    def __call__(self, func: Callable) -> Self:
+        """
+
+        If called, arguments were provided, so return the object with those applied.
+
+        """
         self.func = func
-        self.context_null = context_tools.null()
         functools.update_wrapper(self, func)
+        return self
 
     def get_context(self, instance):
         """
 
-        By default use a null context.
+        If the instance has a context attribute, use that - otherwise use a null context.
 
         """
-        return self.context_null
+        context = getattr(instance, self.CONTEXT_KEY, None)
+        if context:
+            return context
+        return context_tools.null()
 
     def __get__(self, instance, owner):
         """
@@ -61,7 +79,7 @@ class BoundDecorator:
         Wrap at runtime, call start/stop within context.
 
         """
-        if instance is None:
+        if instance is None:  # Class method called.
             return self.func
 
         if inspect.iscoroutinefunction(self.func):
@@ -72,7 +90,7 @@ class BoundDecorator:
                     self.stop(instance)
                     return result
 
-            return functools.update_wrapper(async_wrapper, self.func)
+            return async_wrapper
 
         else:
             def sync_wrapper(*args, **kwargs):
@@ -82,7 +100,7 @@ class BoundDecorator:
                     self.stop(instance)
                     return result
 
-            return functools.update_wrapper(sync_wrapper, self.func)
+            return sync_wrapper
 
     def start(self, instance):
         pass
