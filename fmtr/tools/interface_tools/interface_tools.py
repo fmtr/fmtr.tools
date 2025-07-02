@@ -1,3 +1,5 @@
+from functools import cached_property
+
 import flet as ft
 from flet.core.types import AppView
 from flet.core.view import View
@@ -88,11 +90,24 @@ class Interface(ft.Column):
         if not page.on_route_change:
             page.theme = cls.get_theme()
             page.views.clear()
-            page.views.append(cls())
+            self = cls()
+            view = self.view
+            if not view:
+                view = self
+            page.views.append(view)
             page.on_route_change = cls.route
             page.on_view_pop = cls.pop
 
             page.go(cls.ROUTE_ROOT)
+
+    @cached_property
+    def view(self):
+        """
+
+        Overridable view definition.
+
+        """
+        return None
 
     @classmethod
     def route(cls, event: ft.RouteChangeEvent):
