@@ -47,7 +47,7 @@ class MethodDecorator:
     def __init__(self):
         """
 
-        Initialise with decorator arguments
+        Initialise the decorator itself with any arguments
 
         """
         self.func = None
@@ -55,12 +55,41 @@ class MethodDecorator:
     def __call__(self, func: Callable) -> Self:
         """
 
-        If called, arguments were provided, so return the object with those applied.
+        Add the (unbound) method.
 
         """
         self.func = func
         functools.update_wrapper(self, func)
         return self
+
+    def __get__(self, instance, owner):
+        """
+
+        Wrap bound method at runtime, call start/stop within context.
+
+        """
+        if instance is None:  # Class method called.
+            return self.func
+
+        if inspect.iscoroutinefunction(self.func):
+            async def async_wrapper(*args, **kwargs):
+                with self.get_context(instance):
+                    self.start(instance, *args, **kwargs)
+                    result = await self.func(instance, *args, **kwargs)
+                    self.stop(instance, *args, **kwargs)
+                    return result
+
+            return async_wrapper
+
+        else:
+            def sync_wrapper(*args, **kwargs):
+                with self.get_context(instance):
+                    self.start(instance, *args, **kwargs)
+                    result = self.func(instance, *args, **kwargs)
+                    self.stop(instance, *args, **kwargs)
+                    return result
+
+            return sync_wrapper
 
     def get_context(self, instance):
         """
@@ -73,37 +102,8 @@ class MethodDecorator:
             return context
         return context_tools.null()
 
-    def __get__(self, instance, owner):
-        """
-
-        Wrap at runtime, call start/stop within context.
-
-        """
-        if instance is None:  # Class method called.
-            return self.func
-
-        if inspect.iscoroutinefunction(self.func):
-            async def async_wrapper(*args, **kwargs):
-                with self.get_context(instance):
-                    self.start(instance)
-                    result = await self.func(instance, *args, **kwargs)
-                    self.stop(instance)
-                    return result
-
-            return async_wrapper
-
-        else:
-            def sync_wrapper(*args, **kwargs):
-                with self.get_context(instance):
-                    self.start(instance)
-                    result = self.func(instance, *args, **kwargs)
-                    self.stop(instance)
-                    return result
-
-            return sync_wrapper
-
-    def start(self, instance):
+    def start(self, instance, *args, **kwargs):
         pass
 
-    def stop(self, instance):
+    def stop(self, instance, *args, **kwargs):
         pass
