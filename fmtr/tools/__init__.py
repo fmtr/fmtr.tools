@@ -168,6 +168,11 @@ try:
 except ImportError as exception:
     http = Client = MissingExtraMockModule('http', exception)
 
+try:
+    from fmtr.tools import webhook_tools as webhook
+except ImportError as exception:
+    webhook = MissingExtraMockModule('webhook', exception)
+
 
 def get_version():
     """

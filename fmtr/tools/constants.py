@@ -53,3 +53,4 @@ class Constants:
     INFRA = 'infra'
 
     PROMPT_NONE_SPECIFIED = '[None Specified]'
+    WEBHOOK_URL_NOTIFY_KEY = 'WEBHOOK_URL_NOTIFY'

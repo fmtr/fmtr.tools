@@ -39,7 +39,8 @@ DEPENDENCIES = {
     'dns': ['dnspython[doh]', 'http'],
     'patterns': ['regex'],
     'http': ['httpx', 'httpx_retries', 'logging', 'logfire[httpx]'],
-    'setup': ['setuptools']
+    'setup': ['setuptools'],
+    'webhook': ['http']
 }
 
 setup = Setup(
