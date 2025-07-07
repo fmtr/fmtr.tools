@@ -28,7 +28,7 @@ def get_dict() -> Dict[str, str]:
     Return environment variables as a standard dictionary.
 
     """
-    environment_dict = dict(os.environ)
+    environment_dict = dict(sorted(dict(os.environ).items()))
     return environment_dict
 
 

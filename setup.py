@@ -40,7 +40,8 @@ DEPENDENCIES = {
     'patterns': ['regex'],
     'http': ['httpx', 'httpx_retries', 'logging', 'logfire[httpx]'],
     'setup': ['setuptools'],
-    'webhook': ['http']
+    'webhook': ['http'],
+    'browsers': ['playwright']
 }
 
 setup = Setup(
