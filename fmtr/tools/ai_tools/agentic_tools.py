@@ -1,11 +1,10 @@
-from typing import List, Optional, Any, Annotated
-
 import pydantic_ai
 from pydantic import PlainValidator
 from pydantic_ai import RunContext, ModelRetry
 from pydantic_ai.agent import AgentRunResult, Agent
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
+from typing import List, Optional, Any, Annotated
 
 from fmtr.tools import environment_tools as env
 from fmtr.tools.constants import Constants
@@ -153,7 +152,7 @@ def default_prompt_none_specified(text):
     return text
 
 
-StringDefaultNoneSpecified = Annotated[str, PlainValidator(default_prompt_none_specified)]
+StringDefaultNoneSpecified = Annotated[Optional[str], PlainValidator(default_prompt_none_specified)]
 
 
 if __name__ == '__main__':

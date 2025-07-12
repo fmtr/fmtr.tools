@@ -1,7 +1,8 @@
 from collections import namedtuple
+from string import Formatter
 
 import re
-from string import Formatter
+from dataclasses import dataclass
 from textwrap import dedent
 from typing import List
 
@@ -84,17 +85,70 @@ def sanitize(*strings, sep: str = '-') -> str:
     return string
 
 
-def truncate_mid(text, length=None, sep=ELLIPSIS):
+@dataclass
+class Truncation:
     """
 
-    Truncate a string to `length` characters in the middle
+    Result type for truncation functions
+
+    """
+    text: str
+    text_without_sep: str | None
+    original: str
+    remainder: str | None
+    sep: str
+
+
+def truncate(text, length=None, sep=ELLIPSIS, return_type=str):
+    """
+
+    Truncate a string to length characters
 
     """
     text = flatten(text)
     if len(text) <= length or not length:
-        return text
-    half_length = (length - 3) // 2
-    return text[:half_length] + sep + text[-half_length:]
+        return text if return_type is str else Truncation(text, text, text, None, sep)
+
+    cutoff = length - len(sep)
+    truncated = text[:cutoff] + sep
+
+    if return_type is str:
+        return truncated
+    else:
+        return Truncation(
+            text=truncated,
+            text_without_sep=text[:cutoff],
+            original=text,
+            remainder=text[cutoff:] or None,
+            sep=sep
+        )
+
+
+def truncate_mid(text, length=None, sep=ELLIPSIS, return_type=str):
+    """
+
+    Truncate a string to `length` characters in the middle.
+
+    """
+    text = flatten(text)
+    if len(text) <= length or not length:
+        return text if return_type is str else Truncation(text, text, text, '', sep)
+
+    half = (length - len(sep)) // 2
+    left = text[:half]
+    right = text[-half:]
+    truncated = left + sep + right
+
+    if return_type is str:
+        return truncated
+    else:
+        return Truncation(
+            text=truncated,
+            text_without_sep=None,
+            original=text,
+            remainder=None,
+            sep=sep
+        )
 
 
 def flatten(raw):

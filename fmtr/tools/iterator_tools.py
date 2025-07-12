@@ -1,5 +1,8 @@
 from itertools import chain, batched
+
 from typing import List, Dict, Any
+
+from fmtr.tools.datatype_tools import is_none
 
 
 def enlist(value) -> List[Any]:
@@ -52,3 +55,12 @@ def rebatch(batches, size: int):
 
     """
     return batched(chain.from_iterable(batches), size)
+
+
+def strip_none(*items):
+    """
+
+    Remove nones from a list of arguments
+
+    """
+    return [item for item in items if not is_none(item)]
