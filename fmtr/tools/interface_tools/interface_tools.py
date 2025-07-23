@@ -163,17 +163,20 @@ class Interface(Generic[T], ft.Column):
         )
         return theme
 
-class Test(Interface):
+
+class Test(Interface[Context]):
     """
 
-    Simple test interface.
+    Simple test interface, showing typing example.
 
     """
+    TypeContext: Type[Context] = Context
+
     TITLE = 'Test Interface'
 
-    def __init__(self):
+    def __init__(self, context: Context):
         controls = [ft.Text(self.TITLE)]
-        super().__init__(controls=controls)
+        super().__init__(context=context, controls=controls)
 
 if __name__ == "__main__":
     Test.launch()

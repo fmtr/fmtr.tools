@@ -28,7 +28,7 @@ DEPENDENCIES = {
     'metric': ['tabular'],
     'tabular': ['pandas', 'tabulate', 'openpyxl'],
     'html': ['html2text'],
-    'interface': ['flet[all]', 'flet-video', 'flet-webview', 'dm'],
+    'interface': ['flet[all]', 'flet-video', 'flet-webview'],
     'google.api': ['google-auth', 'google-auth-oauthlib', 'google-auth-httplib2', 'google-api-python-client'],
     'caching': ['diskcache', 'cachetools'],
     'pdf': ['pymupdf', 'dm', 'pymupdf4llm'],
