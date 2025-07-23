@@ -1,12 +1,13 @@
-from functools import cached_property
-
 import flet as ft
 from flet.core.types import AppView
 from flet.core.view import View
+from functools import cached_property
+from typing import TypeVar, Generic, Type
 
 from fmtr.tools import environment_tools
 from fmtr.tools.constants import Constants
 from fmtr.tools.function_tools import MethodDecorator
+from fmtr.tools.interface_tools.context import Context
 from fmtr.tools.logging_tools import logger
 
 
@@ -55,9 +56,10 @@ class progress(update):
         super().stop(instance)
 
 
+T = TypeVar('T', bound=Context)
 
 
-class Interface(ft.Column):
+class Interface(Generic[T], ft.Column):
     """
 
     Simple interface base class.
@@ -72,12 +74,15 @@ class Interface(ft.Column):
     ROUTE_ROOT = '/'
     SCROLL = ft.ScrollMode.AUTO
 
-    def __init__(self, *args, **kwargs):
+    TypeContext: Type[T] = Context
+
+    def __init__(self, context: T, *args, **kwargs):
         """
 
         Instantiate and apply interface config
 
         """
+        self.context = context
         super().__init__(*args, **kwargs, scroll=self.SCROLL)
 
     @classmethod
@@ -88,9 +93,11 @@ class Interface(ft.Column):
 
         """
         if not page.on_route_change:
+            page.title = cls.TITLE
             page.theme = cls.get_theme()
             page.views.clear()
-            self = cls()
+            context = cls.TypeContext(page=page)
+            self = cls(context)
             view = self.view
             if not view:
                 view = self
