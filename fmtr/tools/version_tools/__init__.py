@@ -8,5 +8,5 @@ try:
     semver = semver
     parse = semver.VersionInfo.parse
 
-except ImportError as exception:
+except ModuleNotFoundError as exception:
     semver = parse = MissingExtraMockModule('version.dev', exception)
