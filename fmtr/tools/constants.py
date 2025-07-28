@@ -32,7 +32,8 @@ class Constants:
     FMTR_AI_HOST_KEY = 'FMTR_URL_HOST'
     FMTR_AI_HOST_DEFAULT = 'ai.gex.fmtr.dev'
 
-    FMTR_DEV_INTERFACE_URL = 'https://ws.gex.fmtr.dev/'
+    FMTR_DEV_HOST = 'ws.gex.fmtr.dev'
+    FMTR_DEV_INTERFACE_URL = F'https://{FMTR_DEV_HOST}/'
 
     FILENAME_CONFIG = 'settings.yaml'
     DIR_NAME_REPO = 'repo'

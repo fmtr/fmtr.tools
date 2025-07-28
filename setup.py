@@ -41,7 +41,9 @@ DEPENDENCIES = {
     'http': ['httpx', 'httpx_retries', 'logging', 'logfire[httpx]'],
     'setup': ['setuptools'],
     'webhook': ['http'],
-    'browsers': ['playwright']
+    'browsers': ['playwright'],
+    'db': [],
+    'db.document': ['beanie[odm]', 'motor']
 }
 
 setup = Setup(
