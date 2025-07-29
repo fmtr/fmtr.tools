@@ -2,7 +2,7 @@ import flet as ft
 from flet.core.types import AppView
 from flet.core.view import View
 from functools import cached_property
-from typing import TypeVar, Generic, Type
+from typing import TypeVar, Generic, Type, Self
 
 from fmtr.tools import environment_tools
 from fmtr.tools.constants import Constants
@@ -86,7 +86,7 @@ class Interface(Generic[T], ft.Column):
         super().__init__(*args, **kwargs, scroll=self.SCROLL)
 
     @classmethod
-    def render(cls, page: ft.Page):
+    async def render(cls, page: ft.Page):
         """
 
         Interface entry point. Set relevant callbacks, and add instantiated self to page views
@@ -97,7 +97,9 @@ class Interface(Generic[T], ft.Column):
             page.theme = cls.get_theme()
             page.views.clear()
             context = cls.TypeContext(page=page)
-            self = cls(context)
+
+            self = await cls.create(context)
+
             view = self.view
             if not view:
                 view = self
@@ -106,6 +108,17 @@ class Interface(Generic[T], ft.Column):
             page.on_view_pop = cls.pop
 
             page.go(cls.ROUTE_ROOT)
+
+    @classmethod
+    async def create(cls, context: T) -> Self:
+        """
+
+        Overridable async interface constructor.
+
+        """
+        self = cls(context)
+        return self
+
 
     @cached_property
     def view(self):
