@@ -132,6 +132,15 @@ class Task:
         """
         self.history = []
 
+    @property
+    def tool_schema(self):
+        """
+
+        Impossible to find otherwise.
+
+        """
+        return self.agent._output_toolset
+
     def __repr__(self):
         """
 

@@ -20,7 +20,7 @@ DEPENDENCIES = {
     'merging': ['deepmerge'],
     'api': ['fastapi', 'uvicorn[standard]', 'logging', 'dm', 'logfire[fastapi]'],
     'ai': ['peft', 'transformers[sentencepiece]', 'torchvision', 'torchaudio', 'dm'],
-    'dm': ['pydantic'],
+    'dm': ['pydantic', 'pydantic-extra-types'],
     'openai.api': ['openai'],
     'ai.client': ['logging', 'dm', 'openai.api', 'pydantic-ai[logfire,openai]', 'ollama'],
     'json-fix': ['json_repair'],
