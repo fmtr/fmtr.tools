@@ -26,7 +26,7 @@ DEPENDENCIES = {
     'json-fix': ['json_repair'],
     'semantic': ['sentence_transformers', 'metric'],
     'metric': ['tabular'],
-    'tabular': ['pandas', 'tabulate', 'openpyxl'],
+    'tabular': ['pandas', 'tabulate', 'openpyxl', 'odfpy'],
     'html': ['html2text'],
     'interface': ['flet[all]', 'flet-video', 'flet-webview'],
     'google.api': ['google-auth', 'google-auth-oauthlib', 'google-auth-httplib2', 'google-api-python-client'],
