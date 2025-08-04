@@ -64,3 +64,12 @@ def strip_none(*items):
 
     """
     return [item for item in items if not is_none(item)]
+
+
+def dedupe(items):
+    """
+
+    Deduplicate a list of items, retaining order
+
+    """
+    return list(dict.fromkeys(items))

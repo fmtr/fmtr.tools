@@ -145,6 +145,32 @@ class Path(type(Path())):
         """
         return self.mkdir(parents=True, exist_ok=True)
 
+    def with_suffix(self, suffix: str) -> 'Path':
+        """
+
+        Pathlib doesn't add a dot prefix, but then errors if you don't provide one, which feels rather obnoxious.
+
+        """
+        if not suffix.startswith('.'):
+            suffix = f'.{suffix}'
+        return super().with_suffix(suffix)
+
+    def get_conversion_path(self, suffix: str) -> 'Path':
+        """
+
+        Fetch the equivalent path for a different format in the standard conversion directory structure.
+        .../xyz/filename.xyx -> ../abc/filename.abc
+
+        """
+
+        old_dir = self.parent.name
+
+        if old_dir != self.suffix.removeprefix('.'):
+            raise ValueError(f"Expected parent directory '{old_dir}' to match file extension '{suffix}'")
+
+        new = self.parent.parent / suffix / f'{self.stem}.{suffix}'
+        return new
+
     @property
     def exist(self):
         """

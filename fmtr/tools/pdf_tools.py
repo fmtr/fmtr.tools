@@ -179,6 +179,20 @@ class Document(pm.Document):
         """
         return pymupdf4llm.to_markdown(self, **kwargs)
 
+    def to_text(self):
+        """
+
+        Simple text output.
+
+        """
+        lines = []
+        for page in self:
+            text = page.get_text()
+            lines.append(text)
+
+        text = '\n'.join(lines)
+        return text
+
 
 if __name__ == '__main__':
     from fmtr.tools.path_tools import Path
