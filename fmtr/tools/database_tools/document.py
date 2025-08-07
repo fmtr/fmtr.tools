@@ -1,7 +1,8 @@
-import beanie
 from functools import cached_property
-from motor.motor_asyncio import AsyncIOMotorClient
 from typing import List
+
+import beanie
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from fmtr.tools.constants import Constants
 
@@ -22,7 +23,7 @@ class Client:
         self.port = port
         self.documents = documents
 
-        self.client = AsyncIOMotorClient(self.uri)
+        self.client = AsyncIOMotorClient(self.uri, tz_aware=True)
         self.db = self.client[self.name]
 
     @cached_property
