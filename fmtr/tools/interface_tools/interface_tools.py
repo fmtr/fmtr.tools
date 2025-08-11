@@ -1,8 +1,9 @@
+from typing import TypeVar, Generic, Type
+
 import flet as ft
+from flet.core.control_event import ControlEvent
 from flet.core.types import AppView
 from flet.core.view import View
-from functools import cached_property
-from typing import TypeVar, Generic, Type, Self
 
 from fmtr.tools import environment_tools
 from fmtr.tools.constants import Constants
@@ -18,7 +19,7 @@ class update(MethodDecorator):
 
     """
 
-    def stop(self, instance):
+    def stop(self, instance, *args, **kwargs):
         instance.page.update()
 
 
@@ -37,7 +38,7 @@ class progress(update):
         """
         return instance.context
 
-    def start(self, instance):
+    def start(self, instance, *args, **kwargs):
         """
 
         Make progress visible and update.
@@ -46,7 +47,7 @@ class progress(update):
         instance.progress.visible = True
         instance.page.update()
 
-    def stop(self, instance):
+    def stop(self, instance, *args, **kwargs):
         """
 
          Make progress not visible and update.
@@ -59,7 +60,7 @@ class progress(update):
 T = TypeVar('T', bound=Context)
 
 
-class Interface(Generic[T], ft.Column):
+class Base(Generic[T], ft.Column):
     """
 
     Simple interface base class.
@@ -76,58 +77,31 @@ class Interface(Generic[T], ft.Column):
 
     TypeContext: Type[T] = Context
 
-    def __init__(self, context: T, *args, **kwargs):
+    @classmethod
+    async def new(cls, page: ft.Page):
         """
 
-        Instantiate and apply interface config
+        Interface entry point/async constructor. Set relevant callbacks, and add instantiated self to page views.
+
+        Override this to work with `Context`, do async setup. Otherwise, override __init__ (which is regular Column __init__) for a simple interface.
 
         """
+        page.scroll = cls.SCROLL
+        page.title = cls.TITLE
+        page.on_connect = cls.on_connect
+        page.on_disconnect = cls.on_disconnect
+        page.on_route_change = cls.route
+        page.on_view_pop = cls.pop
+        page.theme = cls.get_theme()
+
+        context = cls.TypeContext(page=page)
+        self = cls()
         self.context = context
-        super().__init__(*args, **kwargs, scroll=self.SCROLL)
 
-    @classmethod
-    async def render(cls, page: ft.Page):
-        """
+        page.controls.append(self)
+        page.update()
 
-        Interface entry point. Set relevant callbacks, and add instantiated self to page views
-
-        """
-        if not page.on_route_change:
-            page.title = cls.TITLE
-            page.theme = cls.get_theme()
-            page.views.clear()
-            context = cls.TypeContext(page=page)
-
-            self = await cls.create(context)
-
-            view = self.view
-            if not view:
-                view = self
-            page.views.append(view)
-            page.on_route_change = cls.route
-            page.on_view_pop = cls.pop
-
-            page.go(cls.ROUTE_ROOT)
-
-    @classmethod
-    async def create(cls, context: T) -> Self:
-        """
-
-        Overridable async interface constructor.
-
-        """
-        self = cls(context)
         return self
-
-
-    @cached_property
-    def view(self):
-        """
-
-        Overridable view definition.
-
-        """
-        return None
 
     @classmethod
     def route(cls, event: ft.RouteChangeEvent):
@@ -148,20 +122,25 @@ class Interface(Generic[T], ft.Column):
         logger.debug(f'View popped: {page.route=} {len(page.views)=} {view=}')
 
     @classmethod
-    def launch(cls):
+    def on_connect(cls, event: ControlEvent):
         """
 
-        Launch via render method
+        Log connections
 
         """
+        page = event.control
+        logger.warning(f'Connect: {page.client_user_agent=} {page.platform.name=}')
 
-        if cls.URL:
-            url = cls.URL
-        else:
-            url = f'http://{cls.HOST}:{cls.PORT}'
+    @classmethod
+    def on_disconnect(cls, event: ControlEvent):
+        """
 
-        logger.info(f"Launching {cls.TITLE} at {url}")
-        ft.app(cls.render, view=cls.APPVIEW, host=cls.HOST, port=cls.PORT, assets_dir=cls.PATH_ASSETS)
+        Log disconnections
+
+        """
+        page = event.control
+        logger.warning(f'Disconnect {page.client_user_agent=} {page.platform.name=}')
+
 
     @classmethod
     def get_theme(self):
@@ -176,8 +155,24 @@ class Interface(Generic[T], ft.Column):
         )
         return theme
 
+    @classmethod
+    def launch(cls):
+        """
 
-class Test(Interface[Context]):
+        Launch via async constructor method
+
+        """
+
+        if cls.URL:
+            url = cls.URL
+        else:
+            url = f'http://{cls.HOST}:{cls.PORT}'
+
+        logger.info(f"Launching {cls.TITLE} at {url}")
+        ft.app(cls.new, view=cls.APPVIEW, host=cls.HOST, port=cls.PORT, assets_dir=cls.PATH_ASSETS, )
+
+
+class Test(Base[Context]):
     """
 
     Simple test interface, showing typing example.
@@ -187,9 +182,9 @@ class Test(Interface[Context]):
 
     TITLE = 'Test Interface'
 
-    def __init__(self, context: Context):
+    def __init__(self):
         controls = [ft.Text(self.TITLE)]
-        super().__init__(context=context, controls=controls)
+        super().__init__(controls=controls)
 
 if __name__ == "__main__":
     Test.launch()
