@@ -1,10 +1,12 @@
 import pydantic_ai
 from pydantic import PlainValidator
 from pydantic_ai import RunContext, ModelRetry
+from pydantic_ai._output import OutputDataT
 from pydantic_ai.agent import AgentRunResult, Agent
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
-from typing import List, Optional, Any, Annotated
+from pydantic_ai.tools import AgentDepsT
+from typing import List, Optional, Any, Annotated, Generic
 
 from fmtr.tools import environment_tools as env
 from fmtr.tools.constants import Constants
@@ -25,14 +27,15 @@ class Validator:
         raise NotImplementedError()
 
 
-
-
-class Task:
+class Task(Generic[AgentDepsT, OutputDataT]):
     """
 
     Linear task definition, as Agent configuration and typing, plus state history.
 
     """
+
+    TypeDeps = str
+    TypeOutput = str
 
     PROVIDER = OpenAIProvider(api_key=env.get(Constants.FMTR_OPENAI_API_KEY_KEY))
 
@@ -43,8 +46,6 @@ class Task:
     MODEL_ID = 'gpt-4o'
     MODEL_ID_FMTR = 'qwen2.5-coder:14b'
     SYSTEM_PROMPT_STATIC = None
-    DEPS_TYPE = str
-    RESULT_TYPE = str
     RESULT_RETRIES = 5
     VALIDATORS: List[Validator] = []
 
@@ -56,13 +57,13 @@ class Task:
         """
 
         self.model = OpenAIModel(self.MODEL_ID, provider=self.PROVIDER)
-        self.agent = Agent(
+        self.agent = Agent[AgentDepsT, OutputDataT](
             *args,
             model=self.model,
             system_prompt=self.SYSTEM_PROMPT_STATIC or [],
-            deps_type=self.DEPS_TYPE,
-            result_type=self.RESULT_TYPE,
-            result_retries=self.RESULT_RETRIES,
+            deps_type=self.TypeDeps,
+            output_type=self.TypeOutput,
+            output_retries=self.RESULT_RETRIES,
             **kwargs
         )
 
@@ -80,7 +81,7 @@ class Task:
         import asyncio
         return asyncio.run
 
-    async def run(self, *args, deps=None, **kwargs) -> AgentRunResult[RESULT_TYPE]:
+    async def run(self, *args, deps=None, **kwargs) -> AgentRunResult[OutputDataT]:
         """
 
         Run Agent with deps-relative user prompt and while storing history
@@ -90,7 +91,7 @@ class Task:
         self.history = result.all_messages()
         return result
 
-    async def validate(self, ctx: RunContext[DEPS_TYPE], output: RESULT_TYPE) -> RESULT_TYPE:
+    async def validate(self, ctx: RunContext[AgentDepsT], output: OutputDataT) -> OutputDataT:
         """
 
         Aggregate any validation failures and combine them into a single ModelRetry exception
@@ -107,7 +108,7 @@ class Task:
 
         return output
 
-    def get_prompt(self, deps: Optional[DEPS_TYPE]) -> Optional[str]:
+    def get_prompt(self, deps: Optional[AgentDepsT]) -> Optional[str]:
         """
 
         Dummy prompt generator
@@ -115,7 +116,7 @@ class Task:
         """
         return None
 
-    def add_system_prompt(self, ctx: RunContext[DEPS_TYPE]) -> str | List[str]:
+    def add_system_prompt(self, ctx: RunContext[AgentDepsT]) -> str | List[str]:
         """
 
         Dummy system prompt append
@@ -181,7 +182,7 @@ if __name__ == '__main__':
     class TaskTest(Task):
         # PROVIDER = Task.PROVIDER_FMTR
         # MODEL_ID = 'qwen2.5-coder:14b'
-        RESULT_TYPE = TestOutput
+        TypeOutput = TestOutput
         SYSTEM_PROMPT_STATIC = 'Tell the user jokes.'
 
         def add_system_prompt(self, ctx: RunContext[TestDeps]) -> str:
