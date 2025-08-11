@@ -14,6 +14,14 @@ IS_DEBUG = environment_tools.get(Constants.FMTR_LOG_LEVEL_KEY, None, converter=s
 LEVEL_DEFAULT = logging.DEBUG if IS_DEBUG else logging.INFO
 
 
+def null_scrubber(match):
+    """
+
+    Effectively disable scrubbing
+
+    """
+    return match.value
+
 def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=Constants.ORG_NAME,
                stream=STREAM_DEFAULT, environment=ENVIRONMENT_DEFAULT, level=LEVEL_DEFAULT):
     """
@@ -64,7 +72,8 @@ def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=C
         service_version=version,
         environment=environment,
         send_to_logfire=False,
-        console=console_opts
+        console=console_opts,
+        scrubbing=logfire.ScrubbingOptions(callback=null_scrubber)
     )
 
     if key is None:
