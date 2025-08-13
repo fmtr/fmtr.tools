@@ -10,7 +10,7 @@ DEPENDENCIES = {
     'augmentation': ['faker', 'sre_yield'],
     'process': ['logging'],
     'profiling': ['contexttimer'],
-    'docker.api': ['docker'],
+    'docker.client': ['python-on-whales'],
     'unicode': ['Unidecode'],
     'version': [],
     'version.dev': ['semver'],

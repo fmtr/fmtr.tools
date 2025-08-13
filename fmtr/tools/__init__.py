@@ -21,6 +21,7 @@ import fmtr.tools.string_tools as string
 from fmtr.tools import ai_tools as ai
 from fmtr.tools import datetime_tools as dt
 from fmtr.tools import dns_tools as dns
+from fmtr.tools import docker_tools as docker
 from fmtr.tools import interface_tools as interface
 from fmtr.tools import version_tools as version
 from fmtr.tools.constants import Constants
@@ -40,11 +41,6 @@ try:
 except ModuleNotFoundError as exception:
     yaml = MissingExtraMockModule('yaml', exception)
 
-try:
-    from fmtr.tools import docker_tools as docker
-    from fmtr.tools.docker_tools import Container
-except ModuleNotFoundError as exception:
-    docker = Container = MissingExtraMockModule('docker.api', exception)
 
 try:
     from fmtr.tools import parallel_tools as parallel
