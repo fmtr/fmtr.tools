@@ -1,3 +1,5 @@
+from typing import List, Optional, Any, Annotated, Generic
+
 import pydantic_ai
 from pydantic import PlainValidator
 from pydantic_ai import RunContext, ModelRetry
@@ -6,7 +8,6 @@ from pydantic_ai.agent import AgentRunResult, Agent
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
 from pydantic_ai.tools import AgentDepsT
-from typing import List, Optional, Any, Annotated, Generic
 
 from fmtr.tools import environment_tools as env
 from fmtr.tools.constants import Constants
@@ -27,6 +28,8 @@ class Validator:
         raise NotImplementedError()
 
 
+api_key = env.get(Constants.FMTR_OPENAI_API_KEY_KEY, None)
+
 class Task(Generic[AgentDepsT, OutputDataT]):
     """
 
@@ -37,7 +40,7 @@ class Task(Generic[AgentDepsT, OutputDataT]):
     TypeDeps = str
     TypeOutput = str
 
-    PROVIDER = OpenAIProvider(api_key=env.get(Constants.FMTR_OPENAI_API_KEY_KEY))
+    PROVIDER = OpenAIProvider(api_key=api_key) if api_key else None
 
     API_HOST_FMTR = env.get(Constants.FMTR_AI_HOST_KEY, Constants.FMTR_AI_HOST_DEFAULT)
     API_URL_FMTR = f'https://{API_HOST_FMTR}/v1'
