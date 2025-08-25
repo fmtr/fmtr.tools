@@ -5,6 +5,7 @@ import beanie
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from fmtr.tools.constants import Constants
+from fmtr.tools.logging_tools import logger
 
 
 class Document(beanie.Document):
@@ -31,4 +32,10 @@ class Client:
         return f'mongodb://{self.host}:{self.port}'
 
     async def connect(self):
-        return await beanie.init_beanie(database=self.db, document_models=self.documents)
+        """
+
+        Connect
+
+        """
+        with logger.span(f'Connecting to document database {self.uri=} {self.name=}'):
+            return await beanie.init_beanie(database=self.db, document_models=self.documents)
