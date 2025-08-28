@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
-from functools import lru_cache
 
+MIN = datetime.min.replace(tzinfo=timezone.utc)
+MAX = datetime.max.replace(tzinfo=timezone.utc)
 
 def now() -> datetime:
     """
@@ -9,23 +10,3 @@ def now() -> datetime:
 
     """
     return datetime.now(tz=timezone.utc)
-
-
-@lru_cache
-def min() -> datetime:
-    """
-
-    Min UTC
-
-    """
-    return now().min
-
-
-@lru_cache
-def max():
-    """
-
-    Max UTC
-
-    """
-    return now().max
