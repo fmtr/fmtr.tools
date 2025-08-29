@@ -45,7 +45,20 @@ class Cell(ft.DataCell):
         Cell contents text
 
         """
-        return ft.Text(str(self.value))
+
+        return ft.Text(str(self.value), color=self.color)
+
+    @property
+    def color(self):
+        """
+
+        Basic conditional formatting
+
+        """
+        if self.value is None:
+            return ft.Colors.GREY
+        else:
+            return None
 
     @property
     def gesture_detector(self):
@@ -115,7 +128,16 @@ class Column(ft.DataColumn):
         Cell contents text
 
         """
-        return ft.Text(str(self.col_name))
+        return ft.Text(str(self.col_name), weight=self.weight)
+
+    @property
+    def weight(self):
+        """
+
+        Default bold headers
+
+        """
+        return ft.FontWeight.BOLD
 
 
 class Table(ft.DataTable):
