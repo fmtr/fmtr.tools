@@ -1,6 +1,6 @@
 from fmtr.tools.import_tools import MissingExtraMockModule
 
 try:
-    from python_on_whales import docker as client
+    from python_on_whales import DockerClient
 except ModuleNotFoundError as exception:
-    client = MissingExtraMockModule('docker.client', exception)
+    DockerClient = MissingExtraMockModule('docker.client', exception)
