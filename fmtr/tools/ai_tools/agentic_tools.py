@@ -6,6 +6,7 @@ from pydantic_ai import RunContext, ModelRetry
 from pydantic_ai._output import OutputDataT
 from pydantic_ai.agent import AgentRunResult, Agent
 from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.output import OutputSpec, NativeOutput, ToolOutput
 from pydantic_ai.providers.openai import OpenAIProvider
 from pydantic_ai.tools import AgentDepsT
 
@@ -47,7 +48,7 @@ class Task(Generic[AgentDepsT, OutputDataT]):
     PROVIDER_FMTR = OpenAIProvider(base_url=API_URL_FMTR)
 
     MODEL_ID = 'gpt-4o'
-    MODEL_ID_FMTR = 'qwen2.5-coder:14b'
+    MODEL_ID_FMTR = 'qwen2.5-coder:32b'
     SYSTEM_PROMPT_STATIC = None
     RESULT_RETRIES = 5
     VALIDATORS: List[Validator] = []
@@ -65,7 +66,7 @@ class Task(Generic[AgentDepsT, OutputDataT]):
             model=self.model,
             system_prompt=self.SYSTEM_PROMPT_STATIC or [],
             deps_type=self.TypeDeps,
-            output_type=self.TypeOutput,
+            output_type=self.tool_output,
             output_retries=self.RESULT_RETRIES,
             **kwargs
         )
@@ -73,6 +74,16 @@ class Task(Generic[AgentDepsT, OutputDataT]):
         self.agent.output_validator(self.validate)
         self.agent.system_prompt(self.add_system_prompt)
         self.history = []
+
+    @property
+    def tool_output(self) -> OutputSpec[OutputDataT]:
+        """
+
+        Tool output specification (e.g. ToolOutput/NativeOutput etc.)
+
+        """
+        return ToolOutput(self.TypeOutput)
+
 
     @property
     def sync_runner(self):
@@ -183,10 +194,14 @@ if __name__ == '__main__':
 
 
     class TaskTest(Task):
-        # PROVIDER = Task.PROVIDER_FMTR
-        # MODEL_ID = 'qwen2.5-coder:14b'
+        PROVIDER = Task.PROVIDER_FMTR
+        MODEL_ID = Task.MODEL_ID_FMTR
         TypeOutput = TestOutput
         SYSTEM_PROMPT_STATIC = 'Tell the user jokes.'
+
+        @property
+        def tool_output(self) -> OutputSpec[TestOutput]:
+            return NativeOutput(self.TypeOutput)
 
         def add_system_prompt(self, ctx: RunContext[TestDeps]) -> str:
             return f'The jokes must be in the {ctx.deps.lang} language.'
