@@ -1,10 +1,10 @@
-from collections import namedtuple
-from string import Formatter
-
 import re
 from dataclasses import dataclass
 from textwrap import dedent
 from typing import List
+
+from collections import namedtuple
+from string import Formatter
 
 from fmtr.tools.datatype_tools import is_none
 
@@ -151,14 +151,14 @@ def truncate_mid(text, length=None, sep=ELLIPSIS, return_type=str):
         )
 
 
-def flatten(raw):
+def flatten(raw, sep=' '):
     """
 
     Flatten a multiline string to a single line
 
     """
     lines = raw.splitlines()
-    text = ' '.join(lines)
+    text = sep.join(lines)
     text = text.strip()
     return text
 
@@ -174,6 +174,22 @@ def join(strings, sep=' '):
     text = sep.join(str(line) for line in lines)
     return text
 
+
+def join_natural(items, sep=', ', conj='and'):
+    """
+
+    Natural language list
+
+    """
+
+    if not items:
+        return ""
+    if len(items) == 1:
+        return items[0]
+    firsts, last = items[:-1], items[-1]
+    firsts_str = join(firsts, sep=sep)
+    text = f"{firsts_str} {conj} {last}"
+    return text
 
 class Mask:
     """
