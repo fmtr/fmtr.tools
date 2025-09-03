@@ -1,6 +1,7 @@
+from typing import List, Tuple, Dict, Any, Self
+
 import pymupdf as pm
 import pymupdf4llm
-from typing import List, Tuple, Dict, Any, Self
 
 from fmtr.tools import data_modelling_tools
 
@@ -179,10 +180,10 @@ class Document(pm.Document):
         """
         return pymupdf4llm.to_markdown(self, **kwargs)
 
-    def to_text(self):
+    def to_text_pages(self) -> List[str]:
         """
 
-        Simple text output.
+        Simple text output per-page.
 
         """
         lines = []
@@ -190,9 +191,32 @@ class Document(pm.Document):
             text = page.get_text()
             lines.append(text)
 
-        text = '\n'.join(lines)
+        return lines
+
+    def to_text(self) -> str:
+        """
+
+        Simple text output.
+
+        """
+
+        text = '\n'.join(self.to_text_pages())
         return text
 
+    def split(self) -> List[Self]:
+        """
+
+        Split pages into individual documents.
+
+        """
+
+        documents = []
+        for i, page in enumerate(self, start=1):
+            document = self.__class__()
+            document.insert_pdf(self, from_page=i, to_page=i)
+            documents.append(document)
+
+        return documents
 
 if __name__ == '__main__':
     from fmtr.tools.path_tools import Path
