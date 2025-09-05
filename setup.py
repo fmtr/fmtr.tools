@@ -1,6 +1,8 @@
 from fmtr.tools import Setup
 
 DEPENDENCIES = {
+    'dev': [],
+
     'install': [],
     'test': ['pytest-cov'],
     'yaml': ['yamlscript', 'pyyaml'],
@@ -43,7 +45,8 @@ DEPENDENCIES = {
     'webhook': ['http'],
     'browsers': ['playwright'],
     'db': [],
-    'db.document': ['beanie[odm]', 'motor']
+    'db.document': ['beanie[odm]', 'motor'],
+
 }
 
 setup = Setup(
