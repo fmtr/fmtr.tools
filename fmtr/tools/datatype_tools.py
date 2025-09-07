@@ -1,4 +1,5 @@
-from typing import Any
+from types import UnionType, NoneType
+from typing import Any, get_origin, get_args
 
 from fmtr.tools.tools import Raise
 
@@ -84,3 +85,15 @@ def none_else(value: Any, default: Any) -> Any:
     if is_none(value):
         return default
     return value
+
+
+def is_optional(annotation) -> bool:
+    """
+
+    Is type/annotation optional? todo should be in typing_tools?
+
+    """
+    origin = get_origin(annotation)
+    args = get_args(annotation)
+    is_opt = origin is UnionType and NoneType in args
+    return is_opt

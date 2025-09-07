@@ -1,10 +1,9 @@
 import re
+from collections import namedtuple
 from dataclasses import dataclass
+from string import Formatter
 from textwrap import dedent
 from typing import List
-
-from collections import namedtuple
-from string import Formatter
 
 from fmtr.tools.datatype_tools import is_none
 
@@ -182,6 +181,7 @@ def join_natural(items, sep=', ', conj='and'):
 
     """
 
+    items = list(items)
     if not items:
         return ""
     if len(items) == 1:

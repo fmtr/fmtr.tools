@@ -1,7 +1,7 @@
 from fmtr.tools import Setup
 
 DEPENDENCIES = {
-    'dev': [],
+    'dev': ['logging', 'version.dev', 'debug', 'sets', 'yaml', 'db.document'],
 
     'install': [],
     'test': ['pytest-cov'],
