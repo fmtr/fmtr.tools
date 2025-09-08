@@ -2,13 +2,23 @@ from functools import cached_property
 from typing import List
 
 import beanie
+from beanie.odm import actions
 from motor.motor_asyncio import AsyncIOMotorClient
 
+from fmtr.tools import data_modelling_tools
 from fmtr.tools.constants import Constants
 from fmtr.tools.logging_tools import logger
 
+ModifyEvents = [
+    actions.Insert,
+    actions.Replace,
+    actions.Save,
+    actions.SaveChanges,
+    actions.Update
+]
 
-class Document(beanie.Document):
+
+class Document(beanie.Document, data_modelling_tools.Base):
     """
 
     Document stub.
