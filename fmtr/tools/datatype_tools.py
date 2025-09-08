@@ -93,6 +93,9 @@ def is_optional(annotation) -> bool:
     Is type/annotation optional? todo should be in typing_tools?
 
     """
+    if annotation is None:
+        return True
+
     origin = get_origin(annotation)
     args = get_args(annotation)
     is_opt = origin is UnionType and NoneType in args

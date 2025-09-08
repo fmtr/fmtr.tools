@@ -1,3 +1,4 @@
+import inspect
 from functools import cached_property
 from typing import ClassVar, List, Any, Dict
 
@@ -9,7 +10,7 @@ from pydantic_core import PydanticUndefined, PydanticUndefinedType
 from fmtr.tools.datatype_tools import is_optional
 from fmtr.tools.iterator_tools import get_class_lookup
 from fmtr.tools.string_tools import camel_to_snake
-from fmtr.tools.tools import Auto, Required
+from fmtr.tools.tools import Auto, Required, Empty
 
 
 class Field(FieldInfo):
@@ -19,26 +20,34 @@ class Field(FieldInfo):
 
     """
     NAME = Auto
-    ANNOTATION = None
+    ANNOTATION = Empty
     DEFAULT = Auto
     FILLS = None
     DESCRIPTION = None
     TITLE = Auto
     CONFIG = None
 
-    def __init__(self):
+    def __init__(self, annotation=Empty, default=Empty, description=None, title=None, fills=None, **kwargs):
         """
 
         Infer default from type annotation, if enabled, use class/argument fills to create titles/descriptions, etc.
 
         """
-        title = self.get_title_auto()
-        description = self.get_desc()
-        default = self.get_default_auto()
-        kwargs = self.CONFIG or {}
 
+        fills_super = getattr(super(), 'FILLS', None)
+        self.fills = (fills_super or {}) | (self.FILLS or {}) | (fills or {})
+
+        self.annotation = self.ANNOTATION if annotation is Empty else annotation
+        if self.annotation is Empty:
+            raise ValueError("Annotation must be specified.")
+
+        default = self.get_default_auto(default)
         if default is Required:
             default = PydanticUndefined
+
+        description = self.get_desc(description)
+        title = self.get_title_auto(title)
+        kwargs |= (self.CONFIG or {})
 
         super().__init__(default=default, title=title, description=description, **kwargs)
 
@@ -63,46 +72,55 @@ class Field(FieldInfo):
         Get fills with filled title merged in
 
         """
-        return (self.FILLS or {}) | dict(title=self.get_title_auto())
 
-    def get_default_auto(self) -> type[Any] | None | PydanticUndefinedType:
+        fills_super = getattr(super(), 'FILLS', None)
+
+        return (fills_super or {}) | (self.FILLS or {}) | dict(title=self.get_title_auto())
+
+    def get_default_auto(self, default) -> type[Any] | None | PydanticUndefinedType:
         """
 
         Infer default, if not specified.
 
         """
+
+        if default is not Empty:
+            return default
+
         if self.DEFAULT is not Auto:
             return self.DEFAULT
 
-        if is_optional(self.ANNOTATION):
+        if is_optional(self.annotation):
             return None
         else:
             return Required
 
-    def get_title_auto(self) -> str | None:
+    def get_title_auto(self, mask) -> str | None:
         """
 
         Get title from classname/mask
 
         """
 
-        mask = self.__class__.__name__ if self.TITLE is Auto else self.TITLE
-        fills = (self.FILLS or {})
+        if not mask:
+            mask = self.__class__.__name__ if self.TITLE is Auto else self.TITLE
 
         if mask:
-            return mask.format(**fills)
+            return mask.format(**self.fills)
 
         return None
 
-    def get_desc(self) -> str | None:
+    def get_desc(self, mask) -> str | None:
         """
 
-        Get description from classname/mask
+        Fill description mask, if specified
 
         """
 
-        if self.DESCRIPTION:
-            return self.DESCRIPTION.format(**self.fills)
+        mask = mask or self.DESCRIPTION
+
+        if mask:
+            return mask.format(**self.fills)
 
         return None
 
@@ -189,14 +207,16 @@ class Base(BaseModel, MixinFromJson):
 
         cls.FIELDS = fields
 
-        for name, FieldInfoType in fields.items():
+        for name, field in fields.items():
             if name in cls.__annotations__:
                 continue
 
-            field = FieldInfoType()
+            if inspect.isclass(field):
+                field = field()
+
             setattr(cls, name, field)
 
-            annotation = FieldInfoType.ANNOTATION
+            annotation = field.annotation
             cls.__annotations__[name] = annotation
 
     def to_df(self, name_value='value'):
