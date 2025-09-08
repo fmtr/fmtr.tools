@@ -2,7 +2,6 @@ from itertools import chain, batched
 from typing import List, Dict, Any
 
 from fmtr.tools.datatype_tools import is_none
-from fmtr.tools.tools import identity
 
 
 def enlist(value) -> List[Any]:
@@ -75,10 +74,10 @@ def dedupe(items):
     return list(dict.fromkeys(items))
 
 
-def get_class_lookup(*classes, name_function=identity):
+def get_class_lookup(*classes, name_function=lambda cls: cls.__name__):
     """
 
     Dictionary of class names to classes
 
     """
-    return {name_function(cls.__name__): cls for cls in classes}
+    return {name_function(cls): cls for cls in classes}

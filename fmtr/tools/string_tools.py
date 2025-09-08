@@ -241,3 +241,18 @@ def trim(text: str) -> str:
 
     """
     return dedent(text).strip()
+
+
+ACRONYM_BOUNDARY = re.compile(r'([A-Z]+)([A-Z][a-z])')
+CAMEL_BOUNDARY = re.compile(r'([a-z0-9])([A-Z])')
+
+
+def camel_to_snake(name: str) -> str:
+    """
+
+    Camel case to snake case
+
+    """
+    name = ACRONYM_BOUNDARY.sub(r'\1_\2', name)
+    name = CAMEL_BOUNDARY.sub(r'\1_\2', name)
+    return name.lower()

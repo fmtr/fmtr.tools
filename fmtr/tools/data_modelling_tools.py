@@ -8,6 +8,7 @@ from pydantic_core import PydanticUndefined, PydanticUndefinedType
 
 from fmtr.tools.datatype_tools import is_optional
 from fmtr.tools.iterator_tools import get_class_lookup
+from fmtr.tools.string_tools import camel_to_snake
 from fmtr.tools.tools import Auto, Required
 
 
@@ -17,12 +18,13 @@ class Field(FieldInfo):
     Allow DRYer field definitions, set annotation and defaults at the same time, easier field inheritance, etc.
 
     """
+    NAME = Auto
     ANNOTATION = None
     DEFAULT = Auto
     FILLS = None
     DESCRIPTION = None
     TITLE = Auto
-    KWARGS = None
+    CONFIG = None
 
     def __init__(self):
         """
@@ -33,12 +35,26 @@ class Field(FieldInfo):
         title = self.get_title_auto()
         description = self.get_desc()
         default = self.get_default_auto()
-        kwargs = self.KWARGS or {}
+        kwargs = self.CONFIG or {}
 
         if default is Required:
             default = PydanticUndefined
 
         super().__init__(default=default, title=title, description=description, **kwargs)
+
+    @classmethod
+    def get_name_auto(cls) -> str:
+        """
+
+        Infer field name, if set to auto.
+
+        """
+        if cls.NAME is Auto:
+            return camel_to_snake(cls.__name__)
+        elif cls.NAME is None:
+            return cls.__name__
+
+        return cls.NAME
 
     @cached_property
     def fills(self) -> Dict[str, str]:
@@ -169,7 +185,7 @@ class Base(BaseModel, MixinFromJson):
             if isinstance(raw, dict):
                 fields |= raw
             else:
-                fields |= get_class_lookup(*raw, name_function=str.lower)
+                fields |= get_class_lookup(*raw, name_function=lambda cls_field: cls_field.get_name_auto())
 
         cls.FIELDS = fields
 
