@@ -5,9 +5,10 @@ from typing import ClassVar, List, Any, Dict
 from pydantic import BaseModel
 from pydantic import RootModel, ConfigDict
 from pydantic.fields import FieldInfo
+from pydantic.json_schema import SkipJsonSchema
 from pydantic_core import PydanticUndefined, PydanticUndefinedType
 
-from fmtr.tools.datatype_tools import is_optional
+from fmtr.tools.datatype_tools import is_optional, none_else
 from fmtr.tools.iterator_tools import get_class_lookup
 from fmtr.tools.string_tools import camel_to_snake
 from fmtr.tools.tools import Auto, Required, Empty
@@ -21,14 +22,14 @@ class Field(FieldInfo):
     """
     NAME = Auto
     ANNOTATION = Empty
-    EXCLUDE = False
     DEFAULT = Auto
     FILLS = None
     DESCRIPTION = None
     TITLE = Auto
+    SKIP_SCHEMA = False
     CONFIG = None
 
-    def __init__(self, annotation=Empty, default=Empty, description=None, title=None, fills=None, exclude=None, **kwargs):
+    def __init__(self, annotation=Empty, default=Empty, description=None, title=None, fills=None, skip_schema=None, **kwargs):
         """
 
         Infer default from type annotation, if enabled, use class/argument fills to create titles/descriptions, etc.
@@ -38,11 +39,14 @@ class Field(FieldInfo):
         fills_super = getattr(super(), 'FILLS', None)
         self.fills = (fills_super or {}) | (self.FILLS or {}) | (fills or {})
 
-        exclude = exclude if exclude is not None else self.EXCLUDE
+        skip_schema = none_else(skip_schema, self.SKIP_SCHEMA)
 
         self.annotation = self.ANNOTATION if annotation is Empty else annotation
         if self.annotation is Empty:
             raise ValueError("Annotation must be specified.")
+
+        if skip_schema:
+            self.annotation = SkipJsonSchema[self.annotation]
 
         default = self.get_default_auto(default)
         if default is Required:
@@ -52,7 +56,7 @@ class Field(FieldInfo):
         title = self.get_title_auto(title)
         kwargs |= (self.CONFIG or {})
 
-        super().__init__(annotation=self.annotation, default=default, title=title, description=description, exclude=exclude, **kwargs)
+        super().__init__(annotation=self.annotation, default=default, title=title, description=description, **kwargs)
 
     @classmethod
     def get_name_auto(cls) -> str:
