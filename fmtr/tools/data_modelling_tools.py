@@ -21,13 +21,14 @@ class Field(FieldInfo):
     """
     NAME = Auto
     ANNOTATION = Empty
+    EXCLUDE = False
     DEFAULT = Auto
     FILLS = None
     DESCRIPTION = None
     TITLE = Auto
     CONFIG = None
 
-    def __init__(self, annotation=Empty, default=Empty, description=None, title=None, fills=None, **kwargs):
+    def __init__(self, annotation=Empty, default=Empty, description=None, title=None, fills=None, exclude=None, **kwargs):
         """
 
         Infer default from type annotation, if enabled, use class/argument fills to create titles/descriptions, etc.
@@ -37,9 +38,12 @@ class Field(FieldInfo):
         fills_super = getattr(super(), 'FILLS', None)
         self.fills = (fills_super or {}) | (self.FILLS or {}) | (fills or {})
 
+        exclude = exclude if exclude is not None else self.EXCLUDE
+
         self.annotation = self.ANNOTATION if annotation is Empty else annotation
         if self.annotation is Empty:
             raise ValueError("Annotation must be specified.")
+        annotation = self.annotation
 
         default = self.get_default_auto(default)
         if default is Required:
@@ -49,7 +53,8 @@ class Field(FieldInfo):
         title = self.get_title_auto(title)
         kwargs |= (self.CONFIG or {})
 
-        super().__init__(default=default, title=title, description=description, **kwargs)
+        super().__init__(default=default, title=title, description=description, exclude=exclude, **kwargs)
+        self.annotation = annotation
 
     @classmethod
     def get_name_auto(cls) -> str:
@@ -215,9 +220,7 @@ class Base(BaseModel, MixinFromJson):
                 field = field()
 
             setattr(cls, name, field)
-
-            annotation = field.annotation
-            cls.__annotations__[name] = annotation
+            cls.__annotations__[name] = field.annotation
 
     def to_df(self, name_value='value'):
         """
