@@ -43,7 +43,6 @@ class Field(FieldInfo):
         self.annotation = self.ANNOTATION if annotation is Empty else annotation
         if self.annotation is Empty:
             raise ValueError("Annotation must be specified.")
-        annotation = self.annotation
 
         default = self.get_default_auto(default)
         if default is Required:
@@ -53,8 +52,7 @@ class Field(FieldInfo):
         title = self.get_title_auto(title)
         kwargs |= (self.CONFIG or {})
 
-        super().__init__(default=default, title=title, description=description, exclude=exclude, **kwargs)
-        self.annotation = annotation
+        super().__init__(annotation=self.annotation, default=default, title=title, description=description, exclude=exclude, **kwargs)
 
     @classmethod
     def get_name_auto(cls) -> str:
