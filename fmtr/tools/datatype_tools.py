@@ -1,5 +1,5 @@
 from types import UnionType, NoneType
-from typing import Any, get_origin, get_args
+from typing import Any, get_origin, get_args, Union, Annotated
 
 from fmtr.tools.tools import Raise
 
@@ -98,5 +98,9 @@ def is_optional(annotation) -> bool:
 
     origin = get_origin(annotation)
     args = get_args(annotation)
-    is_opt = origin is UnionType and NoneType in args
+
+    if origin is Annotated:
+        return is_optional(args[0])
+
+    is_opt = (origin is UnionType or origin is Union) and NoneType in args
     return is_opt
