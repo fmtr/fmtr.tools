@@ -236,6 +236,18 @@ class Base(BaseModel, MixinFromJson):
         df = tabular.pd.json_normalize(data, sep='_')
         return df
 
+    @classmethod
+    def to_df_empty(cls):
+        """
+
+        Empty DataFrame
+
+        """
+        from fmtr.tools import tabular
+
+        row = {name: None for name in cls.model_fields.keys()}
+        df = tabular.pd.DataFrame([row])
+        return df
 
 class Root(RootModel, MixinFromJson):
     """

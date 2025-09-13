@@ -46,7 +46,7 @@ class Cell(ft.DataCell):
 
         """
 
-        return ft.Text(str(self.value), color=self.color)
+        return ft.Text(str(self.value), color=self.color, bgcolor=self.bgcolor)
 
     @property
     def color(self):
@@ -61,13 +61,23 @@ class Cell(ft.DataCell):
             return None
 
     @property
+    def bgcolor(self):
+        """
+
+        Basic conditional formatting
+
+        """
+        return None
+
+
+    @property
     def gesture_detector(self):
         """
 
         Make arbitrary content clickable
 
         """
-        return ft.GestureDetector(content=self.text, on_tap=self.click_tap)
+        return ft.GestureDetector(content=self.text, on_tap=self.click_tap, on_double_tap=self.click_double_tap)
 
     async def click_tap(self, event: TapEvent):
         """
@@ -87,6 +97,24 @@ class Cell(ft.DataCell):
         """
         logger.info(f"Clicked {self.column=} {self.series.id=} {self.value=}")
 
+    async def click_double_tap(self, event: TapEvent):
+        """
+
+        Default cell click behavior — override in subclass if needed
+
+        """
+        value = await self.double_click(event=event)
+        event.page.update()
+        return value
+
+    async def double_click(self, event: Optional[TapEvent] = None):
+        """
+
+        Default cell double click behavior — override in subclass if needed
+
+        """
+        logger.info(f"Double-clicked {self.column=} {self.series.id=} {self.value=}")
+
 
 class Row(ft.DataRow):
     """
@@ -100,7 +128,16 @@ class Row(ft.DataRow):
     def __init__(self, series):
         self.series = series
         cells = [self.TypeCell(series, col) for col in series.index]
-        super().__init__(cells)
+        super().__init__(cells, color=self.row_color)
+
+    @property
+    def row_color(self):
+        """
+
+        Basic conditional formatting
+
+        """
+        return None
 
 
 class Column(ft.DataColumn):
