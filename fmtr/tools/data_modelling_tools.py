@@ -224,21 +224,16 @@ class Base(BaseModel, MixinFromJson):
             setattr(cls, name, field)
             cls.__annotations__[name] = field.annotation
 
-    def to_df(self, name_value='value'):
+    def to_df(self, **kwargs):
         """
 
-        DataFrame representation with Fields as rows.
+        DataFrame representation of Data Model.
 
         """
+        from fmtr.tools import tabular
 
-        objs = []
-        for name in self.model_fields.keys():
-            val = getattr(self, name)
-            objs.append(val)
-
-        df = to_df(*objs, name_value=name_value)
-        df['id'] = list(self.model_fields.keys())
-        df = df.set_index('id', drop=True)
+        data = self.model_dump(**kwargs)
+        df = tabular.pd.json_normalize(data, sep='_')
         return df
 
 
@@ -249,11 +244,21 @@ class Root(RootModel, MixinFromJson):
 
     """
 
-    def to_df(self):
+    def to_df(self, **kwargs):
         """
 
         DataFrame representation with items as rows.
 
         """
 
-        return to_df(*self.items)
+        """
+
+        DataFrame representation of Data Model.
+
+        """
+        from fmtr.tools import tabular
+
+        data = [item.model_dump(**kwargs) for item in self.items]
+        dfs = [tabular.pd.json_normalize(datum, sep='_') for datum in data]
+        df = tabular.pd.concat(dfs, axis=tabular.CONCAT_VERTICALLY)
+        return df
