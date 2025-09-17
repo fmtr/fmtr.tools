@@ -1,3 +1,4 @@
+import os
 from typing import TypeVar, Generic, Type
 
 import flet as ft
@@ -72,8 +73,11 @@ class Base(Generic[T], ft.Column):
     URL = Constants.FMTR_DEV_INTERFACE_URL if environment_tools.IS_DEV else None
     APPVIEW = AppView.WEB_BROWSER
     PATH_ASSETS = None
-    ROUTE_ROOT = '/'
+    PATH_UPLOADS = None
     SCROLL = ft.ScrollMode.AUTO
+
+    SECRET_KEY_KEY = 'FLET_SECRET_KEY'
+    ROUTE_ROOT = '/'
 
     TypeContext: Type[T] = Context
 
@@ -168,8 +172,11 @@ class Base(Generic[T], ft.Column):
         else:
             url = f'http://{cls.HOST}:{cls.PORT}'
 
+        if not environment_tools.get(cls.SECRET_KEY_KEY, default=None):
+            os.environ["FLET_SECRET_KEY"] = os.urandom(12).hex()
+
         logger.info(f"Launching {cls.TITLE} at {url}")
-        ft.app(cls.new, view=cls.APPVIEW, host=cls.HOST, port=cls.PORT, assets_dir=cls.PATH_ASSETS, )
+        ft.app(cls.new, view=cls.APPVIEW, host=cls.HOST, port=cls.PORT, assets_dir=cls.PATH_ASSETS, upload_dir=cls.PATH_UPLOADS)
 
 
 class Test(Base[Context]):
