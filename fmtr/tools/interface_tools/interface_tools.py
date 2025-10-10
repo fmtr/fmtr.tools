@@ -31,14 +31,6 @@ class progress(update):
 
     """
 
-    def get_context(self, instance):
-        """
-
-        Use instance-defined context.
-
-        """
-        return instance.context
-
     def start(self, instance, *args, **kwargs):
         """
 

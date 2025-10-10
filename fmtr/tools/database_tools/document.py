@@ -3,7 +3,7 @@ from typing import List
 
 import beanie
 from beanie.odm import actions
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 
 from fmtr.tools import data_modelling_tools
 from fmtr.tools.constants import Constants
@@ -34,7 +34,7 @@ class Client:
         self.port = port
         self.documents = documents
 
-        self.client = AsyncIOMotorClient(self.uri, tz_aware=True)
+        self.client = AsyncMongoClient(self.uri, tz_aware=True)
         self.db = self.client[self.name]
 
     @cached_property
