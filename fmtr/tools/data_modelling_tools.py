@@ -182,8 +182,38 @@ class MixinFromJson:
         return self
 
 
+class CliRunMixin:
+    """
 
-class Base(BaseModel, MixinFromJson):
+    Mixin only so that it can also be used with Pydantic Settings.
+
+    TODO Ideally, the run method would be defined on dm.Base and the settings base would just inherit like set.Base(BaseSettings, dm.Base), but this isn't yet tested/could break Fields.
+
+    """
+
+    def run(self):
+        """
+
+        Behaviour when run as a CLI command, i.e. via Pydantic Settings. Run any subcommands then exit.
+
+        """
+
+        from pydantic_settings import get_subcommand
+
+        command = get_subcommand(self, is_required=False, cli_exit_on_error=False)
+
+        if not command:
+            return
+
+        result = command.run()
+        if inspect.isawaitable(result):
+            import asyncio
+            result = asyncio.run(result)
+
+        raise SystemExit(result)
+
+
+class Base(BaseModel, MixinFromJson, CliRunMixin):
     """
 
     Base model allowing model definition via a list of custom Field objects.

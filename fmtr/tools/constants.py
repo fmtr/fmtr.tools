@@ -46,7 +46,10 @@ class Constants:
     FILENAME_VERSION = 'version'
     DIR_NAME_HF = 'hf'
 
-    ENTRYPOINTS_DIR = 'entrypoints'
+    ENTRYPOINT = 'entrypoint'
+    ENTRYPOINTS_DIR = f'{ENTRYPOINT}s'
+    ENTRYPOINT_FILE = f'{ENTRYPOINT}.py'
+
     PACKAGE_EXCLUDE_DIRS = {'data', 'build', 'dist', '.*', '*egg-info*'}
     INIT_FILENAME = '__init__.py'
 

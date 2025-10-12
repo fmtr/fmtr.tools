@@ -89,6 +89,15 @@ class SetupPaths(FromCallerMixin):
         return org
 
     @property
+    def entrypoint(self) -> Path:
+        """
+
+        Path of base entrypoint module.
+
+        """
+        return self.path / Constants.ENTRYPOINT_FILE
+
+    @property
     def entrypoints(self) -> Path:
         """
 
@@ -182,22 +191,37 @@ class Setup(FromCallerMixin):
     def console_scripts(self) -> List[str]:
         """
 
-        Generate console scripts for any modules in the `entrypoints` sub-package.
+        Generate console scripts for the `entrypoint` module - and/or any modules in `entrypoints` sub-package.
 
         """
 
         if not self.paths.entrypoints.exists():
-            return []
+            paths_mods = []
+        else:
+            paths_mods = list(self.paths.entrypoints.iterdir())
 
-        names_mods = [path.stem for path in self.paths.entrypoints.iterdir() if path.is_file() and path.name != Constants.INIT_FILENAME]
-        command_prefix = self.name.replace('.', self.ENTRYPOINT_COMMAND_SEP)
+        names_mods = [path.stem for path in paths_mods if path.is_file() and path.name != Constants.INIT_FILENAME]
         command_suffixes = [name_mod.replace(self.ENTRYPOINT_FUNCTION_SEP, self.ENTRYPOINT_COMMAND_SEP) for name_mod in names_mods]
-        commands = [f'{command_prefix}-{command_suffix}' for command_suffix in command_suffixes]
+        commands = [f'{self.name_command}-{command_suffix}' for command_suffix in command_suffixes]
         paths = [f'{self.name}.{Constants.ENTRYPOINTS_DIR}.{name_mod}:{self.ENTRYPOINT_FUNC_NAME}' for name_mod in names_mods]
+
+        if self.paths.entrypoint.exists():
+            commands.append(self.name_command)
+            path = f'{self.name}.{self.paths.entrypoint.stem}:{self.ENTRYPOINT_FUNC_NAME}'
+            paths.append(path)
 
         console_scripts = [f'{command} = {path}' for command, path in zip(commands, paths)]
 
         return console_scripts
+
+    @cached_property
+    def name_command(self) -> str:
+        """
+
+        Name as a command, e.g. `fmtr-tools`
+
+        """
+        return self.name.replace('.', self.ENTRYPOINT_COMMAND_SEP)
 
     @property
     def name(self) -> str:

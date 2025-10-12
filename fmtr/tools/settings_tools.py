@@ -1,6 +1,8 @@
-from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, YamlConfigSettingsSource, EnvSettingsSource, CliSettingsSource
 from typing import ClassVar, Any
 
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, YamlConfigSettingsSource, EnvSettingsSource, CliSettingsSource
+
+from fmtr.tools.data_modelling_tools import CliRunMixin
 from fmtr.tools.path_tools import PackagePaths, Path
 
 
@@ -21,7 +23,7 @@ class YamlScriptConfigSettingsSource(YamlConfigSettingsSource):
         return data
 
 
-class Base(BaseSettings):
+class Base(BaseSettings, CliRunMixin):
     """
 
     Base class for settings configuration using Pydantic BaseSettings.

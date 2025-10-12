@@ -45,7 +45,7 @@ DEPENDENCIES = {
     'webhook': ['http'],
     'browsers': ['playwright'],
     'db': [],
-    'db.document': ['beanie[odm]', 'motor'],
+    'db.document': ['beanie[odm]'],
 
 }
 
