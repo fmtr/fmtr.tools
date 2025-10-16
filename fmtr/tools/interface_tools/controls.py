@@ -1,3 +1,4 @@
+from functools import cached_property
 from typing import Optional
 
 import flet as ft
@@ -127,8 +128,40 @@ class Row(ft.DataRow):
 
     def __init__(self, series):
         self.series = series
-        cells = [self.TypeCell(series, col) for col in series.index]
-        super().__init__(cells, color=self.row_color)
+        super().__init__(self.cells_controls, color=self.row_color)
+
+    @cached_property
+    def cells_data(self) -> dict[str, list[Cell]]:
+        """
+
+        Cell controls lookup
+
+        """
+        data = {}
+        for col in self.series.index:
+            data.setdefault(col, []).append(self.TypeCell(self.series, col))
+        return data
+
+    @cached_property
+    def cells_controls(self) -> list[Cell]:
+        """
+
+        Flat list of controls
+
+        """
+        controls = []
+        for cells in self.cells_data.values():
+            for cell in cells:
+                controls.append(cell)
+        return controls
+
+    def __getitem__(self, item) -> list[Cell]:
+        """
+
+        Get cells by column name
+
+        """
+        return self.cells_data[item]
 
     @property
     def row_color(self):
@@ -195,5 +228,38 @@ class Table(ft.DataTable):
         """
         self.df = df
         columns = [self.TypeColumn(col) for col in df.columns]
-        rows = [self.TypeRow(row) for _, row in df.iterrows()]
-        super().__init__(columns=columns, rows=rows)
+        super().__init__(columns=columns, rows=self.rows_controls)
+
+    @cached_property
+    def rows_data(self) -> dict[str, list[Row]]:
+        """
+
+        Row controls lookup
+
+        """
+        data = {}
+        for index, row in self.df.iterrows():
+            data.setdefault(index, []).append(self.TypeRow(row))
+        return data
+
+    @cached_property
+    def rows_controls(self) -> list[Row]:
+        """
+
+        Flat list of controls
+
+        """
+        controls = []
+        for rows in self.rows_data.values():
+            for row in rows:
+                controls.append(row)
+        return controls
+
+    def __getitem__(self, item) -> list[Row]:
+        """
+
+        Get row by index
+
+        """
+
+        return self.rows_data[item]
