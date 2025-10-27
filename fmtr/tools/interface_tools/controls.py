@@ -1,8 +1,10 @@
+import flet as ft
+from dataclasses import dataclass
+from flet.core.gesture_detector import TapEvent
+from flet.core.page import Page
+from flet.core.types import ColorValue, IconValue
 from functools import cached_property
 from typing import Optional
-
-import flet as ft
-from flet.core.gesture_detector import TapEvent
 
 from fmtr.tools.logging_tools import logger
 
@@ -263,3 +265,61 @@ class Table(ft.DataTable):
         """
 
         return self.rows_data[item]
+
+
+@dataclass
+class NotificationDatum:
+    """
+
+    Color and icon for notification bar
+
+    """
+    color: ColorValue
+    icon: IconValue
+
+
+class NotificationBar(ft.SnackBar):
+    """
+
+    Combined logging and notification bar: infers the appropriate UI representation from the log level
+
+    """
+    DATA = {
+        logger.info: NotificationDatum(color=ft.Colors.BLUE, icon=ft.Icons.INFO),
+        logger.warning: NotificationDatum(color=ft.Colors.AMBER, icon=ft.Icons.WARNING),
+        logger.error: NotificationDatum(color=ft.Colors.RED, icon=ft.Icons.ERROR),
+        logger.debug: NotificationDatum(color=ft.Colors.GREY, icon=ft.Icons.BUG_REPORT),
+        logger.exception: NotificationDatum(color=ft.Colors.RED_ACCENT, icon=ft.Icons.REPORT),
+    }
+
+    def __init__(self, msg: str, method=logger.info):
+        """
+
+        Log the message immediately, otherwise configure notification bar icon/color.
+
+        """
+        self.msg = msg
+        self.method = method
+        self.method(msg)
+
+        icon = ft.Icon(self.data.icon, color=self.data.color)
+        text = ft.Text(self.msg)
+        content = ft.Row(controls=[icon, text])
+        super().__init__(content=content)
+
+    @cached_property
+    def data(self) -> NotificationDatum:
+        """
+
+        Fetching data using logging method.
+
+        """
+        return self.DATA[self.method]
+
+    def show(self, page: Page):
+        """
+
+        Show the notification on the relevant page.
+
+        """
+        page.open(self)
