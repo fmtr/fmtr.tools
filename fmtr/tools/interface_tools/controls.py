@@ -126,7 +126,7 @@ class Row(ft.DataRow):
 
     """
 
-    TypeCell = Cell
+    TypesCells = {None: Cell}
 
     def __init__(self, series):
         self.series = series
@@ -141,7 +141,9 @@ class Row(ft.DataRow):
         """
         data = {}
         for col in self.series.index:
-            data.setdefault(col, []).append(self.TypeCell(self.series, col))
+            default = self.TypesCells[None]
+            TypeCell = self.TypesCells.get(col, default)
+            data.setdefault(col, []).append(TypeCell(self.series, col))
         return data
 
     @cached_property
@@ -219,8 +221,8 @@ class Table(ft.DataTable):
 
     """
 
-    TypeRow = Row
-    TypeColumn = Column
+    TypesRows = {None: Row}
+    TypesColumns = {None: Column}
 
     def __init__(self, df):  # todo move to submodule with tabular deps
         """
@@ -229,8 +231,34 @@ class Table(ft.DataTable):
 
         """
         self.df = df
-        columns = [self.TypeColumn(col) for col in df.columns]
-        super().__init__(columns=columns, rows=self.rows_controls)
+        super().__init__(columns=self.columns_controls, rows=self.rows_controls)
+
+    @cached_property
+    def columns_data(self) -> dict[str, list[Column]]:
+        """
+
+        Columns controls lookup
+
+        """
+        data = {}
+        for col in self.df.columns:
+            default = self.TypesColumns[None]
+            TypeColumn = self.TypesColumns.get(col, default)
+            data.setdefault(col, []).append(TypeColumn(col))
+        return data
+
+    @cached_property
+    def columns_controls(self) -> list[Column]:
+        """
+
+        Flat list of controls
+
+        """
+        controls = []
+        for columns in self.columns_data.values():
+            for column in columns:
+                controls.append(column)
+        return controls
 
     @cached_property
     def rows_data(self) -> dict[str, list[Row]]:
@@ -241,7 +269,9 @@ class Table(ft.DataTable):
         """
         data = {}
         for index, row in self.df.iterrows():
-            data.setdefault(index, []).append(self.TypeRow(row))
+            default = self.TypesRows[None]
+            TypeRow = self.TypesRows.get(index, default)
+            data.setdefault(index, []).append(TypeRow(row))
         return data
 
     @cached_property
