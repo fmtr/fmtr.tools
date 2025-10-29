@@ -41,7 +41,7 @@ class Cell(ft.DataCell):
 
         super().__init__(self.gesture_detector)
 
-    @property
+    @cached_property
     def text(self):
         """
 
@@ -72,8 +72,7 @@ class Cell(ft.DataCell):
         """
         return None
 
-
-    @property
+    @cached_property
     def gesture_detector(self):
         """
 
@@ -98,7 +97,7 @@ class Cell(ft.DataCell):
         Default cell click behavior — override in subclass if needed
 
         """
-        logger.info(f"Clicked {self.column=} {self.series.id=} {self.value=}")
+        logger.info(f"Clicked {self.column=} {self.series.name=} {self.value=}")
 
     async def click_double_tap(self, event: TapEvent):
         """
@@ -195,7 +194,7 @@ class Column(ft.DataColumn):
 
         super().__init__(label=self.text)
 
-    @property
+    @cached_property
     def text(self):
         """
 
