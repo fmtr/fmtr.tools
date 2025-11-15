@@ -29,6 +29,7 @@ def alt(*patterns):
 @dataclass
 class Key:
     RECORD_SEP = '␞'
+    FILLS = None
 
     def flatten(self, data):
         """
@@ -47,7 +48,13 @@ class Key:
         Serialise to pattern
 
         """
-        data = {key: MASK_NAMED.format(key=key, pattern=value) for key, value in asdict(self).items()}
+        data = {
+            key:
+                MASK_NAMED.format(
+                    key=key,
+                    pattern=value.format_map(self.fills))
+            for key, value in asdict(self).items()
+        }
         pattern = self.flatten(data)
         return pattern
 
@@ -70,14 +77,24 @@ class Key:
         string = self.flatten(asdict(self))
         return string
 
+    @cached_property
+    def fills(self):
+        """
+
+        Add key names as regex group names
+
+        """
+        return {key: MASK_NAMED.format(key=key, pattern=value) for key, value in self.FILLS.items()}
+
+
     def transform(self, match: re.Match):
         """
 
         Transform match object into a new object of the same type.
 
         """
-        groupdict = match.groupdict()
-        data = {key: value.format(**groupdict) for key, value in asdict(self).items()}
+        fills = match.groupdict()
+        data = {key: value.format_map(fills) for key, value in asdict(self).items()}
         obj = self.__class__(**data)
         return obj
 
