@@ -127,6 +127,23 @@ class Transformer:
     is_recursive: bool = False
 
     def __post_init__(self):
+        """
+
+        Compile on init
+
+        """
+        return self.compile(clear=False)
+
+    def compile(self, clear=True):
+        """
+
+        Re/compile regex pattern, invalidating existing caches if recompile.
+
+        """
+        if clear:
+            del self.pattern
+            del self.rx
+
         with logger.span(f'Compiling expression {len(self.items)=}'):
             rx = self.rx
         logger.debug(f'Compiled successfully {rx.groups=}')
