@@ -12,6 +12,7 @@ import fmtr.tools.iterator_tools as iterator
 import fmtr.tools.json_tools as json
 import fmtr.tools.logging_tools as logging
 import fmtr.tools.name_tools as name
+import fmtr.tools.networking_tools as net
 import fmtr.tools.packaging_tools as packaging
 import fmtr.tools.path_tools as path
 import fmtr.tools.platform_tools as platform
@@ -170,6 +171,12 @@ try:
     from fmtr.tools import webhook_tools as webhook
 except ModuleNotFoundError as exception:
     webhook = MissingExtraMockModule('webhook', exception)
+
+try:
+    from fmtr.tools import mqtt_tools as mqtt
+except ModuleNotFoundError as exception:
+    mqtt = MissingExtraMockModule('mqtt', exception)
+
 
 
 def get_version():

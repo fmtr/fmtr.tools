@@ -77,3 +77,4 @@ get_datetime = get_getter(datetime.fromisoformat)
 get_path = get_getter(Path)
 
 IS_DEV = get_bool(Constants.FMTR_DEV_KEY, default=False)
+CHANNEL = Constants.DEVELOPMENT if IS_DEV else Constants.PRODUCTION
