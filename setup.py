@@ -46,7 +46,8 @@ DEPENDENCIES = {
     'browsers': ['playwright'],
     'db': [],
     'db.document': ['beanie[odm]'],
-    'mqtt': ['aiomqtt']
+    'mqtt': ['aiomqtt'],
+    'av': ['av']
 
 }
 

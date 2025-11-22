@@ -177,6 +177,11 @@ try:
 except ModuleNotFoundError as exception:
     mqtt = MissingExtraMockModule('mqtt', exception)
 
+try:
+    from fmtr.tools import av_tools as av
+except ModuleNotFoundError as exception:
+    av = MissingExtraMockModule('av', exception)
+
 
 
 def get_version():
