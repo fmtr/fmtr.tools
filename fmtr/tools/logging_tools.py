@@ -13,15 +13,6 @@ else:
 IS_DEBUG = environment_tools.get(Constants.FMTR_LOG_LEVEL_KEY, None, converter=str.upper) == 'DEBUG'
 LEVEL_DEFAULT = logging.DEBUG if IS_DEBUG else logging.INFO
 
-
-def null_scrubber(match):
-    """
-
-    Effectively disable scrubbing
-
-    """
-    return match.value
-
 def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=Constants.ORG_NAME,
                stream=STREAM_DEFAULT, environment=ENVIRONMENT_DEFAULT, level=LEVEL_DEFAULT):
     """
@@ -58,9 +49,7 @@ def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=C
         from fmtr.tools import version_tools
         version = version_tools.read()
 
-    # Rigmarole to translate native levels to logfire/otel ones.
-    lev_num_otel = logfire._internal.constants.LOGGING_TO_OTEL_LEVEL_NUMBERS[level]
-    lev_name_otel = logfire._internal.constants.NUMBER_TO_LEVEL[lev_num_otel]
+    lev_name_otel = get_otel_level_name(level)
 
     console_opts = logfire.ConsoleOptions(
         colors='always',
@@ -81,6 +70,76 @@ def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=C
         logger.warning(msg)
 
     return logger
+
+
+def null_scrubber(match):
+    """
+
+    Effectively disable scrubbing
+
+    """
+    return match.value
+
+
+def get_current_level(logger):
+    """
+
+    Get the current console log level.
+
+    """
+    level = logger.DEFAULT_LOGFIRE_INSTANCE.config.console.min_log_level
+    return level
+
+
+def get_logger_names():
+    """
+
+    Fetch current native logger names
+
+    """
+    return list(logging.getLogger().manager.loggerDict.keys())
+
+
+OTEL_TO_NATIVE = {
+    1: 1,  # trace
+    3: 5,  # debug
+    5: 10,  # debug (canonical)
+    6: 13,  # warn
+    8: 17,  # error
+    9: 20,  # info
+    10: 23,  # notice
+    11: 25,  # success/loguru
+    13: 30,  # warning
+    17: 40,  # error
+    21: 50,  # fatal
+}
+
+
+def get_otel_level_name(native_level: int) -> str:
+    """
+
+    Convert a native Python logging level number to an OTEL/logfire level name.
+
+    """
+
+    from logfire._internal import constants
+
+    otel_num = constants.LOGGING_TO_OTEL_LEVEL_NUMBERS[native_level]
+    name = constants.NUMBER_TO_LEVEL[otel_num]
+    return name
+
+
+def get_native_level_from_otel(otel_name: str) -> int:
+    """
+
+    Convert an OTEL/logfire level name to a native Python logging level number.
+
+    """
+    from logfire._internal import constants
+
+    otel_num = constants.LEVEL_NUMBERS[otel_name]
+    level = OTEL_TO_NATIVE[otel_num]
+    return level
 
 
 logger = get_logger(name=Constants.LIBRARY_NAME)

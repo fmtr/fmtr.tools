@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 
 
 def ensure_loop():
@@ -13,3 +14,6 @@ def ensure_loop():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         return loop
+
+
+is_async = inspect.iscoroutinefunction
