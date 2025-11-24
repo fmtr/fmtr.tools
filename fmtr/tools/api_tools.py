@@ -1,12 +1,18 @@
-import uvicorn
+import logging
 from dataclasses import dataclass
-from fastapi import FastAPI, Request
 from typing import Callable, List, Optional, Union
+
+import uvicorn
+from fastapi import FastAPI, Request
 
 from fmtr.tools import environment_tools
 from fmtr.tools.iterator_tools import enlist
 from fmtr.tools.logging_tools import logger
 
+for name in ["uvicorn.access", "uvicorn.error", "uvicorn"]:
+    logger_uvicorn = logging.getLogger(name)
+    logger_uvicorn.handlers.clear()
+    logger_uvicorn.propagate = False
 
 @dataclass
 class Endpoint:
@@ -34,6 +40,7 @@ class Base:
     HOST = '0.0.0.0'
     PORT = 8080
     SWAGGER_PARAMS = dict(tryItOutEnabled=True)
+    URL = None
     URL_DOCS = '/docs'
 
     def add_endpoint(self, endpoint: Endpoint):
@@ -83,17 +90,68 @@ class Base:
         exception
         raise
 
+    @property
+    def url(self) -> str:
+        """
+
+        Default URL unless overridden.
+
+        """
+        if self.URL:
+            url = self.URL
+        else:
+            url = f'http://{self.HOST}:{self.PORT}'
+        return url
+
+    @property
+    def message(self) -> str:
+        """
+
+        Launch message.
+
+        """
+        return f"Launching {self.TITLE} at {self.url}"
+
+    @property
+    def config(self) -> uvicorn.Config:
+        """
+
+        Uvicorn config.
+
+        """
+        return uvicorn.Config(self.app, host=self.HOST, port=self.PORT, access_log=False)
+
+    @property
+    def server(self) -> uvicorn.Server:
+        """"
+
+        Uvicorn server.
+
+        """
+        return uvicorn.Server(self.config)
 
     @classmethod
-    def launch(cls):
+    async def launch_async(cls, *args, **kwargs):
         """
 
-        Initialise self and launch.
+        Initialise and launch.
 
         """
-        self = cls()
-        logger.info(f'Launching API {cls.TITLE}...')
-        uvicorn.run(self.app, host=self.HOST, port=self.PORT)
+
+        self = cls(*args, **kwargs)
+        logger.info(self.message)
+        await self.server.serve()
+
+    @classmethod
+    def launch(cls, *args, **kwargs):
+        """
+
+        Convenience method to launch async from a regular context.
+
+        """
+        import asyncio
+        return asyncio.run(cls.launch_async(*args, **kwargs))
+
 
 
 if __name__ == '__main__':
