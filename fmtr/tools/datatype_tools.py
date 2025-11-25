@@ -3,7 +3,7 @@ from typing import Any, get_origin, get_args, Union, Annotated
 
 from fmtr.tools.tools import Raise
 
-TRUES = {str(True).lower(), str(1), 'y', 'yes'}
+TRUES = {str(True).lower(), str(1), 'y', 'yes', 'on'}
 
 
 class TypeConversionFailed(ValueError):
