@@ -32,6 +32,7 @@ class Base(BaseSettings, CliRunMixin):
 
     """
 
+    ENV_NESTED_DELIMITER: ClassVar = '__'
     paths: ClassVar = PackagePaths()
 
     @classmethod
@@ -52,7 +53,7 @@ class Base(BaseSettings, CliRunMixin):
         sources = (
             init_settings,
             CliSettingsSource(settings_cls, cli_parse_args=True),
-            EnvSettingsSource(settings_cls, env_prefix=cls.get_env_prefix()),
+            EnvSettingsSource(settings_cls, env_prefix=cls.get_env_prefix(), env_nested_delimiter=cls.ENV_NESTED_DELIMITER),
             YamlScriptConfigSettingsSource(settings_cls, yaml_file=cls.paths.settings),
         )
 
