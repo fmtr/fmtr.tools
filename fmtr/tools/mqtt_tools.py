@@ -20,22 +20,23 @@ class Args:
     The (serialisable subset of the) init args for Client (e.g. for init via Pydantic Settings)
 
     """
-    port: int = 1883,
-    username: str | None = None,
-    password: str | None = None,
-    identifier: str | None = None,
-    clean_session: bool | None = None,
-    transport: Literal["tcp", "websockets", "unix"] = "tcp",
-    timeout: float | None = None,
-    keepalive: int = 60,
-    bind_address: str = "",
-    bind_port: int = 0,
-    clean_start: CleanStartOption = MQTT_CLEAN_START_FIRST_ONLY,
-    max_queued_incoming_messages: int | None = None,
-    max_queued_outgoing_messages: int | None = None,
-    max_inflight_messages: int | None = None,
-    max_concurrent_outgoing_calls: int | None = None,
-    tls_insecure: bool | None = None,
+    hostname: str
+    port: int = 1883
+    username: str | None = None
+    password: str | None = None
+    identifier: str | None = None
+    clean_session: bool | None = None
+    transport: Literal["tcp", "websockets", "unix"] = "tcp"
+    timeout: float | None = None
+    keepalive: int = 60
+    bind_address: str = ""
+    bind_port: int = 0
+    clean_start: CleanStartOption = MQTT_CLEAN_START_FIRST_ONLY
+    max_queued_incoming_messages: int | None = None
+    max_queued_outgoing_messages: int | None = None
+    max_inflight_messages: int | None = None
+    max_concurrent_outgoing_calls: int | None = None
+    tls_insecure: bool | None = None
 
 
 
