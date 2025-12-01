@@ -83,7 +83,7 @@ def get_class_lookup(*classes, name_function=lambda cls: cls.__name__):
     return {name_function(cls): cls for cls in classes}
 
 
-class Index(list):
+class IndexList(list):
     """
 
     List of objects selectable via attribute lookup.
@@ -101,10 +101,17 @@ class Index(list):
     def __getattr__(self, name):
         """
 
-        If the attribute exists as a list method, return that
+        Return a lookup dict keyed on the specified field of each item in the self/list.
 
         """
         if hasattr(list, name):
             return getattr(self, name)
 
-        return {getattr(obj, name): obj for obj in self}
+        result = {}
+        for obj in self:
+            try:
+                value = getattr(obj, name)
+            except AttributeError:
+                value = obj[name]  # assume dict-like
+            result[value] = obj
+        return result
