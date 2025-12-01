@@ -81,3 +81,30 @@ def get_class_lookup(*classes, name_function=lambda cls: cls.__name__):
 
     """
     return {name_function(cls): cls for cls in classes}
+
+
+class Index(list):
+    """
+
+    List of objects selectable via attribute lookup.
+
+    """
+
+    def __init__(self, iterable=()):
+        """
+
+        Initialize with iterable
+
+        """
+        super().__init__(iterable)
+
+    def __getattr__(self, name):
+        """
+
+        If the attribute exists as a list method, return that
+
+        """
+        if hasattr(list, name):
+            return getattr(self, name)
+
+        return {getattr(obj, name): obj for obj in self}
