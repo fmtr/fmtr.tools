@@ -2,6 +2,7 @@ from typing import ClassVar, Any
 
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, YamlConfigSettingsSource, EnvSettingsSource, CliSettingsSource
 
+from fmtr.tools import Constants
 from fmtr.tools.data_modelling_tools import CliRunMixin
 from fmtr.tools.path_tools import PackagePaths, Path
 
@@ -32,7 +33,7 @@ class Base(BaseSettings, CliRunMixin):
 
     """
 
-    ENV_NESTED_DELIMITER: ClassVar = '__'
+    ENV_NESTED_DELIMITER: ClassVar = Constants.ENV_NESTED_DELIMITER
     paths: ClassVar = PackagePaths()
 
     @classmethod
@@ -71,7 +72,7 @@ class Base(BaseSettings, CliRunMixin):
         else:
             stem = f'{cls.paths.name}'
 
-        prefix = f'{stem}_'.upper()
+        prefix = f'{stem}{cls.ENV_NESTED_DELIMITER}'.upper()
         return prefix
 
     @property

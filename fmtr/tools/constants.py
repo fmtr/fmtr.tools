@@ -14,6 +14,8 @@ class Constants:
     DATETIME_NOW_STR = DATETIME_NOW.strftime(DATETIME_FILENAME_FORMAT)
     SERIALIZATION_INDENT = 4
 
+    ENV_NESTED_DELIMITER = '__'
+
     ARROW = '→'
     ARROW_SEP = f' {ARROW} '
 
