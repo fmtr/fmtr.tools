@@ -1,5 +1,5 @@
 from itertools import chain, batched
-from typing import List, Dict, Any
+from typing import List, Dict, Any, TypeVar, Generic, Iterable
 
 from fmtr.tools.datatype_tools import is_none
 
@@ -83,20 +83,24 @@ def get_class_lookup(*classes, name_function=lambda cls: cls.__name__):
     return {name_function(cls): cls for cls in classes}
 
 
-class IndexList(list):
+IndexListT = TypeVar('IndexListT')  # Generic type for list items
+
+
+class IndexList(list[IndexListT], Generic[IndexListT]):
     """
 
-    List of objects selectable via attribute lookup.
+    List of objects selectable via attribute lookup, plus currently-selected item.
 
     """
 
-    def __init__(self, iterable=()):
+    def __init__(self, iterable: Iterable[IndexListT] = ()):
         """
 
         Initialize with iterable
 
         """
         super().__init__(iterable)
+        self.current: IndexListT | None = self[0] if self else None
 
     def __getattr__(self, name):
         """
@@ -104,6 +108,12 @@ class IndexList(list):
         Return a lookup dict keyed on the specified field of each item in the self/list.
 
         """
+
+        try:
+            return self.__dict__[name]
+        except KeyError:
+            pass
+
         if hasattr(list, name):
             return getattr(self, name)
 
