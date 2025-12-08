@@ -2,7 +2,7 @@ import re
 import subprocess
 from pathlib import Path
 from tempfile import gettempdir
-from typing import Union, Any
+from typing import Union, Any, Self
 
 from fmtr.tools.constants import Constants
 from fmtr.tools.platform_tools import is_wsl
@@ -204,7 +204,12 @@ class Path(type(Path())):
         return kind
 
     @property
-    def children(self):
+    def children(self) -> list[Self]:
+        """
+
+        Recursive children property
+
+        """
         if not self.is_dir():
             return None
         return sorted(self.iterdir(), key=lambda x: x.is_dir(), reverse=True)
@@ -389,6 +394,8 @@ class PackagePaths(FromCallerMixin):
         """
         return f'{self.__class__.__name__}("{self.path}")'
 
+
+root = Path('/')
 
 if __name__ == "__main__":
     path = Path('/usr/bin/bash').absolute()

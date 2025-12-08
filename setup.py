@@ -47,7 +47,9 @@ DEPENDENCIES = {
     'db': [],
     'db.document': ['beanie[odm]'],
     'mqtt': ['aiomqtt'],
-    'av': ['av']
+    'av': ['av'],
+    'ha': ['dotenv'],
+    'ha.api': ['ha', 'homeassistant_api', 'aiohasupervisor'],
 
 }
 

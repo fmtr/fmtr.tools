@@ -1,5 +1,5 @@
 from fmtr.tools.import_tools import MissingExtraMockModule
-from fmtr.tools.path_tools.path_tools import Path, PackagePaths
+from fmtr.tools.path_tools.path_tools import Path, PackagePaths, root
 
 try:
     from fmtr.tools.path_tools.app_path_tools import AppPaths
