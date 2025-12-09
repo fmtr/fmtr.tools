@@ -1,4 +1,4 @@
-import shlex
+import os
 from dotenv import load_dotenv
 
 from fmtr.tools.ha_tools import constants
@@ -7,32 +7,36 @@ from fmtr.tools.string_tools import ELLIPSIS
 
 
 def apply_addon_env():
-    path = constants.PATH_ADDON_ENV
-    if not path.exists():
-        return
-
-    logger.warning(f'Loading AddOn environment file from "{path}"...')
-    load_dotenv(path)
-
-
-def convert_options_env() -> str:
     """
 
-    Convert Home Assistant AddOn options.json to a sourcable environment file.
+    If we're inside an addon container, we need to source its environment file and convert its options.json to environment variables.
+
+    """
+    path = constants.PATH_ADDON_ENV
+    if path.exists():
+        logger.warning(f'Loading addon environment from "{path}"...')
+        load_dotenv(path)
+
+    for key, value in convert_options_data().items():
+        os.environ[key] = value
+
+
+def convert_options_data() -> dict[str, str]:
+    """
+
+    Convert Home Assistant addon options.json to an environment-ready dict.
 
     """
     path = constants.PATH_ADDON_OPTIONS
-    data = path.read_json()
+    data_json = path.read_json()
 
-    lines = []
+    data_env = {}
 
-    with logger.span(f'Converting AddOn "{path}" to environment variables...'):
-        for key, value in data.items():
+    with logger.span(f'Converting addon "{path}" to environment variables...'):
+        for key, value in data_json.items():
             key_env = key.upper()
-            val_env = shlex.quote(str(value))
+            val_env = str(value)
             logger.debug(f'Converting {key_env}={ELLIPSIS}" to environment variable...')
-            line = f'export {key_env}={val_env}'
-            lines.append(line)
+            data_env[key_env] = val_env
 
-    text = '\n'.join(lines)
-    return text
+    return data_env

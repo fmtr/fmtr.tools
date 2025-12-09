@@ -10,8 +10,7 @@ else:
     STREAM_DEFAULT = None
     ENVIRONMENT_DEFAULT = Constants.PRODUCTION
 
-IS_DEBUG = environment_tools.get(Constants.FMTR_LOG_LEVEL_KEY, None, converter=str.upper) == 'DEBUG'
-LEVEL_DEFAULT = logging.DEBUG if IS_DEBUG else logging.INFO
+LEVEL_DEFAULT = logging.DEBUG if environment_tools.IS_DEV else logging.INFO
 
 def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=Constants.ORG_NAME,
                stream=STREAM_DEFAULT, environment=ENVIRONMENT_DEFAULT, level=LEVEL_DEFAULT):
@@ -64,10 +63,6 @@ def get_logger(name, version=None, host=Constants.FMTR_OBS_HOST, key=None, org=C
         console=console_opts,
         scrubbing=logfire.ScrubbingOptions(callback=null_scrubber)
     )
-
-    if key is None:
-        msg = f'Observability dependencies installed, but "{Constants.FMTR_OBS_API_KEY_KEY}" not set. Cloud observability will be disabled.'
-        logger.warning(msg)
 
     return logger
 

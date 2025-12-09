@@ -1,7 +1,5 @@
 import dataclasses
 
-import pydevd_pycharm
-
 from fmtr.tools import environment_tools as env
 from fmtr.tools.constants import Constants
 
@@ -64,6 +62,7 @@ def trace(is_debug=None, host=None, port=None, stdoutToServer=True, stderrToServ
     msg = MASK.format(host=host, port=port)
     logger.info(msg)
 
+    import pydevd_pycharm
     pydevd_pycharm.settrace(host, port=port, stdoutToServer=stdoutToServer, stderrToServer=stderrToServer, **kwargs)
 
 
