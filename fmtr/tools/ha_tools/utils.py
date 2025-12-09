@@ -32,6 +32,9 @@ def convert_options_data() -> dict[str, str]:
 
     data_env = {}
 
+    if not path.exists():
+        return data_env
+
     with logger.span(f'Converting addon "{path}" to environment variables...'):
         for key, value in data_json.items():
             key_env = key.upper()
