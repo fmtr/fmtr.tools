@@ -28,12 +28,13 @@ def convert_options_data() -> dict[str, str]:
 
     """
     path = constants.PATH_ADDON_OPTIONS
-    data_json = path.read_json()
 
     data_env = {}
 
     if not path.exists():
         return data_env
+
+    data_json = path.read_json()
 
     with logger.span(f'Converting addon "{path}" to environment variables...'):
         for key, value in data_json.items():
