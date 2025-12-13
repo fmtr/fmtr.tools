@@ -107,6 +107,16 @@ class SetupPaths(FromCallerMixin):
         return self.path / Constants.ENTRYPOINTS_DIR
 
     @property
+    def scripts(self) -> Path:
+        """
+
+        Paths of shell scripts
+
+        """
+
+        return self.repo / Constants.SCRIPTS_DIR
+
+    @property
     def is_namespace(self) -> bool:
         return bool(self.org)
 
@@ -159,6 +169,7 @@ class Setup(FromCallerMixin):
 
         if do_setup:
             self.setup()
+        self
 
     def get_requirements_extras(self) -> Optional[List[str]]:
         """
@@ -213,6 +224,28 @@ class Setup(FromCallerMixin):
         console_scripts = [f'{command} = {path}' for command, path in zip(commands, paths)]
 
         return console_scripts
+
+    @property
+    def scripts(self) -> List[str]:
+        """
+
+        Generate list of shell scripts.
+
+        """
+
+        paths = []
+
+        if not self.paths.scripts.exists():
+            return paths
+
+        for path in self.paths.scripts.iterdir():
+            if path.is_dir():
+                continue
+
+            path_rel = path.relative_to(self.paths.repo)
+            paths.append(str(path_rel))
+
+        return paths
 
     @cached_property
     def name_command(self) -> str:
@@ -353,6 +386,7 @@ class Setup(FromCallerMixin):
             ),
             install_requires=self.dependencies.install,
             extras_require=self.dependencies.extras,
+            scripts=self.scripts,
         ) | self.kwargs
         return data
 

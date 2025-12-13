@@ -51,8 +51,9 @@ class Constants:
     ENTRYPOINT = 'entrypoint'
     ENTRYPOINTS_DIR = f'{ENTRYPOINT}s'
     ENTRYPOINT_FILE = f'{ENTRYPOINT}.py'
+    SCRIPTS_DIR = 'scripts'
 
-    PACKAGE_EXCLUDE_DIRS = {'data', 'build', 'dist', '.*', '*egg-info*'}
+    PACKAGE_EXCLUDE_DIRS = {SCRIPTS_DIR, 'data', 'build', 'dist', '.*', '*egg-info*'}
     INIT_FILENAME = '__init__.py'
 
     DEVELOPMENT = "development"
