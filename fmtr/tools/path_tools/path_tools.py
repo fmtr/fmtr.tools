@@ -214,6 +214,41 @@ class Path(type(Path())):
             return None
         return sorted(self.iterdir(), key=lambda x: x.is_dir(), reverse=True)
 
+    @classmethod
+    def __get_pydantic_core_schema__(cls, source, handler):
+        """
+
+        Support Pydantic de/serialization and validation
+
+        TODO: Ideally these would be a mixin in dm, but then we'd need Pydantic to use it. Split dm module into Pydantic depts and other utils and import from there.
+
+        """
+        from pydantic_core import core_schema
+        return core_schema.no_info_plain_validator_function(
+            cls.__deserialize_pydantic__,
+            serialization=core_schema.plain_serializer_function_ser_schema(cls.__serialize_pydantic__),
+        )
+
+    @classmethod
+    def __serialize_pydantic__(cls, self) -> str:
+        """
+
+        Serialize to string
+
+        """
+        return str(self)
+
+    @classmethod
+    def __deserialize_pydantic__(cls, data) -> Self:
+        """
+
+        Deserialize from string
+
+        """
+        if isinstance(data, cls):
+            return data
+        return cls(data)
+
 
 class FromCallerMixin:
     """
@@ -365,8 +400,6 @@ class PackagePaths(FromCallerMixin):
         """
 
         return self.data / Constants.DIR_NAME_SOURCE
-
-
 
     @property
     def settings(self) -> Path:
