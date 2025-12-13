@@ -63,7 +63,7 @@ class SetupPaths(FromCallerMixin):
         packages = [
             dir for dir in base.iterdir()
             if (dir / Constants.INIT_FILENAME).is_file()
-               and not any(fnmatch(dir.name, pattern) for pattern in Constants.PACKAGE_EXCLUDE_DIRS)
+               and not any(fnmatch(dir.name, pattern) for pattern in Constants.PACKAGE_EXCLUDE_DIRS)  # todo add scripts dir
         ]
 
         if len(packages) != 1:
