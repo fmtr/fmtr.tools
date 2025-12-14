@@ -1,4 +1,5 @@
 from itertools import chain, batched
+
 from typing import List, Dict, Any, TypeVar, Generic, Iterable
 
 from fmtr.tools.datatype_tools import is_none
@@ -125,3 +126,50 @@ class IndexList(list[IndexListT], Generic[IndexListT]):
                 value = obj[name]  # assume dict-like
             result[value] = obj
         return result
+
+
+IterDifferT = TypeVar("IterDifferT")
+
+
+class IterDiffer(Generic[IterDifferT]):
+    """
+
+    Compute added/removed differences between two iterables.
+
+    """
+
+    def __init__(self, before: Iterable[IterDifferT], after: Iterable[IterDifferT]):
+        """
+
+        Initialize with two iterables.
+
+        """
+        self.before: set[IterDifferT] = set(before)
+        self.after: set[IterDifferT] = set(after)
+
+    @property
+    def added(self) -> set[IterDifferT]:
+        """
+
+        Items in `after` not in `before`.
+
+        """
+        return self.after - self.before
+
+    @property
+    def removed(self) -> set[IterDifferT]:
+        """
+
+        Items in `before` not in `after`.
+
+        """
+        return self.before - self.after
+
+    @property
+    def is_changed(self) -> bool:
+        """
+
+        True if any items added or removed.
+
+        """
+        return bool(self.added or self.removed)
