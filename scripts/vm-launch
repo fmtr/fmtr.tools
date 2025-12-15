@@ -1,15 +1,17 @@
 #!/bin/bash
 
+. parse-args "$@"
+
 sudo qemu-system-x86_64 \
   -enable-kvm \
-  -m 12G \
-  -smp 4 \
+  -m ${GB-12}G \
+  -smp ${CPUS-4} \
   -cpu host \
   -machine q35 \
   -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.fd \
   -drive if=pflash,format=raw,file=/usr/share/OVMF/OVMF_VARS_4M.fd \
-  -drive file=/opt/dev/vm/ha/ha.qcow2,format=qcow2,if=virtio,cache=writeback,aio=threads \
+  -drive file=/opt/dev/vm/${NAME-default}/disk.qcow2,format=qcow2,if=virtio,cache=writeback,aio=threads \
   -device virtio-net-pci,netdev=net0 \
-  -netdev bridge,id=net0,br=br0 \
-  -display none \
+  -netdev bridge,id=net0,br=${BR-br0} \
+  -display ${DISPLAY_VM-gtk} \
   -serial mon:stdio

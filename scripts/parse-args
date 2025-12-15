@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -a
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --*=*)
+      key=${1%%=*}
+      val=${1#*=}
+      key=${key#--}
+      key=$(printf '%s' "$key" | tr 'a-z-' 'A-Z_')
+      eval "$key=\$val"
+      shift
+      ;;
+    --*)
+      key=${1#--}
+      key=$(printf '%s' "$key" | tr 'a-z-' 'A-Z_')
+      eval "$key=\$2"
+      shift 2
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
+set +a
