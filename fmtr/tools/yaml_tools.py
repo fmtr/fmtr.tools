@@ -3,8 +3,6 @@ from typing import Any
 from yaml import CDumper as Dumper
 from yaml import dump
 
-from fmtr.tools import environment_tools as env
-
 try:
     import yamlscript
 except ImportError:
@@ -29,7 +27,7 @@ def install():
 
 
 @lru_cache
-def get_module(is_auto=env.IS_DEV):
+def get_module(is_auto=True):
     """
 
     Get the YAML Script runtime module, installing the runtime if specified
