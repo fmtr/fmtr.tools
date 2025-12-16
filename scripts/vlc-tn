@@ -1,0 +1,5 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+vlc -I telnet --telnet-password ${PASSWORD-password} --telnet-host ${HOST-0.0.0.0}:${PORT-4212}
