@@ -50,6 +50,7 @@ DEPENDENCIES = {
     'av': ['av'],
     'ha': ['dotenv'],
     'ha.api': ['ha', 'homeassistant_api', 'aiohasupervisor'],
+    'doc': ['mkdocs', 'mkdocs-material', 'mkdocstrings[python]', 'mike']
 
 }
 

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+mkdocs gh-deploy --remote-branch docs --force
+
