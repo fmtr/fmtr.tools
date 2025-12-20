@@ -55,6 +55,8 @@ class Constants:
 
     PACKAGE_EXCLUDE_DIRS = {SCRIPTS_DIR, 'data', 'build', 'dist', '.*', '*egg-info*'}
     INIT_FILENAME = '__init__.py'
+    DOCS_DIR = 'docs'
+    DOCS_CONFIG_FILENAME = 'mkdocs.yml'
 
     DEVELOPMENT = "development"
     PRODUCTION = "production"

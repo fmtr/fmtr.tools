@@ -1,6 +1,7 @@
+from pathlib import Path
+
 import re
 import subprocess
-from pathlib import Path
 from tempfile import gettempdir
 from typing import Union, Any, Self
 
@@ -418,6 +419,24 @@ class PackagePaths(FromCallerMixin):
 
         """
         return self.artifact / Constants.DIR_NAME_HF
+
+    @property
+    def docs(self) -> Path:
+        """
+
+        Path of docs directory
+
+        """
+        return self.repo / Constants.DOCS_DIR
+
+    @property
+    def docs_config(self) -> Path:
+        """
+
+        Path of docs config file
+
+        """
+        return self.repo / Constants.DOCS_CONFIG_FILENAME
 
     def __repr__(self) -> str:
         """

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+mkdocs serve --dev-addr=${HOST-0.0.0.0}:${PORT-8180} --livereload
