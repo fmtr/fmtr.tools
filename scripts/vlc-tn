@@ -2,10 +2,10 @@
 
 . parse-args "$@"
 
-if ! command -v cvlc >/dev/null 2>&1; then
+if ! command -v vlc >/dev/null 2>&1; then
     echo "VLC not found. Installing dependencies..."
-    sudo apt update
-    sudo apt install -y vlc-bin vlc-plugin-base
+    sudo apt update --yes
+    sudo apt install --yes --no-install-recommends vlc-bin vlc-plugin-base
 fi
 
 vlc -I telnet --telnet-password ${PASSWORD-password} --telnet-host ${HOST-0.0.0.0}:${PORT-4212}
