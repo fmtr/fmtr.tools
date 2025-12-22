@@ -1,0 +1,5 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+docker run -it --hostname sandbox --user root -v /opt/dev/:/opt/dev/ ${IMAGE-fmtr/python} bash -c '/opt/dev/repo/fmtr.tools/scripts/docker-sandbox-init'

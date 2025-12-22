@@ -1,0 +1,5 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+PATH="/home/${USERNAME}/.local/bin/:${PATH}"
