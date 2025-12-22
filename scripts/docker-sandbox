@@ -2,4 +2,12 @@
 
 . parse-args "$@"
 
-docker run -it --hostname sandbox --user root -v /opt/dev/:/opt/dev/ ${IMAGE-fmtr/python} bash -c '/opt/dev/repo/fmtr.tools/scripts/docker-sandbox-init'
+docker run \
+  --interactive=true \
+  --tty=true \
+  --hostname=sandbox \
+  --user=root \
+  --volume=/opt/dev/:/opt/dev/ \
+  --publish=${PORT-9000}:${PORT-9000} \
+  ${IMAGE-fmtr/python} \
+  bash -c '/opt/dev/repo/fmtr.tools/scripts/docker-sandbox-init'
