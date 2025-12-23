@@ -183,6 +183,11 @@ try:
 except ModuleNotFoundError as exception:
     av = MissingExtraMockModule('av', exception)
 
+try:
+    from fmtr.tools import youtube_tools as youtube
+except ModuleNotFoundError as exception:
+    youtube = MissingExtraMockModule('youtube', exception)
+
 
 
 def get_version():
