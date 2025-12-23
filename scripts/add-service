@@ -9,4 +9,4 @@ cp "$FILE" ~/.config/systemd/user/
 systemctl --user daemon-reload
 systemctl --user enable "$NAME"
 systemctl --user start "$NAME"
-journalctl --user -u "$NAME" -f
+systemctl --user status -l -n 50 "$NAME"
