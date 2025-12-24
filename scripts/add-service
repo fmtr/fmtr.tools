@@ -2,6 +2,8 @@
 
 . parse-args "$@"
 
+loginctl enable-linger $USER
+
 NAME=$(basename "$FILE")
 
 mkdir -p ~/.config/systemd/user

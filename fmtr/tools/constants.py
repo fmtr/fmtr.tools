@@ -17,7 +17,10 @@ class Constants:
     ENV_NESTED_DELIMITER = '__'
 
     ARROW = '→'
+    ARROW_RIGHT = ARROW
     ARROW_SEP = f' {ARROW} '
+
+    ARROW_LEFT = '←'
 
     FMTR_DEV_KEY = 'FMTR_DEV'
     FMTR_LOG_LEVEL_KEY = 'FMTR_LOG_LEVEL'
