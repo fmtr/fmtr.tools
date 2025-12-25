@@ -1,9 +1,8 @@
+import aiomqtt
 import logging
 from dataclasses import dataclass, asdict
-from typing import Literal, Self
-
-import aiomqtt
 from paho.mqtt.client import CleanStartOption, MQTT_CLEAN_START_FIRST_ONLY
+from typing import Literal, Self
 
 from fmtr.tools.logging_tools import logger, get_current_level, get_native_level_from_otel
 
@@ -49,6 +48,7 @@ class Client(aiomqtt.Client):
     """
 
     LOGGER = LOGGER
+    SYNC_LOG_LEVEL = False
     Args = Args
 
     def __init__(self, *args, **kwargs):
@@ -57,10 +57,11 @@ class Client(aiomqtt.Client):
         Seems a little goofy to sync with logfire on every init, but unsure how to do it better.
 
         """
-        self.set_log_level()
+        if self.SYNC_LOG_LEVEL:
+            self.sync_log_level()
         super().__init__(*args, **kwargs)
 
-    def set_log_level(self):
+    def sync_log_level(self):
         """
 
         Sync log level with logfire, which might have changed since handler set.
