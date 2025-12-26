@@ -50,7 +50,7 @@ DEPENDENCIES = {
     'av': ['av'],
     'ha': ['dotenv'],
     'ha.api': ['ha', 'homeassistant_api', 'aiohasupervisor'],
-    'doc': ['mkdocs', 'mkdocs-material', 'mkdocstrings[python]', 'mike'],
+    'doc': ['mkdocs', 'mkdocs-material', 'mkdocstrings[python]', 'mike', 'mkdocs-include-dir-to-nav'],
     'youtube': ['pytubefix'],
     'deploy': ['setup', 'doc', 'build', 'twine', 'packaging'],
 
