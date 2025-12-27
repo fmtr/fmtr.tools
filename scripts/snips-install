@@ -1,0 +1,14 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+DIR="/home/${USER}/.local/bin/"
+REPO="snips"
+BRANCH="main"
+URL="https://github.com/${ORG}/${REPO}/archive/refs/heads/${BRANCH}.zip"
+
+TMPDIR=$(mktemp -d)
+download --url="$URL" --file=$TMPDIR/snips.zip
+unzip $TMPDIR/snips.zip -d $TMPDIR
+mv "$TMPDIR/${REPO}-${BRANCH}/"* "$DIR"
+rm -rf "$TMPDIR"

@@ -2,5 +2,8 @@
 
 . parse-args "$@"
 
-curl -L -C - --retry 5 --retry-delay 5 --retry-connrefused --progress-bar ${FILE:+-o "$FILE"} ${FILE:-"-O"} "$URL"
+OUT_OPT=${FILE:+-o "$FILE"}
+[ -z "$FILE" ] && OUT_OPT="-O"
+
+curl -L -C - --retry 5 --retry-delay 5 --retry-connrefused --progress-bar $OUT_OPT "$URL"
 

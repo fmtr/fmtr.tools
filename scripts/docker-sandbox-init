@@ -3,23 +3,15 @@
 cd /opt/dev/repo/fmtr.tools/scripts
 . parse-args "$@"
 
-# ---- root-only section ----
-if [ "$(id -u)" -eq 0 ]; then
-    echo "Setting up sandbox..."
+echo "Setting up sandbox..."
 
-    ./set-password
-    ./set-password --username=user
+./set-password
+./set-password --username=user
 
-    source ./add-user-path --username=user
-    pip install fmtr.tools
+echo "user ALL=(ALL) NOPASSWD:ALL" | tee /etc/sudoers.d/user
+chmod 440 /etc/sudoers.d/user
 
-    echo "user ALL=(ALL) NOPASSWD:ALL" | tee /etc/sudoers.d/user
-    chmod 440 /etc/sudoers.d/user
+echo "Defaults secure_path=\"${PATH}\"" | tee /etc/sudoers.d/secure_path_user_bin
+chmod 440  /etc/sudoers.d/secure_path_user_bin
 
-    exec sudo -u user bash "$0" "$@"
-
-fi
-
-source ./add-user-path --username=user
-cd ~
-bash
+sudo -u user -H pip install --user fmtr.tools --upgrade

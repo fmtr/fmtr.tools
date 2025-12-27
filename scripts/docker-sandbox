@@ -2,12 +2,42 @@
 
 . parse-args "$@"
 
-docker run \
-  --interactive=true \
-  --tty=true \
+#Spin up the container in the background with sleep infinity
+CONTAINER_ID=$(docker run -d \
   --hostname=sandbox \
-  --user=root \
+  --user=user \
   --volume=/opt/dev/:/opt/dev/ \
   --publish=${PORT-9000}:${PORT-9000} \
   ${IMAGE-fmtr/python} \
-  bash -c '/opt/dev/repo/fmtr.tools/scripts/docker-sandbox-init'
+  bash -c "sleep infinity")
+
+
+# Capture Docker's default name
+DEFAULT_NAME=$(docker inspect --format '{{.Name}}' $CONTAINER_ID | cut -c2-)
+
+# Modify it dynamically (prefix or suffix)
+MODIFIED_NAME="sandbox_${DEFAULT_NAME}"
+docker rename $CONTAINER_ID $MODIFIED_NAME
+
+echo "Started container $MODIFIED_NAME."
+
+#Run the sandbox-init script as root (interactive)
+docker exec \
+  --interactive=true \
+  --tty=true \
+  --user=root \
+  $CONTAINER_ID \
+  /opt/dev/repo/fmtr.tools/scripts/docker-sandbox-init
+
+#Start an interactive bash session as user
+docker exec \
+  --interactive=true \
+  --tty=true \
+  --user=user \
+  --env USER=user \
+  $CONTAINER_ID \
+  bash
+
+# Cleanup
+docker rm -f $MODIFIED_NAME
+echo "Container $MODIFIED_NAME removed."
