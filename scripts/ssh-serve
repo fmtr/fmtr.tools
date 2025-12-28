@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e
+
+FMTR_DEV_SSH_PORT=${FMTR_DEV_SSH_PORT:-22}
+
+[ -f /home/user/.ssh/ssh_host ] || ssh-keygen -f /home/user/.ssh/ssh_host -N '' -t rsa
+
+exec /usr/sbin/sshd -D -e -p "$FMTR_DEV_SSH_PORT" \
+    -h /home/user/.ssh/ssh_host \
+    -o PasswordAuthentication=no \
+    -o PermitRootLogin=prohibit-password \
+    -o PubkeyAuthentication=yes \
+    -o AuthorizedKeysFile=/home/user/.ssh/authorized_keys \
+    -o LogLevel=VERBOSE
