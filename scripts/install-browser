@@ -2,6 +2,7 @@
 
 set -e
 
-sudo -u user -H /vet/python -m pip install fmtr.tools[browsers] --upgrade
+
+sudo -u user /vet/python -m pip install fmtr.tools[browsers] --upgrade
 /vet/python -m playwright install-deps
-sudo -u user -H /vet/python -m pip install chromium
+sudo -u user /vet/python -m pip install chromium
