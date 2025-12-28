@@ -1,5 +1,6 @@
 #!/bin/bash
 
+SECURE_PATH=$PATH
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source $SCRIPT_DIR/add-user-path --username=user --new=$SCRIPT_DIR
@@ -12,7 +13,7 @@ set-password
 set-password --username=user
 
 echo "user ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/sandbox
-echo "Defaults secure_path=\"${PATH}\"" >> /etc/sudoers.d/sandbox
+echo "Defaults secure_path=\"${SECURE_PATH}\"" >> /etc/sudoers.d/sandbox
 chmod 440 /etc/sudoers.d/sandbox
 
 if [ "$TOOLS" == "1" ]; then
