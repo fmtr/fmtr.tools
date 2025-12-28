@@ -1,5 +1,8 @@
 #!/bin/bash
 
-. parse-args "$@"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source $SCRIPT_DIR/parse-args "$@"
 
-PATH="/home/${USERNAME}/.local/bin/:${PATH}"
+NEW=${NEW:-/home/${USERNAME}/.local/bin/}
+
+PATH="${NEW}:${PATH}"

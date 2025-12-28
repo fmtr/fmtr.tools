@@ -2,7 +2,7 @@
 
 . parse-args "$@"
 
-DIR="/home/${USER}/.local/bin/"
+DIR="/home/$(whoami)/.local/bin/"
 REPO="snips"
 BRANCH="main"
 URL="https://github.com/${ORG}/${REPO}/archive/refs/heads/${BRANCH}.zip"
