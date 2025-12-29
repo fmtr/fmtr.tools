@@ -3,6 +3,6 @@
 set -e
 
 
-sudo -u user /opt/dev/venv/fmtr.tools/bin/python -m pip install fmtr.tools[browsers] --upgrade
-/opt/dev/venv/fmtr.tools/bin/python -m playwright install-deps
-sudo -u user /opt/dev/venv/fmtr.tools/bin/python -m playwright install chromium
+sudo -u user /rst pip install fmtr.tools[browsers] --upgrade
+/rst playwright install-deps
+sudo -u user /rst playwright install chromium

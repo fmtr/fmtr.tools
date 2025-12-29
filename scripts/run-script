@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -e
+
+read -r -a scripts <<< "$@"
+
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+
+if [[ -f "$SCRIPT_DIR/activate" ]]; then
+    . "$SCRIPT_DIR/activate"
+else
+    PATH="${SCRIPT_DIR}:${PATH}"
+fi
+
+. parse-args $scripts
+
+#echo "Scripts is ${scripts[@]} and ALL is $ALL"
+
+if [[ "$ALL" == "1" ]]; then
+    for item in "${scripts[@]:1}"; do
+      echo "Running script: $item"
+        "$item"
+    done
+else
+    exec "$@"
+fi
