@@ -1,0 +1,5 @@
+#!/bin/bash
+
+USERNAME=${USERNAME-user}
+mkdir /opt/dev
+chown ${USERNAME}:${USERNAME} -R /opt/dev
