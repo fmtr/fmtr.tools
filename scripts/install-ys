@@ -1,0 +1,5 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+sudo -u user bash -c "curl https://yamlscript.org/install | bash"
