@@ -1,0 +1,7 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+apt-headless rsync sudo iputils-ping dnsutils iproute2 htop fastfetch nano openssh-server x11-apps
+apt-headless cmake build-essential pkg-config # Mainly for sentencepeice
+apt-headless --full
