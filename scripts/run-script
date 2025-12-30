@@ -8,7 +8,7 @@ SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 if [[ -f "$SCRIPT_DIR/activate" ]]; then
     . "$SCRIPT_DIR/activate"
 else
-    PATH="${SCRIPT_DIR}:${PATH}"
+    export PATH="${SCRIPT_DIR}:${PATH}"
 fi
 
 . parse-args "$@"
