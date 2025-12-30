@@ -4,8 +4,7 @@ set -e
 
 SECURE_PATH=$PATH
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-source $SCRIPT_DIR/add-user-path --username=user --new=$SCRIPT_DIR
+source /rs/s
 
 . parse-args "$@"
 
@@ -14,10 +13,9 @@ echo "Setting up sandbox..."
 set-password
 set-password --username=user
 
-echo "user ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/sandbox
-echo "Defaults secure_path=\"${SECURE_PATH}\"" >> /etc/sudoers.d/sandbox
-chmod 440 /etc/sudoers.d/sandbox
+set-user-sudo --username=user
+set-secure-path
 
 if [ "$TOOLS" == "1" ]; then
-  sudo -u user -H pip install --user fmtr.tools --upgrade
+  sudo -u user /rs/s pip install --user fmtr.tools --upgrade
 fi
