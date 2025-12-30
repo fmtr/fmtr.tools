@@ -9,11 +9,10 @@ sudo chown ${USERNAME}:${USERNAME} -R /opt/dev
 
 sudo apt install python3-venv --yes
 python -m venv /opt/dev/ve/shell
+sudo --user $USERNAME /opt/dev/ve/shell/bin/pip install fmtr.tools
 sudo ln -s /opt/dev/ve/shell/bin/run-script /rss
+
 source /opt/dev/ve/shell/bin/activate
-
-sudo --user $USERNAME /rss pip install fmtr.tools
-
 sudo set-user-sudo --username=$USERNAME
 sudo set-secure-path
 
