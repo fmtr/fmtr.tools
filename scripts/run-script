@@ -2,8 +2,6 @@
 
 set -e
 
-read -r -a scripts <<< "$@"
-
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 
@@ -13,14 +11,15 @@ else
     PATH="${SCRIPT_DIR}:${PATH}"
 fi
 
-. parse-args $scripts
+. parse-args "$@"
 
-#echo "Scripts is ${scripts[@]} and ALL is $ALL"
+#echo "Original string: $@. ARGS: ${ARGS[*]} and ALL is $ALL"
 
 if [[ "$ALL" == "1" ]]; then
-    for item in "${scripts[@]:1}"; do
+    unset ALL # Prevents ALL being propagated to any child calls of self.
+    for item in "${ARGS[@]}"; do
       echo "Running script: $item"
-        "$item"
+      "$item"
     done
 else
     exec "$@"

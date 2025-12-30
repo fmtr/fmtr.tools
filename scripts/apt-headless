@@ -1,15 +1,15 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 . parse-args "$@"
 
 export DEBIAN_FRONTEND=noninteractive
-apt update --yes
+apt update --yes --no-install-recommends
 
 # if --full was passed, run full-upgrade
 if [ "${FULL}" = "1" ]; then
-    apt --yes full-upgrade
+    apt full-upgrade --yes --no-install-recommends
 fi
 
 # if ARGS is not empty, install the packages
@@ -18,5 +18,5 @@ if [ ${#ARGS[@]} -gt 0 ]; then
 fi
 
 apt autoremove --yes
-apt clean
+apt clean --yes
 rm -rf /var/lib/apt/lists/*

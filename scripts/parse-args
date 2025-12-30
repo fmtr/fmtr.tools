@@ -14,25 +14,19 @@ while [ $# -gt 0 ]; do
       val=${1#*=}
       export "$key=$val"
 
-      unset key val   # remove temporary variables
+      unset key val
       shift
       ;;
-    # --key value or -k value, or boolean flag
+    # --key or -k → boolean flag only
     --* | -*)
       key=${1#--}
       key=${key#-}
       key=$(printf '%s' "$key" | tr 'a-z-' 'A-Z_')
 
-      if [ -n "$2" ] && [[ ! "$2" =~ ^- ]]; then
-        val="$2"
-        export "$key=$val"
-        shift 2
-      else
-        export "$key=1"
-        shift
-      fi
+      export "$key=1"
 
-      unset key val   # remove temporary variables
+      unset key
+      shift
       ;;
     # positional arguments
     *)
