@@ -1,0 +1,7 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+FILE=/etc/sudoers.d/secure_path_ve
+echo "Defaults secure_path=\"${PATH}\"" >> $FILE
+chmod 440 $FILE

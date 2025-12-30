@@ -1,0 +1,7 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+FILE="/etc/sudoers.d/${USERNAME}_passwordless"
+echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" > "$FILE"
+chmod 440 $FILE
