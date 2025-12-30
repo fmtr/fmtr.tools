@@ -2,4 +2,4 @@
 
 . parse-args "$@"
 
-sudo -u user bash -c "curl https://yamlscript.org/install | bash"
+curl https://yamlscript.org/install | bash
