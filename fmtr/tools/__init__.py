@@ -188,6 +188,11 @@ try:
 except ModuleNotFoundError as exception:
     youtube = MissingExtraMockModule('youtube', exception)
 
+try:
+    import pygit2 as vcs
+except ModuleNotFoundError as exception:
+    vcs = MissingExtraMockModule('vcs', exception)
+
 
 
 def get_version():
