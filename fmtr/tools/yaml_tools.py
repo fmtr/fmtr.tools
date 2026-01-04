@@ -54,13 +54,16 @@ def get_interpreter():
     interpreter = module.YAMLScript()
     return interpreter
 
-def to_yaml(obj: Any) -> str:
+
+def to_yaml(obj: Any, **kwargs) -> str:
     """
 
     Serialize to YAML
 
     """
-    yaml_str = dump(obj, allow_unicode=True, Dumper=Dumper)
+
+    kwargs = dict(allow_unicode=True, Dumper=Dumper, sort_keys=False) | kwargs
+    yaml_str = dump(obj, **kwargs)
     return yaml_str
 
 
@@ -75,8 +78,6 @@ def from_yaml(yaml_str: str) -> Any:
 
 
 if __name__ == '__main__':
-    from fmtr.tools import Path
-
-    py = Path('hw.yml')
-    data = py.read_yaml()
-    data
+    data = dict(a=1, c=2, b=3)
+    yaml_str = to_yaml(data)
+    yaml_str

@@ -52,7 +52,7 @@ DEPENDENCIES = {
     'ha.api': ['ha', 'homeassistant_api', 'aiohasupervisor'],
     'doc': ['mkdocs', 'mkdocs-material', 'mkdocstrings[python]', 'mike', 'mkdocs-include-dir-to-nav'],
     'youtube': ['pytubefix'],
-    'deploy': ['setup', 'doc', 'sets', 'build', 'twine', 'packaging', 'vcs', 'docker.client'],
+    'deploy': ['version.dev', 'logging', 'setup', 'doc', 'sets', 'build', 'twine', 'packaging', 'vcs', 'docker.client'],
     'vcs': ['pygit2'],
 
 
