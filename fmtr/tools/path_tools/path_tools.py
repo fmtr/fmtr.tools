@@ -438,6 +438,15 @@ class PackagePaths(FromCallerMixin):
         """
         return self.repo / Constants.DOCS_CONFIG_FILENAME
 
+    @property
+    def ha_addon_config(self) -> Path:
+        """
+
+        Path of docs config file
+
+        """
+        return self.repo / 'ha' / 'addon' / 'config.yaml'
+
     def __repr__(self) -> str:
         """
 

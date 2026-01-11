@@ -24,6 +24,7 @@ from fmtr.tools import datetime_tools as dt
 from fmtr.tools import dns_tools as dns
 from fmtr.tools import docker_tools as docker
 from fmtr.tools import ha_tools as ha
+from fmtr.tools import infrastructure_tools as infra
 from fmtr.tools import interface_tools as interface
 from fmtr.tools import version_tools as version
 from fmtr.tools.constants import Constants

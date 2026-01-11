@@ -18,10 +18,20 @@ class Inherit(Generic[T]):
         """
         object.__setattr__(self, "_parent", parent)
 
-    def __getattr__(self, name):
+    def __getattribute__(self, name):
         """
 
         Since regular attribute access checks own methods first, we don't need to do anything fancy to fall back to the parent when not implemented.
 
         """
-        return getattr(self._parent, name)
+
+        cls = object.__getattribute__(self, "__class__")
+        attr = cls.__dict__.get(name, None)
+        if attr is not None and hasattr(attr, "__get__"):
+            # descriptor on self class, call normally
+            return attr.__get__(self, cls)
+        try:
+            return object.__getattribute__(self, name)
+        except AttributeError:
+            parent = object.__getattribute__(self, "_parent")
+            return getattr(parent, name)
