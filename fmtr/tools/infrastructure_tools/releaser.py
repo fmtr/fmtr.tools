@@ -1,6 +1,12 @@
+import build
 import pygit2 as vcs
+import shutil
+import twine.settings
 from functools import cached_property
 
+from fmtr.tools import environment_tools as env
+from fmtr.tools import http_tools as http
+from fmtr.tools.constants import Constants
 from fmtr.tools.infrastructure_tools.project import Project
 from fmtr.tools.inherit_tools import Inherit
 from fmtr.tools.logging_tools import logger
@@ -20,26 +26,21 @@ class Releaser(Inherit[Project]):
 
     """
 
-    SSH_DIR = Path().home() / ".ssh"
+
 
     def run(self):
 
-        self.fetch()
+        self.repo.fetch()
         self.increment()
         # self.tagger.apply()
-        self
+        self.repo.push()
+
+        self.package()
+        self.release()
 
         # todo next run stuff like publishing to pypi.
 
-    @cached_property
-    def incrementors(self):
-        return [IncrementorVersion(self), IncrementorHomeAssistantAddon(self)]
-
-    @cached_property
-    def tagger(self):
-        return Tagger(self)
-
-    @logger.instrument('Incrementing version numbers {self.remote.url}...')
+    @logger.instrument('Incrementing version numbers {self.repo.origin.url}...')
     def increment(self):
 
         # # Abort if tag already exists (same logic as before)
@@ -76,16 +77,24 @@ class Releaser(Inherit[Project]):
         )
 
         # --- OPTIONAL TAG (left commented for debugging) ---
-        # repo.create_tag(
-        #     self.tag,
-        #     commit_id,
-        #     vcs.GIT_OBJECT_COMMIT,
-        #     repo.default_signature,
-        #     f"Release version {self.version}",
-        # )
+        repo.create_tag(
+            self.repo.tags.new,
+            commit_id,
+            vcs.GIT_OBJECT_COMMIT,
+            repo.default_signature,
+            f"Release version {self.repo.data.new}",
+        )
 
         # --- fast-forward release to main ---
-        release_ref = repo.lookup_reference('refs/heads/release')
+        branch_name = "release"
+        ref_name = f"refs/heads/{branch_name}"
+
+        try:
+            release_ref = repo.lookup_reference(ref_name)
+        except KeyError:
+            target = repo.head.peel(vcs.Commit)
+            release_ref = repo.create_branch(branch_name, target)
+
         release_commit = release_ref.peel(vcs.Commit)
 
         # safety check: only fast-forward if release is behind main
@@ -95,6 +104,44 @@ class Releaser(Inherit[Project]):
         release_ref.set_target(commit_id)
 
         return commit_id
+
+    @cached_property
+    def path(self):
+        return Path.temp() / self.name
+
+    @cached_property
+    def token(self):
+        return env.get(Constants.GITHUB_TOKEN_KEY)
+
+    @cached_property
+    def incrementors(self):
+        return [IncrementorVersion(self), IncrementorHomeAssistantAddon(self)]
+
+    @cached_property
+    def packagers(self):
+        return [PackageWheel(self), PackageSdist(self)]
+
+    @cached_property
+    def releases(self):
+        return [ReleaseGithub(self), ReleasePackageIndexPrivate(self)]
+
+    @cached_property
+    def tagger(self):
+        return Tagger(self)
+
+    def release(self):
+        for release in self.releases:
+            release.release()
+
+    def package(self):
+        if self.path.exists():
+            logger.warning(f"Package directory already exists: {self.path}. Will be removed.")
+            shutil.rmtree(self.path)
+
+        self.path.mkdir(parents=True)
+
+        for packager in self.packagers:
+            packager.package()
 
 
 class Incrementor(Inherit[Releaser]):
@@ -112,7 +159,7 @@ class IncrementorVersion(Incrementor):
     @logger.instrument('Incrementing version file "{self.path}"...')
     def apply(self) -> Path | None:
         path = self.paths.version
-        path.write_text(str(self.data.new))
+        path.write_text(str(self.repo.data.new))
         return path
 
 
@@ -129,7 +176,7 @@ class IncrementorHomeAssistantAddon(Incrementor):
             return None
 
         data = self.path.read_yaml()
-        data['version'] = str(self.data.new)
+        data['version'] = str(self.repo.data.new)
         self.path.write_yaml(data)
         return self.path
 
@@ -148,3 +195,78 @@ class Tagger(Inherit[Releaser]):
             self.repo.default_signature,
             msg,
         )
+
+
+class Packager(Inherit[Releaser]):
+    TYPE = None
+
+    def package(self):
+        builder = build.ProjectBuilder(str(self.paths.repo))
+        with logger.span(f'Building {self.TYPE} distribution...'):
+            path = builder.build(self.TYPE, str(self.path))
+            logger.info(f'Build complete: {path}')
+
+
+class PackageWheel(Packager):
+    TYPE = 'wheel'
+
+
+class PackageSdist(Packager):
+    TYPE = 'sdist'
+
+
+class Release(Inherit[Releaser]):
+    def release(self):
+        raise NotImplementedError
+
+
+class ReleaseGithub(Release):
+
+    def release(self):
+        url = f"https://api.github.com/repos/{self.org}/{self.paths.name_ns}/releases"
+        name = f'Release {self.repo.tags.new}'
+
+        headers = {
+            "Authorization": f"Bearer {self.token}",
+            "Accept": "application/vnd.github+json"
+        }
+
+        payload = {
+            "tag_name": self.repo.tags.new,
+            "name": name,
+            "body": name,
+            "draft": False,
+            "prerelease": self.repo.data.is_pre
+        }
+
+        with logger.span(f'Creating release "{name}"...'):
+            response = http.client.post(url, json=payload, headers=headers)
+
+        response.raise_for_status()
+
+        data = response.json()
+        url = data['html_url']
+        logger.info(f"Release created: {url}")
+
+
+class ReleasePackageIndexPrivate(Release):
+
+    @cached_property
+    def token(self):
+        return env.get(Constants.PACKAGE_INDEX_PRIVATE_TOKEN_KEY)
+
+    @cached_property
+    def settings(self):
+        return twine.settings.Settings(
+            repository_name=None,  # None if using repository_url directly
+            repository_url=f'{Constants.PACKAGE_INDEX_PRIVATE_URL}',
+            username=Constants.ORG_NAME,
+            password=self.token,
+            non_interactive=True,
+            verbose=True
+        )
+
+    def release(self):
+        from twine.commands.upload import upload as twine_upload
+        with logger.span(f'Uploading package to private PyPI index ({Constants.PACKAGE_INDEX_PRIVATE_URL}) as {Constants.ORG_NAME}...'):
+            twine_upload(self.settings, [f'{self.path}/*'])

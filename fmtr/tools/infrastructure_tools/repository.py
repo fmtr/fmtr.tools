@@ -9,6 +9,7 @@ from fmtr.tools.path_tools import Path
 
 
 class Repository(vcs.Repository):
+    SSH_DIR = Path().home() / ".ssh"
 
     def __init__(self, path: Path, project: Any):
         super().__init__(str(path))
@@ -23,8 +24,8 @@ class Repository(vcs.Repository):
         return Tags(self)
 
     @property
-    def remote(self):
-        return self.repo.remotes["origin"]
+    def origin(self):
+        return self.remotes["origin"]
 
     @property
     def keypair(self):
@@ -34,16 +35,24 @@ class Repository(vcs.Repository):
     def callbacks(self):
         return vcs.RemoteCallbacks(credentials=self.keypair)
 
-    @property
-    def specs(self):
-        return [
+    @logger.instrument('Fetching from repo {self.origin.url}...')
+    def fetch(self):
+        specs = [
             "+refs/heads/*:refs/remotes/origin/*",
             "+refs/tags/*:refs/tags/*",
         ]
 
-    @logger.instrument('Fetching from repo {self.remote.url}...')
-    def fetch(self):
-        return self.remote.fetch(self.specs, callbacks=self.callbacks)
+        return self.origin.fetch(specs, callbacks=self.callbacks)
+
+    @logger.instrument('Pushing to repo {self.origin.url}...')
+    def push(self):
+        specs = [
+            f"{ref}:{ref}"
+            for ref in self.references
+            if ref.startswith(("refs/heads/", "refs/tags/"))
+        ]
+
+        return self.origin.push(specs, callbacks=self.callbacks)
 
 
 class VersionData(Inherit[Repository]):
@@ -69,11 +78,11 @@ class Tags(Inherit[Repository]):
 
     @property
     def new(self):
-        return f"v{self.project.data.new}"
+        return f"v{self.project.repo.data.new}"
 
     @property
     def current(self):
-        return f"v{self.project.data.current}"
+        return f"v{self.project.repo.data.current}"
 
     def get_tags(self):
         for ref in self.references:
