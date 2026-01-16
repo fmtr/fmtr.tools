@@ -8,6 +8,15 @@ from fmtr.tools.iterator_tools import IndexList
 
 
 class Stack(Inherit[Project]):
+    """
+    
+    Represents the Docker stack for a project. Manages different deployment targets including:
+
+    - Development compose stack with docker-compose configuration
+    - Build targets for dev and production environments
+
+    """
+
     CHANNEL = None
 
     @cached_property
@@ -24,7 +33,11 @@ class Stack(Inherit[Project]):
 
 
 class Dev(Stack):
-    # todo: add docker api to setup (if needed)
+    """
+
+    Represents the development environment stack with channel-specific configuration
+
+    """
 
     CHANNEL = 'dev'
 
@@ -34,6 +47,11 @@ class Dev(Stack):
 
     @cached_property
     def compose_data(self):
+        """
+
+        Merge Compose data for all project services
+
+        """
         data = []
         for service in [Compose.NAME] + self.services:
             compose = self.composes_all.NAME[service]
@@ -42,12 +60,11 @@ class Dev(Stack):
         return data
 
     def build(self):
-        # some of these are runtime, others are generate project settings.
-        # do setup.py and the project need shared access - or can these just live in code?
+        """
 
-        # runtime:
+        Builds a Docker image using the specified build arguments, tags, and contexts.
 
-        version_str = '0.0.0'  # needs to come from project.repo
+        """
 
         build_args = dict(
             ORG=self.org,
@@ -78,6 +95,10 @@ class Dev(Stack):
         )
 
     def recreate(self):
+        """
+        Recreates a compose deployment
+
+        """
         data = self.compose_data
 
         with logger.span(f'Writing compose file to "{self.path_compose}"'):
@@ -92,6 +113,11 @@ class Dev(Stack):
 
 
 class Compose(Inherit[Stack]):
+    """
+
+    Compose file representation
+
+    """
     NAME = 'base'
 
     @property
@@ -144,11 +170,16 @@ class Compose(Inherit[Stack]):
 
 
 class ComposeDocumentDatabase(Compose):
+    """
+
+    Compose file representation for document database service
+
+    """
     NAME = 'db.document'
 
     @property
     def data(self):
         data = dict(
-
+            # todo
         )
         return data

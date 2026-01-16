@@ -18,20 +18,23 @@ from fmtr.tools.path_tools import Path
 class Releaser(Inherit[Project]):
     """
 
-    Two steps (which I suppose should run for ALL projects:
+    Manages the release process for a project.
 
-    # repo-related: fetch, increment, tag, push.
-    # do gh release create. should always make a release, even on private.
+    The release process consists of two main phases:
 
+    1. Repository operations:
+       - Fetch latest changes from remote
+       - Increment version numbers in relevant files
 
-
+    2. Distribution and publishing:
+       - Create GitHub release (for both public and private repositories)
+       - Build Python packages (wheel and sdist)
+       - Upload to package indexes (private registry always, PyPI if configured)
 
     """
 
-
-
+    @logger.instrument("Releasing {self.paths.name_ns}...")
     def run(self):
-
         self.repo.fetch()
         self.increment()
         self.repo.push()
@@ -44,6 +47,22 @@ class Releaser(Inherit[Project]):
 
     @logger.instrument("Incrementing version numbers {self.repo.origin.url}...")
     def increment(self):
+        """
+        Increment version numbers in project files and create a new commit.
+
+        This method updates version information across multiple project files (e.g., version file, Home Assistant addon config) and commits these changes to the main branch. It also creates a tag for the new version and fast-forwards the release branch to match main.
+
+        The method uses a temporary git index file to stage changes independently from any existing staging in the working directory. This ensures that the release commit only includes version increment changes and is not affected by uncommitted work or previously staged files.
+
+        Workflow:
+        1. Creates a temporary index file based on the current committed state (HEAD of main)
+        2. Applies version increment changes through configured incrementors
+        3. Stages only the version-related changes in the temporary index
+        4. Creates a new commit on the main branch with these changes
+        5. Creates a git tag for the new version
+        6. Fast-forwards the release branch to match the new main branch HEAD
+
+        """
         repo = self.repo
 
         main_ref = repo.lookup_reference("refs/heads/main")
@@ -54,13 +73,9 @@ class Releaser(Inherit[Project]):
 
         with tempfile.TemporaryDirectory(prefix=f"{self.paths.name_ns}-index-") as path_dir:
             path = Path(path_dir) / "index"
-
-            # pygit2.Index(path) expects a valid index file already exists, so copy one
             path.write_bytes(src_index.read_bytes())
 
             index = vcs.Index(str(path))
-
-            # Start from committed state only (ignores user's current staging)
             index.read_tree(parent.tree)
 
             for incrementor in self.incrementors:
@@ -91,8 +106,6 @@ class Releaser(Inherit[Project]):
                 [parent.id],
             )
 
-
-        # --- OPTIONAL TAG (left commented for debugging) ---
         repo.create_tag(
             self.repo.tags.new,
             commit_id,
@@ -101,7 +114,6 @@ class Releaser(Inherit[Project]):
             self.message,
         )
 
-        # --- fast-forward release to main ---
         branch_name = "release"
         ref_name = f"refs/heads/{branch_name}"
 
@@ -113,7 +125,6 @@ class Releaser(Inherit[Project]):
 
         release_commit = release_ref.peel(vcs.Commit)
 
-        # safety check: only fast-forward if release is behind main
         if repo.merge_base(commit_id, release_commit.id) != release_commit.id:
             raise RuntimeError("release has diverged from main")
 
@@ -135,7 +146,7 @@ class Releaser(Inherit[Project]):
 
     @cached_property
     def packagers(self):
-        return [PackageWheel(self), PackageSdist(self)]
+        return [PackageWheel(self), PackageSourceDistribution(self)]
 
     @cached_property
     def releases(self):
@@ -150,11 +161,6 @@ class Releaser(Inherit[Project]):
             releases.append(release)
 
         return releases
-
-    @cached_property
-    def tagger(self):
-        return Tagger(self)
-
 
     def release(self):
         for release in self.releases:
@@ -208,24 +214,12 @@ class IncrementorHomeAssistantAddon(Incrementor):
         self.path.write_yaml(data)
         return self.path
 
-
-class Tagger(Inherit[Releaser]):
-    MASK = "Release version {self.data.new}"
-
-    def apply(self):
-        commit = self.repo.lookup_reference('refs/heads/main').peel(vcs.Commit)
-
-        msg = self.MASK.format(self=self)
-        self.repo.create_tag(
-            self.tags.new,
-            commit.id,
-            vcs.GIT_OBJECT_COMMIT,
-            self.repo.default_signature,
-            msg,
-        )
-
-
 class Packager(Inherit[Releaser]):
+    """
+    
+    Base class for packaging operations.
+    
+    """
     TYPE = None
 
     def package(self):
@@ -236,19 +230,39 @@ class Packager(Inherit[Releaser]):
 
 
 class PackageWheel(Packager):
+    """
+    
+    Package as Python wheel.
+    
+    """
     TYPE = 'wheel'
 
 
-class PackageSdist(Packager):
+class PackageSourceDistribution(Packager):
+    """
+    
+    Package as source distribution.
+    
+    """
     TYPE = 'sdist'
 
 
 class Release(Inherit[Releaser]):
+    """
+    
+    Base class for release operations.
+    
+    """
     def release(self):
         raise NotImplementedError
 
 
 class ReleaseGithub(Release):
+    """
+    
+    Release to GitHub.
+    
+    """
 
     def release(self):
         url = f"https://api.github.com/repos/{self.org}/{self.paths.name_ns}/releases"
@@ -278,9 +292,12 @@ class ReleaseGithub(Release):
 
 
 class ReleasePackageIndex(Release):
-    """Base class for package index releases."""
-
-    # Class-level attributes to be overridden by subclasses
+    """
+    
+    Base class for package index releases.
+    
+    """
+    
     TOKEN_KEY = None
     URL = None
     USERNAME = None
@@ -307,12 +324,22 @@ class ReleasePackageIndex(Release):
 
 
 class ReleasePackageIndexPrivate(ReleasePackageIndex):
+    """
+    
+    Release to private package index.
+    
+    """
     TOKEN_KEY = Constants.PACKAGE_INDEX_PRIVATE_TOKEN_KEY
     URL = Constants.PACKAGE_INDEX_PRIVATE_URL
     USERNAME = Constants.ORG_NAME
 
 
 class ReleasePackageIndexPublic(ReleasePackageIndex):
+    """
+    
+    Release to public package index, namely PyPI.
+    
+    """
     TOKEN_KEY = Constants.PACKAGE_INDEX_PUBLIC_TOKEN_KEY
     URL = None
     USERNAME = '__token__'

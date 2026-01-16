@@ -8,6 +8,11 @@ from fmtr.tools.setup_tools import SetupPaths
 
 
 class Project:
+    """
+
+    Represents a canonical project with associated settings, runtime configuration, and paths.
+
+    """
 
     def __init__(self, name, port=None, services=None, base='python', entrypoint='launch', hostname='ws.lan', channel='dev', extras=None, is_pypi=False):
 

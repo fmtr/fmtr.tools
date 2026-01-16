@@ -9,6 +9,11 @@ from fmtr.tools.path_tools import Path
 
 
 class Repository(vcs.Repository):
+    """
+
+    Repository subclass to add some project-specific functionality.
+
+    """
     SSH_DIR = Path().home() / ".ssh"
 
     def __init__(self, path: Path, project: Any):
