@@ -139,11 +139,17 @@ class Releaser(Inherit[Project]):
 
     @cached_property
     def releases(self):
-        return [
+        releases = [
             ReleaseGithub(self),
             ReleasePackageIndexPrivate(self),
-            # ReleasePackageIndexPublic(self)
+
         ]
+
+        if self.is_pypi:
+            release = ReleasePackageIndexPublic(self)
+            releases.append(release)
+
+        return releases
 
     @cached_property
     def tagger(self):

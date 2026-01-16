@@ -9,13 +9,14 @@ from fmtr.tools.setup_tools import SetupPaths
 
 class Project:
 
-    def __init__(self, name, port=None, services=None, base='python', entrypoint='launch', hostname='ws.lan', channel='dev', extras=None):
+    def __init__(self, name, port=None, services=None, base='python', entrypoint='launch', hostname='ws.lan', channel='dev', extras=None, is_pypi=False):
 
         # project settings:
         self.services = services or []
         self.base = base
         self.port = port
         self.entrypoint = entrypoint
+        self.is_pypi = is_pypi
 
         # runtime:
         self.hostname = hostname
