@@ -1,8 +1,10 @@
 import build
 import pygit2 as vcs
 import shutil
+import tempfile
 import twine.settings
 from functools import cached_property
+from twine.commands.upload import upload as twine_upload
 
 from fmtr.tools import environment_tools as env
 from fmtr.tools import http_tools as http
@@ -32,49 +34,63 @@ class Releaser(Inherit[Project]):
 
         self.repo.fetch()
         self.increment()
-        # self.tagger.apply()
         self.repo.push()
-
         self.package()
         self.release()
 
-        # todo next run stuff like publishing to pypi.
+    @property
+    def message(self):
+        return f"Release version {self.repo.data.new}"
 
-    @logger.instrument('Incrementing version numbers {self.repo.origin.url}...')
+    @logger.instrument("Incrementing version numbers {self.repo.origin.url}...")
     def increment(self):
-
-        # # Abort if tag already exists (same logic as before)
-        # if self.tags.new in self.tags.all:
-        #     logger.warning(f"Tag already exists: {self.tags.new}. Will not increment version.")
-        #     return
-
         repo = self.repo
-        index = repo.index
 
-        # todo remove any files that are already added?
-
-        # --- apply version increments ---
-        for inc in self.incrementors:
-            path = inc.apply()
-            if not path:
-                continue
-            index.add(str(path.relative_to(self.paths.repo)))
-
-        index.write()
-        tree = index.write_tree()
-
-        # --- commit on main ---
-        main_ref = repo.lookup_reference('refs/heads/main')
+        main_ref = repo.lookup_reference("refs/heads/main")
         parent = main_ref.peel(vcs.Commit)
 
-        commit_id = repo.create_commit(
-            main_ref.name,
-            repo.default_signature,
-            repo.default_signature,
-            "Increment version numbers",
-            tree,
-            [parent.id],
-        )
+        git_dir = Path(repo.path)  # .../.git/
+        src_index = git_dir / "index"
+
+        with tempfile.TemporaryDirectory(prefix=f"{self.paths.name_ns}-index-") as path_dir:
+            path = Path(path_dir) / "index"
+
+            # pygit2.Index(path) expects a valid index file already exists, so copy one
+            path.write_bytes(src_index.read_bytes())
+
+            index = vcs.Index(str(path))
+
+            # Start from committed state only (ignores user's current staging)
+            index.read_tree(parent.tree)
+
+            for incrementor in self.incrementors:
+                path = incrementor.apply()
+                if not path:
+                    continue
+
+                rel = str(Path(path).relative_to(self.paths.repo))
+
+                blob_id = repo.create_blob_fromworkdir(rel)
+
+                try:
+                    mode = parent.tree[rel].filemode
+                except KeyError:
+                    mode = vcs.GIT_FILEMODE_BLOB
+
+                index.add(vcs.IndexEntry(rel, blob_id, mode))
+
+            index.write()
+            tree = index.write_tree(repo)
+
+            commit_id = repo.create_commit(
+                main_ref.name,
+                repo.default_signature,
+                repo.default_signature,
+                self.message,
+                tree,
+                [parent.id],
+            )
+
 
         # --- OPTIONAL TAG (left commented for debugging) ---
         repo.create_tag(
@@ -82,7 +98,7 @@ class Releaser(Inherit[Project]):
             commit_id,
             vcs.GIT_OBJECT_COMMIT,
             repo.default_signature,
-            f"Release version {self.repo.data.new}",
+            self.message,
         )
 
         # --- fast-forward release to main ---
@@ -123,15 +139,21 @@ class Releaser(Inherit[Project]):
 
     @cached_property
     def releases(self):
-        return [ReleaseGithub(self), ReleasePackageIndexPrivate(self)]
+        return [
+            ReleaseGithub(self),
+            ReleasePackageIndexPrivate(self),
+            # ReleasePackageIndexPublic(self)
+        ]
 
     @cached_property
     def tagger(self):
         return Tagger(self)
 
+
     def release(self):
         for release in self.releases:
             release.release()
+
 
     def package(self):
         if self.path.exists():
@@ -249,24 +271,43 @@ class ReleaseGithub(Release):
         logger.info(f"Release created: {url}")
 
 
-class ReleasePackageIndexPrivate(Release):
+class ReleasePackageIndex(Release):
+    """Base class for package index releases."""
+
+    # Class-level attributes to be overridden by subclasses
+    TOKEN_KEY = None
+    URL = None
+    USERNAME = None
+    NAME = None
 
     @cached_property
     def token(self):
-        return env.get(Constants.PACKAGE_INDEX_PRIVATE_TOKEN_KEY)
+        return env.get(self.TOKEN_KEY)
 
     @cached_property
     def settings(self):
         return twine.settings.Settings(
-            repository_name=None,  # None if using repository_url directly
-            repository_url=f'{Constants.PACKAGE_INDEX_PRIVATE_URL}',
-            username=Constants.ORG_NAME,
+            repository_name=self.NAME,
+            repository_url=self.URL,
+            username=self.USERNAME,
             password=self.token,
             non_interactive=True,
             verbose=True
         )
 
     def release(self):
-        from twine.commands.upload import upload as twine_upload
-        with logger.span(f'Uploading package to private PyPI index ({Constants.PACKAGE_INDEX_PRIVATE_URL}) as {Constants.ORG_NAME}...'):
+        with logger.span(f'Uploading package to PyPI index ({self.URL}) as {self.USERNAME}...'):
             twine_upload(self.settings, [f'{self.path}/*'])
+
+
+class ReleasePackageIndexPrivate(ReleasePackageIndex):
+    TOKEN_KEY = Constants.PACKAGE_INDEX_PRIVATE_TOKEN_KEY
+    URL = Constants.PACKAGE_INDEX_PRIVATE_URL
+    USERNAME = Constants.ORG_NAME
+
+
+class ReleasePackageIndexPublic(ReleasePackageIndex):
+    TOKEN_KEY = Constants.PACKAGE_INDEX_PUBLIC_TOKEN_KEY
+    URL = None
+    USERNAME = '__token__'
+    NAME = "pypi"
