@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+# set -e # Will close terminal if used in profile/.bashrc, etc
 
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
