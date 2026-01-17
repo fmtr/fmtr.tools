@@ -14,10 +14,11 @@ class Project:
 
     """
 
-    def __init__(self, name, port=None, services=None, base='python', entrypoint='launch', hostname='ws.lan', channel='dev', extras=None, is_pypi=False):
+    def __init__(self, name, port=None, services=None, scripts=None, base='python', entrypoint='launch', hostname='ws.lan', channel='dev', extras=None, is_pypi=False):
 
         # project settings:
         self.services = services or []
+        self.scripts = scripts or []
         self.base = base
         self.port = port
         self.entrypoint = entrypoint
@@ -55,8 +56,9 @@ class Project:
 
     @cached_property
     def stacks(self):
-        from fmtr.tools.infrastructure_tools.stack import Stack
-        stacks = IndexList[Stack](cls(self) for cls in Stack.get_all())
+        from fmtr.tools.infrastructure_tools.stack import Stack, Development
+        classes = [Development]
+        stacks = IndexList[Stack](cls(self) for cls in classes)
         return stacks
 
     @cached_property
@@ -78,3 +80,7 @@ class Project:
     @cached_property
     def extras_str(self):
         return ','.join(self.extras)
+
+    @cached_property
+    def scripts_str(self):
+        return ' '.join(self.scripts)

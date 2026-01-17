@@ -17,7 +17,9 @@ class Stack(Inherit[Project]):
 
     """
 
-    CHANNEL = None
+    @cached_property
+    def channel(self):
+        return self.__class__.__name__.lower()
 
     @cached_property
     def path_compose(self):
@@ -29,17 +31,16 @@ class Stack(Inherit[Project]):
 
     @classmethod
     def get_all(self):
-        return [Dev]
+        return [Development]
 
 
-class Dev(Stack):
+class Development(Stack):
     """
 
     Represents the development environment stack with channel-specific configuration
 
     """
 
-    CHANNEL = 'dev'
 
     @cached_property
     def composes_all(self):
@@ -72,11 +73,12 @@ class Dev(Stack):
             BASE=self.base,
             EXTRAS=self.extras_str,
             ENTRYPOINT=f"{self.org}-{self.package}-{self.entrypoint}",
+            SCRIPTS=self.scripts_str,
         )
 
         tags = [
-            f'{self.org}.{self.package}:{self.CHANNEL}-{self.extras_str}',
-            f'{self.org}.{self.package}:{self.CHANNEL}-{self.extras_str}-{self.repo.data.current}'
+            f'{self.org}.{self.package}:{self.channel}-{self.extras_str}',
+            f'{self.org}.{self.package}:{self.channel}-{self.extras_str}-{self.repo.data.current}'
         ]
 
         contexts = dict(
@@ -89,26 +91,29 @@ class Dev(Stack):
             context_path=self.paths.repo,
             build_args=build_args,
             tags=tags,
-            target=self.CHANNEL,
+            target=self.channel,
             load=True,
 
         )
 
     def recreate(self):
         """
+
         Recreates a compose deployment
 
         """
+
+        self.build()
+
         data = self.compose_data
 
         with logger.span(f'Writing compose file to "{self.path_compose}"'):
             self.path_compose.write_yaml(data)
-        # project_name = f"{self.org}-{self.package}"
 
         self.client.compose.up(
             detach=True,
             force_recreate=True,
-            # project_name=project_name,
+
         )
 
 
@@ -126,10 +131,10 @@ class Compose(Inherit[Stack]):
             name=f"{self.name_dash}",
             services=dict(
                 interpreter=dict(
-                    image=f"{self.name}:dev-{self.extras_str}",
+                    image=f"{self.name}:{self.channel}-{self.extras_str}",
                     restart="unless-stopped",
                     container_name=f"{self.name}",
-                    hostname=f"{self.name_dash}-{self.CHANNEL}",
+                    hostname=f"{self.name_dash}-{self.channel}",
                     env_file=[
                         "/opt/dev/repo/env",
                     ],
