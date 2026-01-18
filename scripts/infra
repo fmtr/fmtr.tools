@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -euo pipefail
+
+. parse-args "$@"
+
+BASE_URL="https://infra.gex.fmtr.dev"
+URL="${BASE_URL}/${PROJECT}/${TASK}"
+
+curl -fsS "$URL"

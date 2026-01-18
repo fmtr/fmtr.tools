@@ -7,6 +7,7 @@ from fmtr.tools.constants import Constants
 class Api(api.Base):
     TITLE = f'Infrastructure API'
     URL_DOCS = '/'
+    PORT = 9100  # todo fix
 
     def get_endpoints(self):
         endpoints = [
@@ -32,3 +33,7 @@ class Api(api.Base):
         project = Project()
 
         project.releaser.run()
+
+
+if __name__ == '__main__':
+    Api.launch()
