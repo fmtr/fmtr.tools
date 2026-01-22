@@ -35,3 +35,24 @@ class Inherit(Generic[T]):
         except AttributeError:
             parent = object.__getattribute__(self, "_parent")
             return getattr(parent, name)
+
+    @property
+    def inherit_parent(self) -> T:
+        """
+
+        Retrieves the inherit parent `_parent` attribute.
+
+        """
+        return object.__getattribute__(self, "_parent")
+
+    @property
+    def inherit_root(self):
+        """
+
+        Returns the root object in the inheritance hierarchy.
+
+        """
+        cur = object.__getattribute__(self, "_parent")
+        while isinstance(cur, Inherit):
+            cur = object.__getattribute__(cur, "_parent")
+        return cur

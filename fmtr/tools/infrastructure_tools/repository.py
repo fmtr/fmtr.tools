@@ -2,7 +2,6 @@ import pygit2 as vcs
 from functools import cached_property
 from typing import Any
 
-from fmtr.tools import version_tools as version
 from fmtr.tools.inherit_tools import Inherit
 from fmtr.tools.logging_tools import logger
 from fmtr.tools.path_tools import Path
@@ -20,9 +19,6 @@ class Repository(vcs.Repository):
         super().__init__(str(path))
         self.project = project
 
-    @cached_property
-    def data(self):
-        return VersionData(self)
 
     @cached_property
     def tags(self):
@@ -60,23 +56,7 @@ class Repository(vcs.Repository):
         return self.origin.push(specs, callbacks=self.callbacks)
 
 
-class VersionData(Inherit[Repository]):
 
-    @cached_property
-    def current(self):
-        ver_str = self.project.paths.version.read_text().strip()
-
-        version_obj = version.parse(ver_str)
-        return version_obj
-
-    @property
-    def new(self):
-        version_new = self.current.bump_patch()  # todo: inc prelrease, if it's pre, else bump patch.
-        return version_new
-
-    @property
-    def is_pre(self):
-        return bool(self.new.prerelease)
 
 
 class Tags(Inherit[Repository]):
@@ -87,7 +67,7 @@ class Tags(Inherit[Repository]):
 
     @property
     def current(self):
-        return f"v{self.project.repo.data.current}"
+        return f"v{self.project.version}"
 
     def get_tags(self):
         for ref in self.references:

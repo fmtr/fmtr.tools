@@ -1,10 +1,13 @@
 from functools import cached_property
 
-from fmtr.tools import Path, merge, logger
+from fmtr.tools.constants import Constants
 from fmtr.tools.docker_tools import DockerClient
 from fmtr.tools.infrastructure_tools.project import Project
 from fmtr.tools.inherit_tools import Inherit
 from fmtr.tools.iterator_tools import IndexList
+from fmtr.tools.logging_tools import logger
+from fmtr.tools.merging_tools import merge
+from fmtr.tools.path_tools import Path
 
 
 class Stack(Inherit[Project]):
@@ -16,6 +19,10 @@ class Stack(Inherit[Project]):
     - Build targets for dev and production environments
 
     """
+
+    @cached_property
+    def cls(self):
+        return self.__class__
 
     @cached_property
     def channel(self):
@@ -32,15 +39,6 @@ class Stack(Inherit[Project]):
     @classmethod
     def get_all(self):
         return [Development]
-
-
-class Development(Stack):
-    """
-
-    Represents the development environment stack with channel-specific configuration
-
-    """
-
 
     @cached_property
     def composes_all(self):
@@ -60,6 +58,14 @@ class Development(Stack):
         data = merge(*data)
         return data
 
+    @cached_property
+    def tags_image(self):
+        return [
+            f'{self.name}:{self.channel}-{self.extras_str}',
+            f'{self.name}:{self.channel}-{self.extras_str}-{self.tag}'
+        ]
+
+    @logger.instrument('Building image for project {self.name} on channel {self.channel}...')
     def build(self):
         """
 
@@ -68,6 +74,7 @@ class Development(Stack):
         """
 
         build_args = dict(
+            NAME=self.name,
             ORG=self.org,
             PACKAGE=self.package,
             BASE=self.base,
@@ -76,10 +83,7 @@ class Development(Stack):
             SCRIPTS=self.scripts_str,
         )
 
-        tags = [
-            f'{self.org}.{self.package}:{self.channel}-{self.extras_str}',
-            f'{self.org}.{self.package}:{self.channel}-{self.extras_str}-{self.repo.data.current}'
-        ]
+
 
         contexts = dict(
             package=str(self.paths.repo)
@@ -90,11 +94,19 @@ class Development(Stack):
             file='Dockerfile',
             context_path=self.paths.repo,
             build_args=build_args,
-            tags=tags,
+            tags=self.tags_image,
             target=self.channel,
             load=True,
 
         )
+
+
+class Development(Stack):
+    """
+
+    Represents the development environment stack with channel-specific configuration
+
+    """
 
     def recreate(self):
         """
@@ -116,6 +128,27 @@ class Development(Stack):
 
         )
 
+
+class ProductionPrivate(Stack):
+    @cached_property
+    def channel(self):
+        return 'production'
+
+    def push(self):
+        pass
+
+
+class ProductionPublic(ProductionPrivate):
+
+    @cached_property
+    def tags_image(self):
+        tags = super().tags_image
+
+        tags += [f'{Constants.ORG_NAME}/{self.name}:latest', f'{Constants.ORG_NAME}/{self.name}:{self.tag}']
+        return tags
+
+    def push(self):
+        pass
 
 class Compose(Inherit[Stack]):
     """

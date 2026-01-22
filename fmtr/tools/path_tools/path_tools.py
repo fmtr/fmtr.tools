@@ -1,7 +1,8 @@
-from pathlib import Path
-
+import os
 import re
 import subprocess
+from contextlib import contextmanager
+from pathlib import Path
 from tempfile import gettempdir
 from typing import Union, Any, Self
 
@@ -250,6 +251,14 @@ class Path(type(Path())):
             return data
         return cls(data)
 
+    @property
+    def chdir(self):
+        """
+
+        Return change dir context manager
+
+        """
+        return chdir(self)
 
 class FromCallerMixin:
     """
@@ -447,6 +456,24 @@ class PackagePaths(FromCallerMixin):
         """
         return self.repo / 'ha' / 'addon' / 'config.yaml'
 
+    @property
+    def changelog(self) -> Path:
+        """
+
+        Path of repo changelog
+
+        """
+        return self.repo / 'CHANGELOG.md'
+
+    @property
+    def docs_changelog(self) -> Path:
+        """
+
+        Path of docs latest changelog
+
+        """
+        return self.docs / 'changelog' / 'changelog.md'
+
     def __repr__(self) -> str:
         """
 
@@ -454,6 +481,24 @@ class PackagePaths(FromCallerMixin):
 
         """
         return f'{self.__class__.__name__}("{self.path}")'
+
+    def cd(self):
+        ...
+
+
+@contextmanager
+def chdir(path: Path):
+    """
+
+    Set CWD temporarily using a context manager
+
+    """
+    prev = Path.cwd()
+    os.chdir(path)
+    try:
+        yield Path.cwd()
+    finally:
+        os.chdir(prev)
 
 
 root = Path('/')

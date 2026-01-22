@@ -4,7 +4,12 @@ import shutil
 import tempfile
 import twine.settings
 from functools import cached_property
+from mkdocs.__main__ import cli
 from twine.commands.upload import upload as twine_upload
+
+gh_deploy = cli.commands["gh-deploy"].callback
+
+
 
 from fmtr.tools import environment_tools as env
 from fmtr.tools import http_tools as http
@@ -38,12 +43,20 @@ class Releaser(Inherit[Project]):
         self.repo.fetch()
         self.increment()
         self.repo.push()
+        self.repo.fetch()
+
+        if self.is_dockerhub:
+            from fmtr.tools.infrastructure_tools.stack import ProductionPublic
+            stack = self.stacks.cls[ProductionPublic]
+            stack.build()
+            stack.push()
+
         self.package()
         self.release()
 
     @property
     def message(self):
-        return f"Release version {self.repo.data.new}"
+        return f"Release version {self.version}"
 
     @logger.instrument("Incrementing version numbers {self.repo.origin.url}...")
     def increment(self):
@@ -72,27 +85,30 @@ class Releaser(Inherit[Project]):
         src_index = git_dir / "index"
 
         with tempfile.TemporaryDirectory(prefix=f"{self.paths.name_ns}-index-") as path_dir:
-            path = Path(path_dir) / "index"
-            path.write_bytes(src_index.read_bytes())
+            paths = Path(path_dir) / "index"
+            paths.write_bytes(src_index.read_bytes())
 
-            index = vcs.Index(str(path))
+            index = vcs.Index(str(paths))
             index.read_tree(parent.tree)
 
             for incrementor in self.incrementors:
-                path = incrementor.apply()
-                if not path:
+                paths = incrementor.apply()
+                if not paths:
                     continue
 
-                rel = str(Path(path).relative_to(self.paths.repo))
+                if not isinstance(paths, list):
+                    paths = [paths]
 
-                blob_id = repo.create_blob_fromworkdir(rel)
+                for path in paths:
+                    rel = str(Path(path).relative_to(self.paths.repo))
+                    blob_id = repo.create_blob_fromworkdir(rel)
 
-                try:
-                    mode = parent.tree[rel].filemode
-                except KeyError:
-                    mode = vcs.GIT_FILEMODE_BLOB
+                    try:
+                        mode = parent.tree[rel].filemode
+                    except KeyError:
+                        mode = vcs.GIT_FILEMODE_BLOB
 
-                index.add(vcs.IndexEntry(rel, blob_id, mode))
+                    index.add(vcs.IndexEntry(rel, blob_id, mode))
 
             index.write()
             tree = index.write_tree(repo)
@@ -107,7 +123,7 @@ class Releaser(Inherit[Project]):
             )
 
         repo.create_tag(
-            self.repo.tags.new,
+            self.tag,
             commit_id,
             vcs.GIT_OBJECT_COMMIT,
             repo.default_signature,
@@ -142,7 +158,7 @@ class Releaser(Inherit[Project]):
 
     @cached_property
     def incrementors(self):
-        return [IncrementorVersion(self), IncrementorHomeAssistantAddon(self)]
+        return [IncrementorVersion(self), IncrementorHomeAssistantAddon(self), IncrementorChangelog(self)]
 
     @cached_property
     def packagers(self):
@@ -153,6 +169,7 @@ class Releaser(Inherit[Project]):
         releases = [
             ReleaseGithub(self),
             ReleasePackageIndexPrivate(self),
+            ReleaseDocumentation(self)
 
         ]
 
@@ -191,9 +208,11 @@ class IncrementorVersion(Incrementor):
         return self.paths.version
 
     @logger.instrument('Incrementing version file "{self.path}"...')
-    def apply(self) -> Path | None:
+    def apply(self) -> Path | list[Path] | None:
         path = self.paths.version
-        path.write_text(str(self.repo.data.new))
+        path.write_text(str(self.version))
+        project = self.inherit_root
+        project.incremented = True
         return path
 
 
@@ -210,9 +229,41 @@ class IncrementorHomeAssistantAddon(Incrementor):
             return None
 
         data = self.path.read_yaml()
-        data['version'] = str(self.repo.data.new)
+        data['version'] = str(self.version)
         self.path.write_yaml(data)
         return self.path
+
+
+class IncrementorChangelog(Incrementor):
+
+    @cached_property
+    def path(self):
+        return self.paths.docs_changelog
+
+    @logger.instrument('Incrementing Changelog "{self.path}"...')
+    def apply(self) -> Path | list[Path] | None:
+        if not self.path.exists():
+            logger.warning(f"New changelog not found: {self.path}. Skipping.")
+            return None
+
+        paths = []
+        logger.info(f"Version tagging Changelog: {self.path}")
+        path_version = self.path.with_stem(f'{self.version}')
+        self.path.rename(path_version)
+        paths.append(path_version)
+
+        src = Path(path_version).relative_to(self.paths.repo)
+        dest = self.paths.changelog
+
+        dest.unlink(missing_ok=True)
+        dest.symlink_to(src)
+
+        paths.append(dest)
+        return paths
+
+
+
+
 
 class Packager(Inherit[Releaser]):
     """
@@ -266,7 +317,7 @@ class ReleaseGithub(Release):
 
     def release(self):
         url = f"https://api.github.com/repos/{self.org}/{self.paths.name_ns}/releases"
-        name = f'Release {self.repo.tags.new}'
+        name = f'Release {self.tag}'
 
         headers = {
             "Authorization": f"Bearer {self.token}",
@@ -274,11 +325,11 @@ class ReleaseGithub(Release):
         }
 
         payload = {
-            "tag_name": self.repo.tags.new,
+            "tag_name": self.tag,
             "name": name,
             "body": name,
             "draft": False,
-            "prerelease": self.repo.data.is_pre
+            "prerelease": self.is_pre
         }
 
         with logger.span(f'Creating release "{name}"...'):
@@ -344,3 +395,84 @@ class ReleasePackageIndexPublic(ReleasePackageIndex):
     URL = None
     USERNAME = '__token__'
     NAME = "pypi"
+
+
+class ReleaseDocumentation(Release):
+
+    @property
+    def data(self):
+        import io
+
+        from mkdocs.config import load_config
+        from material.extensions.emoji import twemoji, to_svg
+
+        return dict(
+            config_file=io.StringIO(""),
+            site_dir='site',
+            docs_dir=str(self.paths.docs),
+
+            site_name=self.paths.name_ns,
+            theme={
+                "name": "material",
+                "features": [
+                    "content.code.annotate",
+                    "content.code.copy",
+                ],
+            },
+            plugins=[
+                "search",
+                {"include_dir_to_nav": {"reverse_sort_file": True}},
+                {
+                    "mkdocstrings": {
+                        "handlers": {
+                            "python": {
+                                "options": {
+                                    "show_source": True,
+                                }
+                            }
+                        }
+                    }
+                },
+            ],
+            markdown_extensions=[
+                "admonition",
+                "attr_list",
+                "md_in_html",
+                "pymdownx.superfences",
+                {"pymdownx.highlight": {"pygments_lang_class": True}},
+                {"pymdownx.snippets": {"check_paths": True}},
+
+                {"pymdownx.tabbed": {"alternate_style": True}},
+                {"pymdownx.emoji": {"emoji_index": twemoji, "emoji_generator": to_svg}},
+            ],
+            nav=[
+                {"Home": "index.md"},
+                {"Changelog": "changelog/"},
+            ],
+            extra={
+                "version": {"provider": "mike"},
+            },
+        )
+
+    @property
+    def message(self):
+        return f"Release documentation version {self.version}"
+
+    def deploy(self):
+        result = gh_deploy(
+            clean=True,
+            message=self.message,
+            remote_branch="docs",
+            remote_name="origin",
+            force=True,
+            no_history=False,
+            ignore_version=False,
+            shell=False,
+            **self.data
+        )
+        return result
+
+    def release(self):
+        with self.paths.repo.chdir:
+            self.deploy()
+        self

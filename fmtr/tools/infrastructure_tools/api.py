@@ -25,6 +25,7 @@ class Api(api.Base):
     async def recreate(self, name: str):
         Project = self.get_project(name)
         project = Project()
+        project.incremented = True
 
         project.stacks.channel[Constants.DEVELOPMENT].recreate()
 

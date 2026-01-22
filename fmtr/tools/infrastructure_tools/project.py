@@ -1,5 +1,6 @@
 from functools import cached_property
 
+from fmtr.tools import version_tools
 from fmtr.tools.constants import Constants
 from fmtr.tools.infrastructure_tools.repository import Repository
 from fmtr.tools.iterator_tools import IndexList
@@ -14,7 +15,7 @@ class Project:
 
     """
 
-    def __init__(self, name, port=None, services=None, scripts=None, base='python', entrypoint='launch', hostname='ws.lan', channel='dev', extras=None, is_pypi=False):
+    def __init__(self, name, port=None, services=None, scripts=None, base='python', entrypoint='launch', hostname='ws.lan', channel='dev', extras=None, is_pypi=False, is_dockerhub=False):
 
         # project settings:
         self.services = services or []
@@ -23,6 +24,9 @@ class Project:
         self.port = port
         self.entrypoint = entrypoint
         self.is_pypi = is_pypi
+        self.is_dockerhub = is_dockerhub
+
+        self.incremented = False
 
         # runtime:
         self.hostname = hostname
@@ -46,6 +50,29 @@ class Project:
     def repo(self):
         return Repository(self.paths.repo, project=self)
 
+    @property
+    def version(self):
+
+        ver_str = self.paths.version.read_text().strip()
+
+        version_obj = version_tools.parse(ver_str)
+
+        if self.incremented:
+            return version_obj
+
+        version_obj = version_obj.bump_patch()
+
+        return version_obj
+
+    @property
+    def is_pre(self):
+        return bool(self.version.prerelease)
+
+    @property
+    def tag(self):
+        return f'v{self.version}'
+
+
     @cached_property
     def org(self):
         return self.paths.org
@@ -56,8 +83,8 @@ class Project:
 
     @cached_property
     def stacks(self):
-        from fmtr.tools.infrastructure_tools.stack import Stack, Development
-        classes = [Development]
+        from fmtr.tools.infrastructure_tools.stack import Stack, Development, ProductionPrivate, ProductionPublic
+        classes = [Development, ProductionPrivate, ProductionPublic]
         stacks = IndexList[Stack](cls(self) for cls in classes)
         return stacks
 
