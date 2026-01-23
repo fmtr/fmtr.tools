@@ -448,13 +448,40 @@ class PackagePaths(FromCallerMixin):
         return self.repo / Constants.DOCS_CONFIG_FILENAME
 
     @property
+    def ha_config(self) -> Path:
+        """
+
+        Path of Home Assistant config file
+
+        """
+        return self.repo / 'ha' / 'config.yaml'
+
+    @property
+    def ha_addon(self) -> Path:
+        """
+
+        Path of Home Assistant add-on
+
+        """
+        return self.repo / 'ha' / 'addon'
+
+    @property
+    def ha_addon_changelog(self) -> Path:
+        """
+
+        Path of Home Assistant add-on changelog
+
+        """
+        return self.ha_addon / 'CHANGELOG.md'
+
+    @property
     def ha_addon_config(self) -> Path:
         """
 
-        Path of docs config file
+        Path of Home Assistant add-on config file
 
         """
-        return self.repo / 'ha' / 'addon' / 'config.yaml'
+        return self.ha_addon / 'config.yaml'
 
     @property
     def changelog(self) -> Path:

@@ -1,11 +1,12 @@
 import build
 import pygit2 as vcs
 import shutil
-import tempfile
 import twine.settings
 from functools import cached_property
 from mkdocs.__main__ import cli
 from twine.commands.upload import upload as twine_upload
+
+from fmtr.tools.iterator_tools import IndexList
 
 gh_deploy = cli.commands["gh-deploy"].callback
 
@@ -61,66 +62,42 @@ class Releaser(Inherit[Project]):
     @logger.instrument("Incrementing version numbers {self.repo.origin.url}...")
     def increment(self):
         """
-        Increment version numbers in project files and create a new commit.
 
-        This method updates version information across multiple project files (e.g., version file, Home Assistant addon config) and commits these changes to the main branch. It also creates a tag for the new version and fast-forwards the release branch to match main.
-
-        The method uses a temporary git index file to stage changes independently from any existing staging in the working directory. This ensures that the release commit only includes version increment changes and is not affected by uncommitted work or previously staged files.
-
-        Workflow:
-        1. Creates a temporary index file based on the current committed state (HEAD of main)
-        2. Applies version increment changes through configured incrementors
-        3. Stages only the version-related changes in the temporary index
-        4. Creates a new commit on the main branch with these changes
-        5. Creates a git tag for the new version
-        6. Fast-forwards the release branch to match the new main branch HEAD
-
+        Increment version numbers in project files, create a new commit, and rebase the release branch.
+        
         """
         repo = self.repo
 
-        main_ref = repo.lookup_reference("refs/heads/main")
+        main_ref = repo.lookup_reference("refs/heads/main")  # todo raise if not main?
         parent = main_ref.peel(vcs.Commit)
 
-        git_dir = Path(repo.path)  # .../.git/
-        src_index = git_dir / "index"
+        # Make sure we're building on main's HEAD (not whatever HEAD currently is).
+        index = repo.index
+        index.read_tree(parent.tree)
 
-        with tempfile.TemporaryDirectory(prefix=f"{self.paths.name_ns}-index-") as path_dir:
-            paths = Path(path_dir) / "index"
-            paths.write_bytes(src_index.read_bytes())
+        # Apply incrementors (they edit files in the working tree), then stage results.
+        for incrementor in self.incrementors:
+            paths = incrementor.apply()
+            if not paths:
+                continue
+            if not isinstance(paths, list):
+                paths = [paths]
 
-            index = vcs.Index(str(paths))
-            index.read_tree(parent.tree)
+            for path in paths:
+                rel = str(Path(path).relative_to(self.paths.repo))
+                index.add(rel)
 
-            for incrementor in self.incrementors:
-                paths = incrementor.apply()
-                if not paths:
-                    continue
+        index.write()
+        tree = index.write_tree(repo)
 
-                if not isinstance(paths, list):
-                    paths = [paths]
-
-                for path in paths:
-                    rel = str(Path(path).relative_to(self.paths.repo))
-                    blob_id = repo.create_blob_fromworkdir(rel)
-
-                    try:
-                        mode = parent.tree[rel].filemode
-                    except KeyError:
-                        mode = vcs.GIT_FILEMODE_BLOB
-
-                    index.add(vcs.IndexEntry(rel, blob_id, mode))
-
-            index.write()
-            tree = index.write_tree(repo)
-
-            commit_id = repo.create_commit(
-                main_ref.name,
-                repo.default_signature,
-                repo.default_signature,
-                self.message,
-                tree,
-                [parent.id],
-            )
+        commit_id = repo.create_commit(
+            main_ref.name,
+            repo.default_signature,
+            repo.default_signature,
+            self.message,
+            tree,
+            [parent.id],
+        )
 
         repo.create_tag(
             self.tag,
@@ -132,7 +109,6 @@ class Releaser(Inherit[Project]):
 
         branch_name = "release"
         ref_name = f"refs/heads/{branch_name}"
-
         try:
             release_ref = repo.lookup_reference(ref_name)
         except KeyError:
@@ -140,10 +116,8 @@ class Releaser(Inherit[Project]):
             release_ref = repo.create_branch(branch_name, target)
 
         release_commit = release_ref.peel(vcs.Commit)
-
         if repo.merge_base(commit_id, release_commit.id) != release_commit.id:
             raise RuntimeError("release has diverged from main")
-
         release_ref.set_target(commit_id)
 
         return commit_id
@@ -158,7 +132,14 @@ class Releaser(Inherit[Project]):
 
     @cached_property
     def incrementors(self):
-        return [IncrementorVersion(self), IncrementorHomeAssistantAddon(self), IncrementorChangelog(self)]
+        return IndexList[Incrementor](
+            [
+                IncrementorVersion(self),
+                IncrementorHomeAssistantAddon(self),
+                IncrementorChangelog(self),
+                IncrementorChangelogHomeAssistant(self)
+            ]
+        )
 
     @cached_property
     def packagers(self):
@@ -197,6 +178,10 @@ class Releaser(Inherit[Project]):
 
 class Incrementor(Inherit[Releaser]):
 
+    @property
+    def cls(self):
+        return self.__class__
+
     def apply(self) -> Path | None:
         raise NotImplementedError
 
@@ -234,35 +219,55 @@ class IncrementorHomeAssistantAddon(Incrementor):
         return self.path
 
 
-class IncrementorChangelog(Incrementor):
+class IncrementorChangelogSymlink(Incrementor):
 
-    @cached_property
-    def path(self):
-        return self.paths.docs_changelog
+    @property
+    def src(self):
+        raise NotImplementedError
+
+    @property
+    def dest(self):
+        return self.paths.docs_changelog.with_stem(f'{self.version}')
+
+    def apply(self) -> Path | list[Path] | None:
+        if not self.dest.exists():
+            logger.warning(f"Symlink dest not found: {self.dest}. Skipping.")
+            return None
+
+        dest = self.dest.relative_to(self.paths.repo)
+
+        self.src.unlink(missing_ok=True)
+        self.src.symlink_to(dest)
+
+        return self.src
+
+
+class IncrementorChangelog(IncrementorChangelogSymlink):
+
+    @property
+    def src(self):
+        return self.paths.changelog
+
 
     @logger.instrument('Incrementing Changelog "{self.path}"...')
     def apply(self) -> Path | list[Path] | None:
-        if not self.path.exists():
-            logger.warning(f"New changelog not found: {self.path}. Skipping.")
+        path = self.paths.docs_changelog
+        if not path.exists():
+            logger.warning(f"New changelog not found: {path}. Skipping.")
             return None
 
-        paths = []
-        logger.info(f"Version tagging Changelog: {self.path}")
-        path_version = self.path.with_stem(f'{self.version}')
-        self.path.rename(path_version)
-        paths.append(path_version)
+        logger.info(f"Version tagging Changelog: {path} {Constants.ARROW_RIGHT} {self.dest}")
+        path.rename(self.dest)
 
-        src = Path(path_version).relative_to(self.paths.repo)
-        dest = self.paths.changelog
-
-        dest.unlink(missing_ok=True)
-        dest.symlink_to(src)
-
-        paths.append(dest)
+        paths = [self.dest, super().apply()]
         return paths
 
 
+class IncrementorChangelogHomeAssistant(IncrementorChangelogSymlink):
 
+    @property
+    def src(self):
+        return self.paths.ha_addon_changelog
 
 
 class Packager(Inherit[Releaser]):
@@ -324,10 +329,16 @@ class ReleaseGithub(Release):
             "Accept": "application/vnd.github+json"
         }
 
+        path_changelog = self.incrementors.cls[IncrementorChangelog].dest
+        if path_changelog.exists():
+            body = path_changelog.read_text()
+        else:
+            body = name
+
         payload = {
             "tag_name": self.tag,
             "name": name,
-            "body": name,
+            "body": body,
             "draft": False,
             "prerelease": self.is_pre
         }
