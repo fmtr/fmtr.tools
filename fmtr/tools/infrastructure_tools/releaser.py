@@ -137,7 +137,6 @@ class Releaser(Inherit[Project]):
                 IncrementorVersion(self),
                 IncrementorHomeAssistantAddon(self),
                 IncrementorChangelog(self),
-                IncrementorChangelogHomeAssistant(self)
             ]
         )
 
@@ -261,13 +260,6 @@ class IncrementorChangelog(IncrementorChangelogSymlink):
 
         paths = [self.dest, super().apply()]
         return paths
-
-
-class IncrementorChangelogHomeAssistant(IncrementorChangelogSymlink):
-
-    @property
-    def src(self):
-        return self.paths.ha_addon_changelog
 
 
 class Packager(Inherit[Releaser]):

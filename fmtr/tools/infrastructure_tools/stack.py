@@ -1,5 +1,6 @@
 from functools import cached_property
 
+from fmtr.tools import environment_tools as env
 from fmtr.tools.constants import Constants
 from fmtr.tools.docker_tools import DockerClient
 from fmtr.tools.infrastructure_tools.project import Project
@@ -23,6 +24,10 @@ class Stack(Inherit[Project]):
     @cached_property
     def cls(self):
         return self.__class__
+
+    @cached_property
+    def token(self):
+        return env.get(Constants.CONTAINER_INDEX_PUBLIC_TOKEN_KEY)
 
     @cached_property
     def channel(self):
@@ -141,14 +146,19 @@ class ProductionPrivate(Stack):
 class ProductionPublic(ProductionPrivate):
 
     @cached_property
+    def tags_public(self):
+        return [f'{Constants.ORG_NAME}/{self.name}:latest', f'{Constants.ORG_NAME}/{self.name}:{self.tag}']
+
+    @cached_property
     def tags_image(self):
         tags = super().tags_image
-
-        tags += [f'{Constants.ORG_NAME}/{self.name}:latest', f'{Constants.ORG_NAME}/{self.name}:{self.tag}']
+        tags += self.tags_public
         return tags
 
     def push(self):
-        pass
+        self.client.login(username=Constants.ORG_NAME, password=self.token)
+        for tag in self.tags_public:
+            self.client.push(tag)
 
 class Compose(Inherit[Stack]):
     """
