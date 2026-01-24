@@ -47,10 +47,11 @@ class Repository(vcs.Repository):
 
     @logger.instrument('Pushing to repo {self.origin.url}...')
     def push(self):
+        allowed_heads = {"refs/heads/main", "refs/heads/release"}
         specs = [
             f"{ref}:{ref}"
             for ref in self.references
-            if ref.startswith(("refs/heads/", "refs/tags/"))
+            if ref in allowed_heads or ref.startswith("refs/tags/")
         ]
 
         return self.origin.push(specs, callbacks=self.callbacks)

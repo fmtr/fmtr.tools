@@ -70,6 +70,11 @@ class Stack(Inherit[Project]):
             f'{self.name}:{self.channel}-{self.extras_str}-{self.tag}'
         ]
 
+    @cached_property
+    def entrypoint(self):
+        # f"{self.org}-{self.package}-{self.entrypoint}" todo allow entrypoint from self.paths.entrypoints.
+        return self.name_dash
+
     @logger.instrument('Building image for project {self.name} on channel {self.channel}...')
     def build(self):
         """
@@ -84,7 +89,7 @@ class Stack(Inherit[Project]):
             PACKAGE=self.package,
             BASE=self.base,
             EXTRAS=self.extras_str,
-            ENTRYPOINT=f"{self.org}-{self.package}-{self.entrypoint}",
+            ENTRYPOINT=self.entrypoint,
             SCRIPTS=self.scripts_str,
         )
 
@@ -94,16 +99,18 @@ class Stack(Inherit[Project]):
             package=str(self.paths.repo)
         )
 
-        self.client.build(
-            build_contexts=contexts,
-            file='Dockerfile',
-            context_path=self.paths.repo,
-            build_args=build_args,
-            tags=self.tags_image,
-            target=self.channel,
-            load=True,
-
-        )
+        for line in self.client.build(
+                build_contexts=contexts,
+                file="Dockerfile",
+                context_path=self.paths.repo,
+                build_args=build_args,
+                tags=self.tags_image,
+                target=self.channel,
+                load=True,
+                progress="plain",
+                stream_logs=True,
+        ):
+            logger.info(line.rstrip())
 
 
 class Development(Stack):
@@ -158,7 +165,12 @@ class ProductionPublic(ProductionPrivate):
     def push(self):
         self.client.login(username=Constants.ORG_NAME, password=self.token)
         for tag in self.tags_public:
-            self.client.push(tag)
+            with logger.span(f'Pushing image "{tag}"'):
+                for tag, line_bytes in self.client.push(tag, stream_logs=True):
+                    line = line_bytes.decode().rstrip()
+                    logger.info(line.rstrip())
+
+        self
 
 class Compose(Inherit[Stack]):
     """

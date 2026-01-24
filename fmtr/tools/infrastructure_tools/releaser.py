@@ -375,6 +375,7 @@ class ReleasePackageIndex(Release):
     def release(self):
         with logger.span(f'Uploading package to PyPI index ({self.URL}) as {self.USERNAME}...'):
             twine_upload(self.settings, [f'{self.path}/*'])
+        self
 
 
 class ReleasePackageIndexPrivate(ReleasePackageIndex):
@@ -448,7 +449,7 @@ class ReleaseDocumentation(Release):
                 {"pymdownx.tabbed": {"alternate_style": True}},
                 {"pymdownx.emoji": {"emoji_index": twemoji, "emoji_generator": to_svg}},
             ],
-            nav=[
+            nav=self.nav or [
                 {"Home": "index.md"},
                 {"Changelog": "changelog/"},
             ],
