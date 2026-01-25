@@ -131,9 +131,14 @@ class Versions(Inherit[Project]):
         if self.incremented:
             return version_obj
 
-        version_obj = self.pinned or version_obj.bump_patch()
+        version_obj = self.pinned or self.bump(version_obj)
 
         return version_obj
+
+    def bump(self, version):
+        if version.prerelease:
+            return version.bump_prerelease()
+        return version.bump_patch()
 
     @property
     def is_pre(self):
