@@ -7,6 +7,7 @@ try:
 
     semver = semver
     parse = semver.VersionInfo.parse
+    Version = semver.Version
 
 except ModuleNotFoundError as exception:
-    semver = parse = MissingExtraMockModule('version.dev', exception)
+    Version = semver = parse = MissingExtraMockModule('version.dev', exception)

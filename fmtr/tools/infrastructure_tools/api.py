@@ -30,9 +30,9 @@ class Api(api.Base):
 
         project.stacks.channel[Constants.DEVELOPMENT].recreate()
 
-    async def release(self, name: str):
+    async def release(self, name: str, pinned: str = None):
         Project = self.get_project(name)
-        project = Project()
+        project = Project(pinned=pinned)
 
         project.releaser.run()
 

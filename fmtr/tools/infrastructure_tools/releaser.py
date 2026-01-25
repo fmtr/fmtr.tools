@@ -316,6 +316,18 @@ class ReleaseGithub(Release):
     
     """
 
+    @property
+    def url(self):
+        return f"https://github.com/{Constants.ORG_NAME}/{self.paths.name_ns}/compare/v{self.versions.old}...v{self.versions.new}"
+
+    @property
+    def body(self):
+        path_changelog = self.incrementors.cls[IncrementorChangelog].dest
+        if path_changelog.exists():
+            return path_changelog.read_text()
+        else:
+            return f'**Full Changelog**: [{self.versions.old} {Constants.ARROW_RIGHT} {self.versions.new}]({self.url})'
+
     def release(self):
         url = f"https://api.github.com/repos/{self.org}/{self.paths.name_ns}/releases"
         name = f'Release {self.tag}'
@@ -325,18 +337,14 @@ class ReleaseGithub(Release):
             "Accept": "application/vnd.github+json"
         }
 
-        path_changelog = self.incrementors.cls[IncrementorChangelog].dest
-        if path_changelog.exists():
-            body = path_changelog.read_text()
-        else:
-            body = name
+
 
         payload = {
             "tag_name": self.tag,
             "name": name,
-            "body": body,
+            "body": self.body,
             "draft": False,
-            "prerelease": self.is_pre
+            "prerelease": self.versions.is_pre
         }
 
         with logger.span(f'Creating release "{name}"...'):
@@ -376,10 +384,13 @@ class ReleasePackageIndex(Release):
             verbose=True
         )
 
+    def warn(self):
+        pass
+
     def release(self):
         with logger.span(f'Uploading package to PyPI index ({self.URL}) as {self.USERNAME}...'):
+            self.warn()
             twine_upload(self.settings, [f'{self.path}/*'])
-        self
 
 
 class ReleasePackageIndexPrivate(ReleasePackageIndex):
@@ -403,6 +414,9 @@ class ReleasePackageIndexPublic(ReleasePackageIndex):
     URL = None
     USERNAME = '__token__'
     NAME = "pypi"
+
+    def warn(self):
+        logger.error(f'Project "{self.paths.name_ns}" is being pushed to a PUBLIC Package Index!')
 
 
 class ReleaseDocumentation(Release):

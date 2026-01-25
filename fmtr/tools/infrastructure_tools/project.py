@@ -3,6 +3,7 @@ from functools import cached_property
 from fmtr.tools import version_tools
 from fmtr.tools.constants import Constants
 from fmtr.tools.infrastructure_tools.repository import Repository
+from fmtr.tools.inherit_tools import Inherit
 from fmtr.tools.iterator_tools import IndexList
 from fmtr.tools.path_tools import PackagePaths
 from fmtr.tools.setup_tools import SetupPaths
@@ -15,7 +16,7 @@ class Project:
 
     """
 
-    def __init__(self, name, port=None, services=None, scripts=None, base='python', entrypoint=None, hostname='ws.lan', channel='dev', extras=None, is_pypi=False, is_dockerhub=False, nav=None):
+    def __init__(self, name, port=None, services=None, scripts=None, base='python', entrypoint=None, hostname='ws.lan', channel='dev', extras=None, is_pypi=False, is_dockerhub=False, nav=None, pinned=None):
 
         # project settings:
         self.services = services or []
@@ -48,6 +49,10 @@ class Project:
         setup_paths = SetupPaths(path=PackagePaths.dev / 'repo' / name, org=org)
         self.paths = PackagePaths(path=setup_paths.path, org_singleton=org_singleton)
 
+        self.versions = Versions(self, pinned=pinned)
+
+
+
     @cached_property
     def repo(self):
         return Repository(self.paths.repo, project=self)
@@ -55,20 +60,7 @@ class Project:
     @property
     def version(self):
 
-        ver_str = self.paths.version.read_text().strip()
-
-        version_obj = version_tools.parse(ver_str)
-
-        if self.incremented:
-            return version_obj
-
-        version_obj = version_obj.bump_patch()
-
-        return version_obj
-
-    @property
-    def is_pre(self):
-        return bool(self.version.prerelease)
+        return self.versions.new
 
     @property
     def tag(self):
@@ -113,3 +105,36 @@ class Project:
     @cached_property
     def scripts_str(self):
         return ' '.join(self.scripts)
+
+
+class Versions(Inherit[Project]):
+
+    def __init__(self, project: Project, pinned: str | None = None):
+        super().__init__(project)
+        self.old = self.get()
+
+        self.pinned = None
+        if pinned:
+            self.pinned = version_tools.Version.parse(pinned)
+
+    def get(self):
+        ver_str = self.paths.version.read_text().strip()
+
+        version_obj = version_tools.parse(ver_str)
+        return version_obj
+
+    @property
+    def new(self):
+
+        version_obj = self.get()
+
+        if self.incremented:
+            return version_obj
+
+        version_obj = self.pinned or version_obj.bump_patch()
+
+        return version_obj
+
+    @property
+    def is_pre(self):
+        return bool(self.new.prerelease)
