@@ -19,8 +19,9 @@ class Api(api.Base):
         return endpoints
 
     def get_project(self, name: str):
-        Project = importlib.import_module(f'{name}.project').Project
-        return Project
+        mod = importlib.import_module(f"{name}.project")
+        mod = importlib.reload(mod)
+        return mod.Project
 
     async def recreate(self, name: str):
         Project = self.get_project(name)

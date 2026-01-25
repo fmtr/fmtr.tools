@@ -99,13 +99,16 @@ class Releaser(Inherit[Project]):
             [parent.id],
         )
 
-        repo.create_tag(
-            self.tag,
-            commit_id,
-            vcs.GIT_OBJECT_COMMIT,
-            repo.default_signature,
-            self.message,
-        )
+        try:
+            repo.create_tag(
+                self.tag,
+                commit_id,
+                vcs.GIT_OBJECT_COMMIT,
+                repo.default_signature,
+                self.message,
+            )
+        except Exception as exception:
+            logger.warning(f"Failed to create tag: {exception}")
 
         branch_name = "release"
         ref_name = f"refs/heads/{branch_name}"
@@ -191,9 +194,10 @@ class IncrementorVersion(Incrementor):
     def path(self):
         return self.paths.version
 
-    @logger.instrument('Incrementing version file "{self.path}"...')
+
     def apply(self) -> Path | list[Path] | None:
         path = self.paths.version
+        logger.info(f'Incrementing version file "{self.path}" {Constants.ARROW_RIGHT} {self.version}...')
         path.write_text(str(self.version))
         project = self.inherit_root
         project.incremented = True
