@@ -1,0 +1,5 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+curl -fsSL "https://pypi.org/pypi/${PROJECT}/json" | jq -e --arg v "${VERSION}" '.releases[$v] != null' >/dev/null

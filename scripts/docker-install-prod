@@ -1,0 +1,9 @@
+#!/bin/bash
+
+. parse-args "$@"
+
+set -eux
+cp --archive /tmp/repo/. /tmp/build/
+pip wheel /tmp/build --no-cache-dir --no-deps --wheel-dir /tmp/dist
+pip install --no-cache-dir --no-index --find-links=/tmp/dist ${NAME}
+rm -rf /tmp/build /tmp/dist
