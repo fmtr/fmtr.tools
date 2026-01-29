@@ -205,15 +205,22 @@ class IncrementorVersion(Incrementor):
 
 
 class IncrementorHomeAssistantAddon(Incrementor):
+    DESC = 'Home Assistant Add-On config file'
 
     @cached_property
     def path(self):
         return self.paths.ha_addon_config
 
-    @logger.instrument('Incrementing Home Assistant Add-On version "{self.path}"...')
+    @logger.instrument('Incrementing {self.DESC} version "{self.path}"...')
     def apply(self) -> Path | None:
+
+        if self.versions.is_pre:
+            logger.warning(f"Release is pre-release ({self.version.prerelease}). Skipping {self.DESC}.")
+            return None
+
+
         if not self.path.exists():
-            logger.warning(f"Home Assistant Add-On config file not found: {self.path}. Skipping.")
+            logger.warning(f"{self.DESC} not found: {self.path}. Skipping.")
             return None
 
         data = self.path.read_yaml()
@@ -354,7 +361,7 @@ class ReleaseGithub(Release):
 
         data = response.json()
         url = data['html_url']
-        logger.info(f"Release created: {url}")
+        logger.info(f"Release created: {url} Changes: {self.url}")
 
 
 class ReleasePackageIndex(Release):

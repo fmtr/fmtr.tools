@@ -2,6 +2,8 @@ import importlib
 
 from fmtr.tools import api_tools as api
 from fmtr.tools.constants import Constants
+from fmtr.tools.infrastructure_tools import Project
+from fmtr.tools.infrastructure_tools.stack import ProductionPublic
 
 
 class Api(api.Base):
@@ -13,26 +15,27 @@ class Api(api.Base):
         endpoints = [
             api.Endpoint(method_http=self.app.get, path='/{name}/recreate', method=self.recreate),
             api.Endpoint(method_http=self.app.get, path='/{name}/release', method=self.release),
+            api.Endpoint(method_http=self.app.get, path='/{name}/build', method=self.build),
 
         ]
 
         return endpoints
 
-    def get_project(self, name: str):
+    def get_project(self, name: str, **kwargs) -> Project:
         mod = importlib.import_module(f"{name}.project")
         mod = importlib.reload(mod)
-        return mod.Project
+        return mod.Project(**kwargs)
 
     async def recreate(self, name: str):
-        Project = self.get_project(name)
-        project = Project()
-        project.incremented = True
-
+        project = self.get_project(name, incremented=True)
         project.stacks.channel[Constants.DEVELOPMENT].recreate()
 
+    async def build(self, name: str):
+        project = self.get_project(name, incremented=True)
+        project.stacks.cls[ProductionPublic].build()
+
     async def release(self, name: str, pinned: str = None):
-        Project = self.get_project(name)
-        project = Project(pinned=pinned)
+        project = self.get_project(name, pinned=pinned)
 
         project.releaser.run()
 
