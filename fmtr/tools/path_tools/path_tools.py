@@ -10,8 +10,6 @@ from tempfile import gettempdir
 from typing import Self
 from typing import Union, Any
 
-from packaging.metadata import Metadata
-
 from fmtr.tools.constants import Constants
 from fmtr.tools.platform_tools import is_wsl
 
@@ -280,6 +278,8 @@ class FromCallerMixin:
 
 @dataclass
 class Metadata:
+    path: Path = field(init=False)
+
     version: str
     port: int | None = None
     entrypoint: str | None = None
@@ -292,10 +292,22 @@ class Metadata:
     is_dockerhub: bool = False
 
     @classmethod
-    def from_path(cls, path: Path) -> Self:
+    def read(cls, path: Path) -> Self:
         data = path.read_json()
         self = cls(**data)
+        self.path = path
         return self
+
+    def write(self):
+        from dataclasses import asdict
+        data = asdict(self)
+        return self.path.write_json(data)
+
+    @property
+    def version_obj(self):
+        from fmtr.tools.version_tools import Version
+        version = Version.parse(self.version)
+        return version
 
 class PackagePaths(FromCallerMixin):
     """
@@ -329,7 +341,7 @@ class PackagePaths(FromCallerMixin):
         Package metadata
 
         """
-        return Metadata.from_path(self.path / Constants.FILENAME_META)
+        return Metadata.read(self.path / Constants.FILENAME_META)
 
     @property
     def is_dev(self) -> bool:
