@@ -32,7 +32,7 @@ from fmtr.tools.import_tools import MissingExtraMockModule
 from fmtr.tools.logging_tools import logger
 # Submodules
 from fmtr.tools.path_tools import Path, PackagePaths, AppPaths
-from fmtr.tools.setup_tools import Setup, SetupPaths, Dependencies, Tools
+from fmtr.tools.setup_tools import Setup, Dependencies, Tools
 
 try:
     from fmtr.tools import augmentation_tools as augmentation

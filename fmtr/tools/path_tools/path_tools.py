@@ -2,9 +2,12 @@ import os
 import re
 import subprocess
 from contextlib import contextmanager
+from dataclasses import dataclass
+from itertools import chain, product
 from pathlib import Path
 from tempfile import gettempdir
-from typing import Union, Any, Self
+from typing import Self
+from typing import Union, Any
 
 from fmtr.tools.constants import Constants
 from fmtr.tools.platform_tools import is_wsl
@@ -280,23 +283,22 @@ class PackagePaths(FromCallerMixin):
     """
 
     dev = Path('/') / 'opt' / 'dev'
+    dev_repo = dev / 'repo'
     data_global = dev / Constants.DIR_NAME_DATA
 
-    def __init__(self, path=None, org_singleton=None, dir_name_data=Constants.DIR_NAME_DATA, filename_config=Constants.FILENAME_CONFIG, file_version=Constants.FILENAME_VERSION):
-
+    def __init__(self, path: Path | None = None):
         """
 
         Use calling module path as default path, if not otherwise specified.
 
         """
-        if not path:
-            path = self.from_caller()
 
-        self.path = Path(path)
-        self.org_singleton = org_singleton
-        self.dir_name_data = dir_name_data
-        self.filename_config = filename_config
-        self.filename_version = file_version
+        data = PathsSearchData.from_caller(path or self.from_caller())
+
+        self.path = data.path
+        self.repo = data.repo
+        self.name = data.name
+        self.org = data.org
 
     @property
     def is_dev(self) -> bool:
@@ -311,19 +313,10 @@ class PackagePaths(FromCallerMixin):
     def is_namespace(self) -> bool:
         """
 
-        If organization is not hard-specified, then the package is a namespace.
+        If organization is not present, then the package is a namespace.
 
         """
-        return not bool(self.org_singleton)
-
-    @property
-    def name(self) -> str:
-        """
-
-        Name of package.
-
-        """
-        return self.path.stem
+        return bool(self.org)
 
     @property
     def name_ns(self) -> str:
@@ -338,29 +331,6 @@ class PackagePaths(FromCallerMixin):
         else:
             return self.name
 
-    @property
-    def org(self) -> str:
-        """
-
-        Name of organization.
-
-        """
-        if not self.is_namespace:
-            return self.org_singleton
-        else:
-            return self.path.parent.stem
-
-    @property
-    def repo(self) -> Path:
-        """
-
-        Path of repo (i.e. parent of package base directory).
-
-        """
-        if self.is_namespace:
-            return self.path.parent.parent
-        else:
-            return self.path.parent
 
     @property
     def version(self) -> Path:
@@ -369,7 +339,7 @@ class PackagePaths(FromCallerMixin):
         Path of version file.
 
         """
-        return self.path / self.filename_version
+        return self.path / Constants.FILENAME_VERSION
 
     @property
     def data(self) -> Path:
@@ -378,8 +348,7 @@ class PackagePaths(FromCallerMixin):
         Path of project-specific data directory.
 
         """
-
-        return self.dev / Constants.DIR_NAME_REPO / self.name_ns / self.dir_name_data
+        return self.dev / Constants.DIR_NAME_REPO / self.name_ns / Constants.DIR_NAME_DATA
 
     @property
     def cache(self) -> Path:
@@ -418,7 +387,7 @@ class PackagePaths(FromCallerMixin):
         Path of settings file.
 
         """
-        return self.data / self.filename_config
+        return self.data / Constants.FILENAME_CONFIG
 
     @property
     def hf(self) -> Path:
@@ -501,6 +470,43 @@ class PackagePaths(FromCallerMixin):
         """
         return self.docs / 'changelog' / 'changelog.md'
 
+    @property
+    def readme(self) -> Path:
+        """
+
+        Path of the README file.
+
+        """
+        return self.repo / 'README.md'
+
+    @property
+    def entrypoint(self) -> Path:
+        """
+
+        Path of base entrypoint module.
+
+        """
+        return self.path / Constants.ENTRYPOINT_FILE
+
+    @property
+    def entrypoints(self) -> Path:
+        """
+
+        Path of entrypoints sub-package.
+
+        """
+        return self.path / Constants.ENTRYPOINTS_DIR
+
+    @property
+    def scripts(self) -> Path:
+        """
+
+        Paths of shell scripts
+
+        """
+
+        return self.repo / Constants.SCRIPTS_DIR
+
     def __repr__(self) -> str:
         """
 
@@ -508,10 +514,6 @@ class PackagePaths(FromCallerMixin):
 
         """
         return f'{self.__class__.__name__}("{self.path}")'
-
-    def cd(self):
-        ...
-
 
 @contextmanager
 def chdir(path: Path):
@@ -530,7 +532,64 @@ def chdir(path: Path):
 
 root = Path('/')
 
+
+@dataclass
+class PathsSearchData:
+    path: Path
+    repo: Path
+    name: str
+    org: str | None
+
+    SETUP_FILE = "setup.py"
+
+    @classmethod
+    def from_caller(cls, path_caller: Path) -> Self:
+
+        if (path_caller / cls.SETUP_FILE).exists():
+            return cls.from_repo(path_caller)
+
+        path_repo = cls.find_repo(path_caller)
+        return cls.from_repo(path_repo)
+
+    @classmethod
+    def from_repo(cls, path_repo: Path) -> Self:
+
+        masks = "*/{name}", "*/*/{name}"
+        names = Constants.FILENAME_VERSION, Constants.FILENAME_META
+        patterns = [mask.format(name=name) for mask, name in product(masks, names)]
+
+        targets = chain.from_iterable(path_repo.glob(pattern) for pattern in patterns)
+        targets = list(targets)
+
+        if len(targets) != 1:
+            raise FileNotFoundError(f"Expected exactly 1 of {names} at depth 2 or 3 under {path_repo}, found {len(targets)}: {targets}")
+
+        path = next(iter(targets)).parent
+        parts = path.relative_to(path_repo).parts
+
+        if len(parts) == 2:
+            org, name = parts
+        else:
+            org = None
+            name = next(iter(parts))
+
+        return cls(path=path, repo=path_repo, name=name, org=org)
+
+    @classmethod
+    def find_repo(cls, path_package: Path) -> Path:
+
+        cur = path_package
+        while True:
+            if (cur / cls.SETUP_FILE).exists():
+                return cur
+            if cur.parent == cur:
+                break
+            cur = cur.parent
+
+        raise FileNotFoundError(f"Could not find {cls.SETUP_FILE} starting from {path_package}")
+
+
 if __name__ == "__main__":
-    path = Path('/usr/bin/bash').absolute()
-    path.type
-    path
+    paths = PackagePaths()
+
+    paths

@@ -1,128 +1,12 @@
 import sys
 from datetime import datetime
-from fnmatch import fnmatch
 from functools import cached_property
 from itertools import chain
 from typing import List, Dict, Any, Callable, Optional
 
 from fmtr.tools.constants import Constants
-from fmtr.tools.path_tools import Path
+from fmtr.tools.path_tools import PackagePaths
 from fmtr.tools.path_tools.path_tools import FromCallerMixin
-
-
-class SetupPaths(FromCallerMixin):
-    """
-
-    Canonical paths for a repo.
-
-    """
-
-    def __init__(self, path=None, org=Constants.ORG_NAME):
-        """
-
-        Use calling module path as default path, if not otherwise specified.
-
-        """
-        if not path:
-            path = self.from_caller()
-
-        self.org_name = org
-        self.repo = Path(path)
-
-    @property
-    def readme(self) -> Path:
-        """
-
-        Path of the README file.
-
-        """
-        return self.repo / 'README.md'
-
-    @property
-    def version(self) -> Path:
-        """
-
-        Path of the version file
-
-        """
-        return self.path / Constants.FILENAME_VERSION
-
-    @cached_property
-    def path(self) -> Path:
-        """
-
-        Infer the package path. It should be the only non-excluded package in the repo/org Path.
-
-        """
-
-        if self.is_namespace:
-            base = self.org
-        else:
-            base = self.repo
-
-        packages = [
-            dir for dir in base.iterdir()
-            if (dir / Constants.INIT_FILENAME).is_file()
-               and not any(fnmatch(dir.name, pattern) for pattern in Constants.PACKAGE_EXCLUDE_DIRS)  # todo add scripts dir
-        ]
-
-        if len(packages) != 1:
-            dirs_str = ', '.join([str(dir) for dir in packages])
-            msg = f'Expected exactly one package in {self.repo}, found {dirs_str}'
-            raise ValueError(msg)
-
-        package = next(iter(packages))
-        return package
-
-    @property
-    def org(self) -> bool | Path:
-        """
-
-        Get the org path, i.e. the namespace parent directory.
-
-        """
-        if not self.org_name:
-            return False
-        org = self.repo / self.org_name
-        if not org.is_dir():
-            return False
-        return org
-
-    @property
-    def entrypoint(self) -> Path:
-        """
-
-        Path of base entrypoint module.
-
-        """
-        return self.path / Constants.ENTRYPOINT_FILE
-
-    @property
-    def entrypoints(self) -> Path:
-        """
-
-        Path of entrypoints sub-package.
-
-        """
-        return self.path / Constants.ENTRYPOINTS_DIR
-
-    @property
-    def scripts(self) -> Path:
-        """
-
-        Paths of shell scripts
-
-        """
-
-        return self.repo / Constants.SCRIPTS_DIR
-
-    @property
-    def is_namespace(self) -> bool:
-        return bool(self.org)
-
-    @property
-    def name(self) -> str:
-        return self.path.stem
 
 
 class Setup(FromCallerMixin):
@@ -140,7 +24,7 @@ class Setup(FromCallerMixin):
     ENTRYPOINT_FUNCTION_SEP = '_'
     ENTRYPOINT_FUNC_NAME = 'main'
 
-    def __init__(self, dependencies, paths=None, org=Constants.ORG_NAME, client=None, do_setup=True, **kwargs):
+    def __init__(self, dependencies, paths=None, org_singleton=Constants.ORG_NAME, org_github=Constants.ORG_NAME, client=None, do_setup=True, **kwargs):
         """
 
         First check if commandline arguments for requirements output exist. If so, print them and return early.
@@ -159,17 +43,19 @@ class Setup(FromCallerMixin):
             self.print_requirements()
             return
 
-        self.org = org
+        self.org_singleton = org_singleton
+        self.org_github = org_github
 
         if not paths:
-            paths = SetupPaths(path=self.from_caller(), org=self.org)
+            paths = PackagePaths()
         self.paths = paths
 
-        self.client = client
+        self.client = client  # todo: Do we need all of client/org_single/org_gh?
 
         if do_setup:
             self.setup()
         self
+
 
     def get_requirements_extras(self) -> Optional[List[str]]:
         """
@@ -214,11 +100,11 @@ class Setup(FromCallerMixin):
         names_mods = [path.stem for path in paths_mods if path.is_file() and path.name != Constants.INIT_FILENAME]
         command_suffixes = [name_mod.replace(self.ENTRYPOINT_FUNCTION_SEP, self.ENTRYPOINT_COMMAND_SEP) for name_mod in names_mods]
         commands = [f'{self.name_command}-{command_suffix}' for command_suffix in command_suffixes]
-        paths = [f'{self.name}.{Constants.ENTRYPOINTS_DIR}.{name_mod}:{self.ENTRYPOINT_FUNC_NAME}' for name_mod in names_mods]
+        paths = [f'{self.paths.name_ns}.{Constants.ENTRYPOINTS_DIR}.{name_mod}:{self.ENTRYPOINT_FUNC_NAME}' for name_mod in names_mods]
 
         if self.paths.entrypoint.exists():
             commands.append(self.name_command)
-            path = f'{self.name}.{self.paths.entrypoint.stem}:{self.ENTRYPOINT_FUNC_NAME}'
+            path = f'{self.paths.name_ns}.{self.paths.entrypoint.stem}:{self.ENTRYPOINT_FUNC_NAME}'
             paths.append(path)
 
         console_scripts = [f'{command} = {path}' for command, path in zip(commands, paths)]
@@ -254,18 +140,7 @@ class Setup(FromCallerMixin):
         Name as a command, e.g. `fmtr-tools`
 
         """
-        return self.name.replace('.', self.ENTRYPOINT_COMMAND_SEP)
-
-    @property
-    def name(self) -> str:
-        """
-
-        Full library name
-
-        """
-        if self.paths.is_namespace:
-            return f'{self.paths.org_name}.{self.paths.name}'
-        return self.paths.name
+        return self.paths.name_ns.replace('.', self.ENTRYPOINT_COMMAND_SEP)
 
     @property
     def author(self) -> str:
@@ -348,10 +223,10 @@ class Setup(FromCallerMixin):
     def package_data(self):
         """
 
-        Default package data is just the version file
+        Default package data is the version and meta files
 
         """
-        return {self.name: [Constants.FILENAME_VERSION]}
+        return {self.paths.name_ns: [Constants.FILENAME_VERSION, Constants.FILENAME_META]}
 
     @property
     def url(self) -> str:
@@ -360,7 +235,7 @@ class Setup(FromCallerMixin):
         Default to GitHub URL
 
         """
-        return f'https://github.com/{self.org}/{self.name}'
+        return f'https://github.com/{self.org_github}/{self.paths.name_ns}'
 
     @property
     def data(self) -> Dict[str, Any]:
@@ -370,7 +245,7 @@ class Setup(FromCallerMixin):
 
         """
         data = dict(
-            name=self.name,
+            name=self.paths.name_ns,
             version=self.version,
             author=self.author,
             author_email=self.AUTHOR_EMAIL,

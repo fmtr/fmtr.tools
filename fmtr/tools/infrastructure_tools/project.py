@@ -1,12 +1,10 @@
 from functools import cached_property
 
 from fmtr.tools import version_tools
-from fmtr.tools.constants import Constants
 from fmtr.tools.infrastructure_tools.repository import Repository
 from fmtr.tools.inherit_tools import Inherit
 from fmtr.tools.iterator_tools import IndexList
 from fmtr.tools.path_tools import PackagePaths
-from fmtr.tools.setup_tools import SetupPaths
 
 
 class Project:
@@ -38,20 +36,9 @@ class Project:
 
         self.name = name
 
-        sep = '.'  # todo move all to SetupPaths.package_paths - or merge generally.
-        if sep in name:
-            org, package = name.split(sep)
-            org_singleton = None
-        else:
-            org = None
-            org_singleton = Constants.ORG_NAME
-
-        setup_paths = SetupPaths(path=PackagePaths.dev / 'repo' / name, org=org)
-        self.paths = PackagePaths(path=setup_paths.path, org_singleton=org_singleton)
+        self.paths = PackagePaths(PackagePaths.dev_repo / name)
 
         self.versions = Versions(self, pinned=pinned)
-
-
 
     @cached_property
     def repo(self):

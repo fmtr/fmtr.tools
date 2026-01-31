@@ -2,6 +2,7 @@ import datetime
 
 
 class Constants:
+
     ENCODING = 'UTF-8'
     ORG_NAME = 'fmtr'
     LIBRARY_NAME = f'{ORG_NAME}.tools'
@@ -49,6 +50,7 @@ class Constants:
     DIR_NAME_ARTIFACT = 'artifact'
     DIR_NAME_SOURCE = 'source'
     FILENAME_VERSION = 'version'
+    FILENAME_META = 'meta.json'
     DIR_NAME_HF = 'hf'
 
     ENTRYPOINT = 'entrypoint'
