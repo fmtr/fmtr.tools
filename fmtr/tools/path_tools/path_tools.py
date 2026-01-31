@@ -579,11 +579,12 @@ root = Path('/')
 @dataclass
 class PathsSearchData:
     path: Path
-    repo: Path
+    repo: Path | None
     name: str
     org: str | None
 
     SETUP_FILE = "setup.py"
+    SITE_PACKAGES_DIR = 'site-packages'
 
     @classmethod
     def from_caller(cls, path_caller: Path) -> Self:
@@ -616,6 +617,9 @@ class PathsSearchData:
             org = None
             name = next(iter(parts))
 
+        if path_repo.stem == cls.SITE_PACKAGES_DIR:
+            path_repo = None
+
         return cls(path=path, repo=path_repo, name=name, org=org)
 
     @classmethod
@@ -623,7 +627,7 @@ class PathsSearchData:
 
         cur = path_package
         while True:
-            if (cur / cls.SETUP_FILE).exists():
+            if (cur / cls.SETUP_FILE).exists() or cur.stem == cls.SITE_PACKAGES_DIR:
                 return cur
             if cur.parent == cur:
                 break
