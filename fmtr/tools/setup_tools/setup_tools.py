@@ -47,7 +47,7 @@ class Setup(FromCallerMixin):
         self.org_github = org_github
 
         if not paths:
-            paths = PackagePaths()
+            paths = PackagePaths(path=self.from_caller())
         self.paths = paths
 
         self.client = client  # todo: Do we need all of client/org_single/org_gh?
