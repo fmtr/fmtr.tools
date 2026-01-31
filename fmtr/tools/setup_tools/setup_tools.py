@@ -174,15 +174,6 @@ class Setup(FromCallerMixin):
         return self.paths.readme.read_text()
 
     @property
-    def version(self) -> str:
-        """
-
-        Read in the version string from file
-
-        """
-        return self.paths.version.read_text().strip()
-
-    @property
     def find(self) -> Callable:
         """
 
@@ -246,7 +237,7 @@ class Setup(FromCallerMixin):
         """
         data = dict(
             name=self.paths.name_ns,
-            version=self.version,
+            version=self.paths.metadata.version,
             author=self.author,
             author_email=self.AUTHOR_EMAIL,
             url=self.url,
