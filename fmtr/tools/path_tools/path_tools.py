@@ -2,12 +2,15 @@ import os
 import re
 import subprocess
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from functools import cached_property
 from itertools import chain, product
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Self
 from typing import Union, Any
+
+from packaging.metadata import Metadata
 
 from fmtr.tools.constants import Constants
 from fmtr.tools.platform_tools import is_wsl
@@ -275,6 +278,25 @@ class FromCallerMixin:
         return path
 
 
+@dataclass
+class Metadata:
+    version: str
+    port: int | None = None
+    entrypoint: str | None = None
+    scripts: list[str] = field(default_factory=list)
+    services: list[str] = field(default_factory=list)
+    docs: dict = field(default_factory=dict)
+    setup: dict = field(default_factory=dict)
+
+    is_pypi: bool = False
+    is_dockerhub: bool = False
+
+    @classmethod
+    def from_path(cls, path: Path) -> Self:
+        data = path.read_json()
+        self = cls(**data)
+        return self
+
 class PackagePaths(FromCallerMixin):
     """
 
@@ -299,6 +321,15 @@ class PackagePaths(FromCallerMixin):
         self.repo = data.repo
         self.name = data.name
         self.org = data.org
+
+    @cached_property
+    def metadata(self) -> Metadata:
+        """
+
+        Package metadata
+
+        """
+        return Metadata.from_path(self.path / Constants.FILENAME_META)
 
     @property
     def is_dev(self) -> bool:
@@ -562,7 +593,7 @@ class PathsSearchData:
         targets = list(targets)
 
         if len(targets) != 1:
-            raise FileNotFoundError(f"Expected exactly 1 of {names} at depth 2 or 3 under {path_repo}, found {len(targets)}: {targets}")
+            raise FileNotFoundError(f"Expected exactly 1 of {names} at depth 1 or 2 under {path_repo}, found {len(targets)}: {targets}")
 
         path = next(iter(targets)).parent
         parts = path.relative_to(path_repo).parts
@@ -591,5 +622,4 @@ class PathsSearchData:
 
 if __name__ == "__main__":
     paths = PackagePaths()
-
     paths
