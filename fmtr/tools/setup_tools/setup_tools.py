@@ -253,7 +253,9 @@ class Setup(FromCallerMixin):
             install_requires=self.dependencies.install,
             extras_require=self.dependencies.extras,
             scripts=self.scripts,
-        ) | self.kwargs
+        )
+        data |= self.paths.metadata.setup
+        data |= self.kwargs
         return data
 
     def setup(self):

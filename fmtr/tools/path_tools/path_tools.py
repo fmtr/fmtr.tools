@@ -284,6 +284,8 @@ class Metadata:
     version: str
     port: int | None = None
     entrypoint: str | None = None
+    base: str = 'python'
+
     scripts: list[str] = field(default_factory=list)
     services: list[str] = field(default_factory=list)
     docs: dict = field(default_factory=dict)
