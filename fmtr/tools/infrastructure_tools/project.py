@@ -14,7 +14,7 @@ class Project:
 
     """
 
-    def __init__(self, name, port=None, services=None, scripts=None, base='python', entrypoint=None, hostname='ws.lan', channel='dev', extras=None, is_pypi=False, is_dockerhub=False, nav=None, pinned=None, incremented=False):
+    def __init__(self, name, port=None, services=None, scripts=None, base='python', entrypoint=None, hostname='ws.lan', channel='dev', extras=None, nav=None, pinned=None):
 
         # project settings:
         self.services = services or []
@@ -23,11 +23,6 @@ class Project:
         self.port = port
         self.entrypoint = entrypoint
         self.nav = nav
-
-        self.is_pypi = is_pypi
-        self.is_dockerhub = is_dockerhub
-
-        self.incremented = incremented
 
         # runtime:
         self.hostname = hostname

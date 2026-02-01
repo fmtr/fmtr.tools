@@ -47,7 +47,7 @@ class Releaser(Inherit[Project]):
         self.repo.push()
         self.repo.fetch()
 
-        if self.is_dockerhub:
+        if self.paths.metadata.is_dockerhub:
             from fmtr.tools.infrastructure_tools.stack import ProductionPublic
             stack = self.stacks.cls[ProductionPublic]
             stack.build()
@@ -157,7 +157,7 @@ class Releaser(Inherit[Project]):
 
         ]
 
-        if self.is_pypi:
+        if self.paths.metadata.is_pypi:
             release = ReleasePackageIndexPublic(self)
             releases.append(release)
 
@@ -518,7 +518,7 @@ class ReleaseDocumentation(Release):
             remote_name="origin",
             force=True,
             no_history=False,
-            ignore_version=False,
+            ignore_version=True,
             shell=False,
             **self.data
         )
