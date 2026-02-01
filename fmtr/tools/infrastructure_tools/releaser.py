@@ -1,8 +1,9 @@
+import shutil
+from functools import cached_property
+
 import build
 import pygit2 as vcs
-import shutil
 import twine.settings
-from functools import cached_property
 from mkdocs.__main__ import cli
 from twine.commands.upload import upload as twine_upload
 
@@ -184,7 +185,7 @@ class Incrementor(Inherit[Releaser]):
     def cls(self):
         return self.__class__
 
-    def apply(self) -> Path | None:
+    def apply(self) -> Path | list[Path] | None:
         raise NotImplementedError
 
 
@@ -192,17 +193,27 @@ class IncrementorVersion(Incrementor):
 
     @cached_property
     def path(self):
-        return self.paths.version
+        return self.paths.metadata.path
 
 
     def apply(self) -> Path | list[Path] | None:
-        path = self.paths.version
-        logger.info(f'Incrementing version file "{self.path}" {Constants.ARROW_RIGHT} {self.version}...')
-        path.write_text(str(self.version))
-        project = self.inherit_root
-        project.incremented = True
-        return path
+        old = self.versions.old
+        new = self.bump(old)
 
+        logger.info(f'Incrementing metadata file "{self.path}" {old} {Constants.ARROW_RIGHT} {new}...')
+
+        self.paths.metadata.version = str(new)
+        self.paths.metadata.write()
+        return self.path
+
+    def bump(self, version):
+
+        if self.versions.pinned:
+            return self.versions.pinned
+
+        if version.prerelease:
+            return version.bump_prerelease()
+        return version.bump_patch()
 
 class IncrementorHomeAssistantAddon(Incrementor):
     DESC = 'Home Assistant Add-On config file'
@@ -212,7 +223,7 @@ class IncrementorHomeAssistantAddon(Incrementor):
         return self.paths.ha_addon_config
 
     @logger.instrument('Incrementing {self.DESC} version "{self.path}"...')
-    def apply(self) -> Path | None:
+    def apply(self) -> Path | list[Path]:
 
         if self.versions.is_pre:
             logger.warning(f"Release is pre-release ({self.version.prerelease}). Skipping {self.DESC}.")

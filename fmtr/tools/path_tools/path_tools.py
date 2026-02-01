@@ -302,6 +302,7 @@ class Metadata:
     def write(self):
         from dataclasses import asdict
         data = asdict(self)
+        data.pop('path')
         return self.path.write_json(data)
 
     @property

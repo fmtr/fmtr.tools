@@ -105,27 +105,11 @@ class Versions(Inherit[Project]):
             self.pinned = version_tools.Version.parse(pinned)
 
     def get(self):
-        ver_str = self.paths.version.read_text().strip()
-
-        version_obj = version_tools.parse(ver_str)
-        return version_obj
+        return self.paths.metadata.version_obj
 
     @property
     def new(self):
-
-        version_obj = self.get()
-
-        if self.incremented:
-            return version_obj
-
-        version_obj = self.pinned or self.bump(version_obj)
-
-        return version_obj
-
-    def bump(self, version):
-        if version.prerelease:
-            return version.bump_prerelease()
-        return version.bump_patch()
+        return self.get()
 
     @property
     def is_pre(self):
