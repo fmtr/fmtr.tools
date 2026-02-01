@@ -492,7 +492,7 @@ class ReleaseDocumentation(Release):
             extra={
                 "version": {"provider": "mike"},
             },
-        ) | self.paths.metadata.doc
+        ) | self.paths.metadata.docs
 
     @property
     def message(self):
