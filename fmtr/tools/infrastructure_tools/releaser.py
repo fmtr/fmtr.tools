@@ -298,6 +298,18 @@ class Packager(Inherit[Releaser]):
             path = builder.build(self.TYPE, str(self.path))
             logger.info(f'Build complete: {path}')
 
+        self.cleanup()
+
+    def cleanup(self):
+
+        patterns = '*.egg-info', 'dist', 'build'
+
+        with logger.span(f'Cleaning up after {self.TYPE} build...'):
+            for pattern in patterns:
+                for path in self.paths.repo.glob(pattern):
+                    with logger.span(f'Removing {path}...'):
+                        shutil.rmtree(path)
+
 
 class PackageWheel(Packager):
     """
@@ -347,7 +359,7 @@ class ReleaseGithub(Release):
             return f'**Full Changelog**: [{self.versions.old} {Constants.ARROW_RIGHT} {self.versions.new}]({self.url})'
 
     def release(self):
-        url = f"https://api.github.com/repos/{self.org}/{self.paths.name_ns}/releases"
+        url = f"https://api.github.com/repos/{self.org or Constants.ORG_NAME}/{self.paths.name_ns}/releases"  # todo add gh org to meta.json
         name = f'Release {self.tag}'
 
         headers = {
