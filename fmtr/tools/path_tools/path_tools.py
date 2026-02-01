@@ -1,5 +1,6 @@
 import os
 import re
+import site
 import subprocess
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -7,7 +8,7 @@ from functools import cached_property
 from itertools import chain, product
 from pathlib import Path
 from tempfile import gettempdir
-from typing import Self
+from typing import Self, Tuple
 from typing import Union, Any
 
 from fmtr.tools.constants import Constants
@@ -578,26 +579,55 @@ root = Path('/')
 
 @dataclass
 class PathsSearchData:
+    """
+
+    Finds the one/two part parts between the root (repo/site) and the package. Once we have those two fixed points, we can work out the org/name.
+
+    So when we start in the package, all we need to do is find the repo/site. And when we start in the repo, we need to find the package.
+
+    Package: The caller path is the package, like fmtr/tools or acme.
+      Site Packages: The caller path is in site-packages, and root of the package. Here we find the site-packages dir we're in, and call it the root.
+      Dev: The caller path is a repo, like /opt/dev/repo/fmtr.tools/fmtr/tools. Here we also know we're in the package already, so can just find the root.
+    From package: We never need to look inside the package, as we already know where it is.
+
+    Repo: The caller path is the repo root (e.g. setup.py). This is the only case we're not in the package already, so need to infer it. We can do this by calling find_package to find meta at relevant depths.
+    From repo: versions might be in package/meta.json or org/package/meta.json, so depths between 1 and 2 are possible.
+
+    """
     path: Path
     repo: Path | None
     name: str
     org: str | None
 
     SETUP_FILE = "setup.py"
-    SITE_PACKAGES_DIR = 'site-packages'
 
     @classmethod
     def from_caller(cls, path_caller: Path) -> Self:
 
         if (path_caller / cls.SETUP_FILE).exists():
-            return cls.from_repo(path_caller)
+            path_root = path_caller
+            path_package = cls.find_package(path_root)
+            is_repo = True
+        elif (path_caller / Constants.FILENAME_VERSION).exists() or (path_caller / Constants.FILENAME_META).exists():
+            path_package = path_caller
+            path_root, is_repo = cls.find_root(path_package)
+        else:
+            raise FileNotFoundError(f'Path does not appear to be a package or a repo: "{path_caller}"')
 
-        path_repo = cls.find_repo(path_caller)
-        return cls.from_repo(path_repo)
+        parts = path_package.relative_to(path_root).parts
+        org, name = cls.get_org_name(parts)
+        repo = path_root if is_repo else None
+        self = cls(path=path_package, repo=repo, name=name, org=org)
+        return self
+
 
     @classmethod
-    def from_repo(cls, path_repo: Path) -> Self:
+    def find_package(cls, path_repo: Path) -> Path:
+        """
 
+        Find the package directory, given a site/repo root. Do this by looking for meta at singleton and namespace depths.
+
+        """
         masks = "*/{name}", "*/*/{name}"
         names = Constants.FILENAME_VERSION, Constants.FILENAME_META
         patterns = [mask.format(name=name) for mask, name in product(masks, names)]
@@ -608,33 +638,47 @@ class PathsSearchData:
         if len(targets) != 1:
             raise FileNotFoundError(f"Expected exactly 1 of {names} at depth 1 or 2 under {path_repo}, found {len(targets)}: {targets}")
 
-        path = next(iter(targets)).parent
-        parts = path.relative_to(path_repo).parts
+        path_package = next(iter(targets)).parent
+        return path_package
 
+    @classmethod
+    def find_root(cls, path_package: Path) -> Tuple[Path, bool]:
+        """
+
+        Find the site/repo root, given a package directory. First check if it's under a site directory, then whether any parent is a repo root.
+
+        """
+        paths_site = site.getsitepackages() + [site.getusersitepackages()]
+        paths_site = [Path(path_site) for path_site in paths_site]
+
+        for path_site in paths_site:
+            if path_package.is_relative_to(path_site):
+                return path_site, False
+
+
+        cur = path_package
+        while True:
+            if (cur / cls.SETUP_FILE).exists():
+                return cur, True
+            if cur.parent == cur:
+                break
+            cur = cur.parent
+
+        raise FileNotFoundError(f"Could not find the site-packages or repo root starting from {path_package}")
+
+    @classmethod
+    def get_org_name(cls, parts) -> Tuple[str | None, str]:
+        """
+
+        Get the org and name from the package path parts, in both singleton and namespace cases.
+
+        """
         if len(parts) == 2:
             org, name = parts
         else:
             org = None
             name = next(iter(parts))
-
-        if path_repo.stem == cls.SITE_PACKAGES_DIR:
-            path_repo = None
-
-        return cls(path=path, repo=path_repo, name=name, org=org)
-
-    @classmethod
-    def find_repo(cls, path_package: Path) -> Path:
-
-        cur = path_package
-        while True:
-            if (cur / cls.SETUP_FILE).exists() or cur.stem == cls.SITE_PACKAGES_DIR:
-                return cur
-            if cur.parent == cur:
-                break
-            cur = cur.parent
-
-        raise FileNotFoundError(f"Could not find {cls.SETUP_FILE} starting from {path_package}")
-
+        return org, name
 
 if __name__ == "__main__":
     paths = PackagePaths()
