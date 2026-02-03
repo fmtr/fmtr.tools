@@ -27,11 +27,11 @@ class Api(api.Base):
         return mod.Project(**kwargs)
 
     async def recreate(self, name: str):
-        project = Project(name, incremented=True)
+        project = Project(name)
         project.stacks.channel[Constants.DEVELOPMENT].recreate()
 
     async def build(self, name: str):
-        project = Project(name, incremented=True)
+        project = Project(name)
         project.stacks.cls[ProductionPublic].build()
 
     async def release(self, name: str, pinned: str = None):

@@ -170,7 +170,7 @@ class Releaser(Inherit[Project]):
 
     def package(self):
         if self.path.exists():
-            logger.warning(f"Package directory already exists: {self.path}. Will be removed.")
+            logger.info(f"Package directory already exists: {self.path}. Will be removed.")
             shutil.rmtree(self.path)
 
         self.path.mkdir(parents=True)
@@ -225,13 +225,12 @@ class IncrementorHomeAssistantAddon(Incrementor):
     @logger.instrument('Incrementing {self.DESC} version "{self.path}"...')
     def apply(self) -> Path | list[Path]:
 
-        if self.versions.is_pre:
-            logger.warning(f"Release is pre-release ({self.version.prerelease}). Skipping {self.DESC}.")
+        if not self.path.exists():
+            logger.info(f"{self.DESC} not found: {self.path}. Skipping.")
             return None
 
-
-        if not self.path.exists():
-            logger.warning(f"{self.DESC} not found: {self.path}. Skipping.")
+        if self.versions.is_pre:
+            logger.warning(f"Release is pre-release ({self.version.prerelease}). Skipping {self.DESC}.")
             return None
 
         data = self.path.read_yaml()
@@ -252,7 +251,7 @@ class IncrementorChangelogSymlink(Incrementor):
 
     def apply(self) -> Path | list[Path] | None:
         if not self.dest.exists():
-            logger.warning(f"Symlink dest not found: {self.dest}. Skipping.")
+            logger.info(f"Symlink dest not found: {self.dest}. Skipping.")
             return None
 
         dest = self.dest.relative_to(self.paths.repo)
@@ -274,7 +273,7 @@ class IncrementorChangelog(IncrementorChangelogSymlink):
     def apply(self) -> Path | list[Path] | None:
         path = self.paths.docs_changelog
         if not path.exists():
-            logger.warning(f"New changelog not found: {path}. Skipping.")
+            logger.info(f"New changelog not found: {path}. Skipping.")
             return None
 
         logger.info(f"Version tagging Changelog: {path} {Constants.ARROW_RIGHT} {self.dest}")
@@ -525,6 +524,9 @@ class ReleaseDocumentation(Release):
         return result
 
     def release(self):
+        if not self.paths.docs.exists():
+            logger.info(f"No documentation found at {self.paths.docs}. Skipping...")
+            return
+
         with self.paths.repo.chdir:
             self.deploy()
-        self

@@ -181,6 +181,10 @@ class Compose(Inherit[Stack]):
     NAME = 'base'
 
     @property
+    def port(self):
+        return self.paths.metadata.port
+
+    @property
     def data(self):
         data = dict(
             name=f"{self.name_dash}",
