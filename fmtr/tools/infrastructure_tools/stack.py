@@ -84,16 +84,15 @@ class Stack(Inherit[Project]):
         """
 
         build_args = dict(
-            NAME=self.name,
+            NAME=self.paths.name_ns,
+            VERSION=str(self.versions.new),
             ORG=self.org,
-            PACKAGE=self.package,
-            BASE=self.base,
+            PACKAGE=self.paths.name,
+            BASE=self.paths.metadata.base,
             EXTRAS=self.extras_str,
             ENTRYPOINT=self.entrypoint,
             SCRIPTS=self.scripts_str,
         )
-
-
 
         contexts = dict(
             package=str(self.paths.repo)
