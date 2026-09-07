@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from corio.strings import camel_to_snake, get_docstring
 
@@ -19,6 +19,7 @@ class Base(ABC):
     NAME: str | None = None
     DESCRIPTION: str | None = None
     TAKES_CTX: bool = True
+    approve: ClassVar[bool] = False
 
     def __init__(self, toolset: ToolsetBase):
         self.toolset = toolset
