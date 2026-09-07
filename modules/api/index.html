@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
       
 
@@ -2495,7 +2495,7 @@
 <li><code>Base</code>: app bootstrap, endpoint registration, child API mounting, and uvicorn launch helpers</li>
 </ul>
 <p>Install:</p>
-<div class="language-bash highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;corio[api]&quot;</span><span class="w"> </span>--upgrade
+<div class="language-bash highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"corio[api]"</span><span class="w"> </span>--upgrade
 </code></pre></div>
 <h2 id="typical-endpoint-pattern">Typical Endpoint Pattern</h2>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -2504,7 +2504,7 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">HealthApi</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">Base</span><span class="p">):</span>
-    <span class="n">TITLE</span> <span class="o">=</span> <span class="s2">&quot;Health API&quot;</span>
+    <span class="n">TITLE</span> <span class="o">=</span> <span class="s2">"Health API"</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">ENDPOINTS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2516,13 +2516,13 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Health</span><span class="p">(</span><span class="n">api</span><span class="o">.</span><span class="n">endpoint</span><span class="o">.</span><span class="n">API</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Service health.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Service health."""</span>
 
-    <span class="n">PATH</span> <span class="o">=</span> <span class="s2">&quot;/health&quot;</span>
-    <span class="n">TAGS</span> <span class="o">=</span> <span class="s2">&quot;status&quot;</span>
+    <span class="n">PATH</span> <span class="o">=</span> <span class="s2">"/health"</span>
+    <span class="n">TAGS</span> <span class="o">=</span> <span class="s2">"status"</span>
 
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;ok&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"ok"</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
 </code></pre></div>
 <p>Run with:</p>
 <div class="language-python highlight"><pre><span></span><code><span class="n">HealthApi</span><span class="o">.</span><span class="n">launch</span><span class="p">()</span>
@@ -2596,7 +2596,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.indexes", "content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

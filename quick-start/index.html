@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
       
 
@@ -2507,15 +2507,15 @@
 </code></pre></div>
 <h2 id="install-extras">Install Extras</h2>
 <p><code>corio</code> keeps optional dependencies behind extras:</p>
-<div class="language-bash highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;corio[dm,http,api]&quot;</span><span class="w"> </span>--upgrade
+<div class="language-bash highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"corio[dm,http,api]"</span><span class="w"> </span>--upgrade
 </code></pre></div>
 <p>You can mix as many extras as needed for your project.</p>
 <h2 id="basic-usage">Basic Usage</h2>
 <div class="language-python highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">corio</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">corio</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="n">port</span> <span class="o">=</span> <span class="n">corio</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">get_int</span><span class="p">(</span><span class="s2">&quot;APP_PORT&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">8080</span><span class="p">)</span>
-<span class="n">Path</span><span class="p">(</span><span class="s2">&quot;runtime.json&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write_json</span><span class="p">({</span><span class="s2">&quot;port&quot;</span><span class="p">:</span> <span class="n">port</span><span class="p">})</span>
+<span class="n">port</span> <span class="o">=</span> <span class="n">corio</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">get_int</span><span class="p">(</span><span class="s2">"APP_PORT"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">8080</span><span class="p">)</span>
+<span class="n">Path</span><span class="p">(</span><span class="s2">"runtime.json"</span><span class="p">)</span><span class="o">.</span><span class="n">write_json</span><span class="p">({</span><span class="s2">"port"</span><span class="p">:</span> <span class="n">port</span><span class="p">})</span>
 </code></pre></div>
 <h2 id="missing-extra-errors">Missing Extra Errors</h2>
 <p>If a module needs an extra that is not installed, the import surfaces a clear guidance message with the required extra name.</p>
@@ -2572,7 +2572,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.indexes", "content.code.annotate", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
