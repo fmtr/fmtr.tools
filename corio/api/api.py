@@ -1,17 +1,16 @@
 from __future__ import annotations
 
+import httpx
 import logging
+import uvicorn
 from contextlib import AsyncExitStack, asynccontextmanager
+from fastapi import FastAPI, Request
 from functools import cached_property
 from typing import Callable, List, Self, TYPE_CHECKING
 
-import httpx
-import uvicorn
-from fastapi import FastAPI, Request
-
-from corio import env, strings
 from corio import api
-from corio.iterator import IndexList
+from corio import env, strings
+from corio.iterator import ilist
 from corio.logs import logger
 
 if TYPE_CHECKING:
@@ -72,7 +71,7 @@ class Base:
         )
         logger.instrument_fastapi(self.app)
 
-        self.endpoints = IndexList[api.endpoint.Base]()
+        self.endpoints = ilist[api.endpoint.Base]()
         for cls in self.ENDPOINTS:
             endpoint = cls(self)
             endpoint.register()

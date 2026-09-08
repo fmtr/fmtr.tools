@@ -1,5 +1,6 @@
-from dataclasses import dataclass
+import pytest
 from contextlib import nullcontext
+from dataclasses import dataclass
 
 from corio import iterator
 
@@ -51,13 +52,57 @@ class _Obj:
     value: int
 
 
-def test_index_list_lookup_by_attr_and_key():
-    objects = iterator.IndexList([_Obj(key="a", value=1), _Obj(key="b", value=2)])
-    assert objects.key["a"].value == 1
-    assert objects.cls[_Obj].value == 2
+@dataclass
+class _OtherObj:
+    key: str
+    value: int
 
-    dicts = iterator.IndexList([{"id": "x", "value": 1}, {"id": "y", "value": 2}])
+
+@dataclass
+class _Tool:
+    category: str
+    name: str
+
+
+def test_ilist_lookup_by_attr_and_key():
+    objects = iterator.ilist([_Obj(key="a", value=1), _OtherObj(key="b", value=2)])
+    assert objects.key["a"].value == 1
+    assert objects.cls[_OtherObj].value == 2
+
+    dicts = iterator.ilist([{"id": "x", "value": 1}, {"id": "y", "value": 2}])
     assert dicts.id["y"]["value"] == 2
+
+
+def test_ilist_chains_and_fdict_groups_values():
+    tools = iterator.ilist([
+        _Tool(category="tools", name="builder"),
+        _Tool(category="tools", name="runner"),
+        _Tool(category="utils", name="formatter"),
+    ])
+
+    assert [tool.name for tool in tools.category["tools", ...]] == ["builder", "runner"]
+    assert tools.category["utils", ...].name["formatter"].name == "formatter"
+    assert tools.category["utils", ...][0].name == "formatter"
+
+
+def test_ilist_cls_requires_a_singleton():
+    tools = iterator.ilist([_Tool("tools", "builder"), _Tool("tools", "runner")])
+
+    with pytest.raises(KeyError, match="ambiguous.*2 items"):
+        tools.cls[_Tool]
+
+
+def test_fdict_groups_items_and_is_immutable():
+    values = iterator.fdict((("key", 1), ("key", 2), ("other", 3)))
+
+    assert values["key", ...] == [1, 2]
+    assert values["other"] == 3
+    assert isinstance(dict.__getitem__(values, "key"), iterator.ilist)
+
+    with pytest.raises(TypeError):
+        values["key"] = 4
+    with pytest.raises(TypeError):
+        values.update({"key": 4})
 
 
 def test_iterator_yields_datum_with_stats(monkeypatch):

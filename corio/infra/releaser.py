@@ -1,14 +1,13 @@
-import shutil
-import subprocess
-from functools import cached_property
-
 import build
 import pygit2 as vcs
+import shutil
+import subprocess
 import twine.settings
+from functools import cached_property
 from mkdocs.__main__ import cli
 from twine.commands.upload import upload as twine_upload
 
-from corio.iterator import IndexList
+from corio.iterator import ilist
 
 gh_deploy = cli.commands["gh-deploy"].callback
 serve = cli.commands["serve"].callback
@@ -164,7 +163,7 @@ class Releaser(Inherit[Project]):
     def incrementors(self):
         from corio.infra.incrementor_pyproject import IncrementorPyproject
 
-        return IndexList[Incrementor](
+        return ilist[Incrementor](
             [
                 IncrementorVersion(self),
                 IncrementorPyproject(self),

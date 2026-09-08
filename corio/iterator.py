@@ -1,12 +1,13 @@
-import datetime
-from datetime import timedelta
+from __future__ import annotations
+
 from itertools import chain, batched
-from time import monotonic
+
+from datetime import timedelta
+from types import EllipsisType
 from typing import List, Dict, Any, TypeVar, Generic, Iterable, Mapping, Sequence, Iterator as TypingIterator
 
 from corio import dt, Constants
 from corio.datatype import is_none
-from corio.inherit import Inherit
 from corio.logs import logger
 from corio.strings import join, suffix_plural
 
@@ -125,24 +126,25 @@ def flatten_tree(data, node=None, flat=None, sep=None):
     return flat
 
 
-IndexListT = TypeVar('IndexListT')  # Generic type for list items
+fdictK = TypeVar("fdictK")
+ilistT = TypeVar("ilistT")
 
 
-class IndexList(list[IndexListT], Generic[IndexListT]):
+class ilist(list[ilistT], Generic[ilistT]):
     """
 
     List of objects selectable via attribute lookup, plus currently-selected item.
 
     """
 
-    def __init__(self, iterable: Iterable[IndexListT] = ()):
+    def __init__(self, iterable: Iterable[ilistT] = ()):
         """
 
         Initialize with iterable
 
         """
         super().__init__(iterable)
-        self.current: IndexListT | None = self[0] if self else None
+        self.current: ilistT | None = self[0] if self else None
 
     def __getattr__(self, name):
         """
@@ -150,28 +152,97 @@ class IndexList(list[IndexListT], Generic[IndexListT]):
         Return a lookup dict keyed on the specified field of each item in the self/list.
 
         """
-
-        try:
-            return self.__dict__[name]
-        except KeyError:
-            pass
-
-        if hasattr(list, name):
-            return getattr(self, name)
-
-        result = {}
+        items = []
         for obj in self:
             try:
                 value = getattr(obj, name)
             except AttributeError:
-                value = obj[name]  # assume dict-like
-            result[value] = obj
-        return result
+                value = obj[name]
+            items.append((value, obj))
+        return fdict(tuple(items))
 
     @property
-    def cls(self) -> dict[type, IndexListT]:
-        return {obj.__class__: obj for obj in self}
+    def cls(self) -> fdict[type, ilistT]:
+        """
 
+        Return a lookup dict keyed on each item's class.
+
+        """
+        items = tuple((obj.__class__, obj) for obj in self)
+        return fdict(items)
+
+
+class fdict(dict[fdictK, ilist[ilistT]], Generic[fdictK, ilistT]):
+    """
+
+    Frozen dictionary whose keys index one or more values.
+
+    """
+
+    def __init__(self, items: tuple[tuple[fdictK, ilistT], ...] = ()):
+        """
+
+        Initialize an immutable multimap from key/item pairs.
+
+        """
+        super().__init__()
+        for key, item in items:
+            if key not in self:
+                dict.__setitem__(self, key, ilist())
+            dict.__getitem__(self, key).append(item)
+
+    def __getitem__(self, key: fdictK | tuple[fdictK, EllipsisType]) -> ilistT | ilist[ilistT]:
+        """
+
+        Return the singleton value or all values requested with tuple syntax.
+
+        """
+        is_all = False
+        if isinstance(key, tuple):
+            is_all = True
+            key, _ = key
+
+        values = dict.__getitem__(self, key)
+        if is_all:
+            return values
+        if len(values) != 1:
+            msg = f"{type(self).__name__} lookup for {key!r} is ambiguous: it matches {len(values)} items; use [{key!r}, ...] to retrieve all"
+            raise KeyError(msg)
+
+        value = next(iter(values))
+        return value
+
+    def raise_immutable(self):
+        """
+
+        Raise the error shared by all mutation attempts.
+
+        """
+        raise TypeError(f"{type(self).__name__} is immutable")
+
+    def __setitem__(self, key, item):
+        self.raise_immutable()
+
+    def __delitem__(self, key):
+        self.raise_immutable()
+
+    def clear(self):
+        self.raise_immutable()
+
+    def pop(self, key, *args):
+        self.raise_immutable()
+
+    def popitem(self):
+        self.raise_immutable()
+
+    def setdefault(self, key, item=None):
+        self.raise_immutable()
+
+    def update(self, other=(), /, **kwargs):
+        self.raise_immutable()
+
+    def __ior__(self, other):
+        self.raise_immutable()
 
 IterDifferT = TypeVar("IterDifferT")
 IteratorT = TypeVar("IteratorT")

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from corio import https
-from corio.iterator import IndexList
+from corio.iterator import ilist
 
 
 @dataclass(frozen=True)
@@ -24,11 +24,11 @@ class Lease:
         )
 
     @classmethod
-    def from_leases(cls, text: str) -> IndexList["Lease"]:
-        return IndexList(cls.from_text(line) for line in text.splitlines() if line.strip())
+    def from_leases(cls, text: str) -> ilist["Lease"]:
+        return ilist(cls.from_text(line) for line in text.splitlines() if line.strip())
 
     @classmethod
-    async def from_url(cls, url: str) -> IndexList["Lease"]:
+    async def from_url(cls, url: str) -> ilist["Lease"]:
         async with https.AsyncClient() as client:
             response = await client.get(url)
             response.raise_for_status()

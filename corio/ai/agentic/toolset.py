@@ -1,17 +1,16 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import TYPE_CHECKING, Any
-
 from pydantic import ConfigDict, validate_call
 from pydantic_ai import RunContext
-from pydantic_ai.toolsets import FunctionToolset
 from pydantic_ai.tools import ToolDefinition
+from pydantic_ai.toolsets import FunctionToolset
+from typing import TYPE_CHECKING, Any
 
 from corio import strings
 from corio.ai.agentic import tool
 from corio.ai.agentic.approval import ApprovalMetadata, ApprovalRequiredToolsetMetadata
-from corio.iterator import IndexList
+from corio.iterator import ilist
 from corio.strings import get_docstring, join_natural
 
 
@@ -69,13 +68,13 @@ class Base(FunctionToolset):
         return []
 
     @cached_property
-    def tool_instances(self) -> IndexList[tool.Base]:
+    def tool_instances(self) -> ilist[tool.Base]:
         """
 
         Instantiated tool objects for this toolset.
 
         """
-        return IndexList[tool.Base](tool_cls(self) for tool_cls in self.TOOLS)
+        return ilist[tool.Base](tool_cls(self) for tool_cls in self.TOOLS)
 
     async def get_instructions(self, ctx: RunContext[Any]) -> list[str]:
         """

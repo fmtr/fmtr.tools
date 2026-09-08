@@ -3,7 +3,7 @@ from functools import cached_property
 from corio import version
 from corio.infra.repository import Repository
 from corio.inherit import Inherit
-from corio.iterator import IndexList
+from corio.iterator import ilist
 from corio.path import PackagePaths
 
 
@@ -70,7 +70,7 @@ class Project:
     @cached_property
     def stacks(self):
         from corio.infra.stack import Production, Stack
-        return IndexList[Stack]([Production(self)])
+        return ilist[Stack]([Production(self)])
 
     @cached_property
     def releaser(self):
