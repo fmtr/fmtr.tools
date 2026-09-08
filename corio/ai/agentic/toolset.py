@@ -5,15 +5,14 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import ConfigDict, validate_call
 from pydantic_ai import RunContext
-from pydantic_ai.toolsets import ApprovalRequiredToolset, FunctionToolset
+from pydantic_ai.toolsets import FunctionToolset
 from pydantic_ai.tools import ToolDefinition
 
 from corio import strings
 from corio.ai.agentic import tool
+from corio.ai.agentic.approval import ApprovalMetadata, ApprovalRequiredToolsetMetadata
 from corio.iterator import IndexList
 from corio.strings import get_docstring, join_natural
-
-
 
 
 class Base(FunctionToolset):
@@ -107,10 +106,10 @@ class Base(FunctionToolset):
             ctx: RunContext[Any],
             tool_def: ToolDefinition,
             tool_args: dict[str, Any],
-    ) -> bool:
+    ) -> ApprovalMetadata | bool:
         """
 
-        Decide whether a tool call requires user approval.
+        Decide whether a tool call requires user approval, and if so why.
 
         """
 
@@ -124,16 +123,18 @@ class Base(FunctionToolset):
             tool.approve,
             config=ConfigDict(arbitrary_types_allowed=True),
         )
-        return bool(tool_approve(ctx, **tool_args))
+        msgs = tool_approve(ctx, **tool_args)
+        return ApprovalMetadata(msgs=msgs)
+
 
     @cached_property
-    def wrapper(self) -> ApprovalRequiredToolset:
+    def wrapper(self) -> ApprovalRequiredToolsetMetadata:
         """
 
         Return the approval-enforcing view of this toolset.
 
         """
-        return ApprovalRequiredToolset(self, self.approve)
+        return ApprovalRequiredToolsetMetadata(self, self.approve)
 
     @cached_property
     def option(self) -> options.Policy:
