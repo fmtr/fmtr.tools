@@ -1,44 +1,24 @@
 from __future__ import annotations
 
+import sys
+from itertools import chain
+from pathlib import Path
+
 import os
 import site
-import sys
 import typing
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from functools import cached_property
-from itertools import chain
-from pathlib import Path
 from tempfile import gettempdir
-from typing import Any, Callable, Iterator, Self, Tuple
+from typing import Any, Callable, Self, Tuple
 
 from corio.constants import Constants
 from corio.strings import join_natural
 
 if typing.TYPE_CHECKING:
     from datetime import datetime, timezone
-    from ripgrep_rs import SearchMatch
-
-
-@dataclass(frozen=True)
-class SearchResult:
-    """Matches found in one file."""
-
-    path: Path
-    matches: tuple[SearchMatch, ...]
-
-
-@dataclass(frozen=True)
-class SearchResults:
-    """The files and matches returned by a path search."""
-
-    results: tuple[SearchResult, ...]
-
-    def __iter__(self) -> Iterator[SearchResult]:
-        return iter(self.results)
-
-    def __len__(self) -> int:
-        return len(self.results)
+    from corio.path.search import Searchers
 
 
 class Path(type(Path())):
@@ -49,7 +29,7 @@ class Path(type(Path())):
     """
 
     @classmethod
-    def package(cls) -> "Path":
+    def package(cls) -> Self:
         """
 
         Get path to originating module (e.g. directory containing .py file).
@@ -61,7 +41,7 @@ class Path(type(Path())):
         return path
 
     @classmethod
-    def module(cls) -> "Path":
+    def module(cls) -> Self:
         """
 
         Get path to originating module (i.e. .py file).
@@ -73,7 +53,7 @@ class Path(type(Path())):
         return path
 
     @classmethod
-    def temp(cls) -> "Path":
+    def temp(cls) -> Self:
         """
 
         Get path to temporary directory.
@@ -81,21 +61,16 @@ class Path(type(Path())):
         """
         return cls(gettempdir())
 
-    def search(self, patterns: list[str], **kwargs) -> SearchResults:
-        """Search this path and group structured matches by Corio path."""
-        from collections import defaultdict
-        from ripgrep_rs import search_structured
+    @cached_property
+    def search(self) -> Searchers:
+        """
 
-        options = dict(patterns=patterns, paths=[str(self)]) | kwargs
-        matches = search_structured(**options)
-        grouped = defaultdict(list)
-        for match in matches:
-            grouped[type(self)(match.path)].append(match)
-        results = tuple(
-            SearchResult(path, tuple(path_matches))
-            for path, path_matches in grouped.items()
-        )
-        return SearchResults(results)
+        Return search operations scoped to this path.
+
+        """
+        from corio.path.search import Searchers
+
+        return Searchers(self)
 
     def write_json(self, obj) -> int:
         """
@@ -272,7 +247,7 @@ class Path(type(Path())):
         for path in paths:
             os.chown(path, owner.pw_uid, owner.pw_gid)
 
-    def with_suffix(self, suffix: str) -> "Path":
+    def with_suffix(self, suffix: str) -> Self:
         """
 
         Pathlib doesn't add a dot prefix, but then errors if you don't provide one, which feels rather obnoxious.
@@ -282,7 +257,7 @@ class Path(type(Path())):
             suffix = f".{suffix}"
         return super().with_suffix(suffix)
 
-    def get_conversion_path(self, suffix: str) -> "Path":
+    def get_conversion_path(self, suffix: str) -> Self:
         """
 
         Fetch the equivalent path for a different format in the standard conversion directory structure.

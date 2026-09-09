@@ -1,7 +1,6 @@
 import pathlib
-from datetime import timezone
-
 import pytest
+from datetime import timezone
 
 from corio import path
 
@@ -211,14 +210,26 @@ def test_path_submodule_type_guess(monkeypatch):
     assert path_type.guess("anything") is sentinel
 
 
-def test_search_groups_structured_matches_by_path(tmp_path):
+def test_search_contents_groups_structured_matches_by_path(tmp_path):
     source = path.Path(tmp_path / "source.txt")
     source.write_text("hello\nworld hello\n")
 
-    results = source.search(["hello"])
+    results = source.search.contents(["hello"])
 
     assert len(results) == 1
-    result = results.results[0]
+    result = results[0]
     assert result.path == source
     assert [match.line_number for match in result.matches] == [1, 2]
     assert isinstance(result.path, path.Path)
+
+
+def test_search_files_returns_corio_paths(tmp_path):
+    source = path.Path(tmp_path / "source.txt")
+    source.write_text("hello\n")
+    other = path.Path(tmp_path / "other.py")
+    other.write_text("world\n")
+
+    results = source.parent.search.files(globs=["*.txt"])
+
+    assert results == [source]
+    assert all(isinstance(result, path.Path) for result in results)
